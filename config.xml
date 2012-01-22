@@ -1,0 +1,54 @@
+<!DOCTYPE softlogger SYSTEM "softlogger.dtd">
+<softlogger>
+	<name>name</name>
+	<poll>poll</poll>
+	<tableFilePath>tableFilePath</tableFilePath>
+	<logFilePath>logFilePath</logFilePath>
+	<dataFilePath>dataFilePath</dataFilePath>
+	<server>
+		<user>user</user>
+		<host>host</host>
+		<key>key</key>
+		
+		<configPoll>configPoll</configPoll>
+		<path>path</path>
+	</server>
+	<channel>
+		<tcp>
+			<host>host</host>
+		</tcp>
+		<device>
+			<address>address</address>
+			<description>description</description>
+			<configRegister>
+				<fieldName>fieldName</fieldName>
+				<regAddr>regAddr</regAddr>
+				<size>size</size>
+				<value>value</value>
+			</configRegister>
+			<dataRegister>
+				<fieldName>fieldName</fieldName>
+				<regAddr>regAddr</regAddr>
+				<size>size</size>
+				<postProcess>
+					<tableFile>tableFile</tableFile></postProcess>
+				<guid>guid</guid>
+			</dataRegister>
+			<virtualRegister>
+				<fieldName>fieldName</fieldName>
+				<regAddr>regAddr</regAddr>
+				<size>size</size>
+				<postProcess>
+					<scale>scale</scale></postProcess>
+				<guid>guid</guid>
+			</virtualRegister>
+		</device>
+	</channel>
+	<channel>
+		<serial>
+			<comport>comport</comport>
+			<baud>baud</baud>
+		</serial>
+		
+	</channel>
+</softlogger>

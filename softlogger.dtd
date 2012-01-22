@@ -1,0 +1,42 @@
+<!ELEMENT softlogger (name,poll,tableFilePath,logFilePath,dataFilePath,server,channel*)>
+<!ELEMENT name (#PCDATA)>
+<!ELEMENT poll (#PCDATA)>
+<!ELEMENT tableFilePath (#PCDATA)>
+<!ELEMENT logFilePath (#PCDATA)>
+<!ELEMENT dataFilePath (#PCDATA)>
+
+<!ELEMENT server (user,host,(password|key),configPoll,path)>
+<!ELEMENT user (#PCDATA)>
+<!ELEMENT host (#PCDATA)>
+<!ELEMENT password (#PCDATA)>
+<!ELEMENT key (#PCDATA)>
+<!ELEMENT configPoll (#PCDATA)>
+<!ELEMENT path (#PCDATA)>
+
+<!ELEMENT channel ((tcp|serial),device*)>
+<!ELEMENT tcp (host,poll?)>
+
+<!ELEMENT serial (comport,baud,poll?)>
+<!ELEMENT comport (#PCDATA)>
+<!ELEMENT baud (#PCDATA)>
+
+<!ELEMENT device (address,description,poll?,configRegister*,dataRegister*,virtualRegister*)>
+<!ELEMENT address (#PCDATA)>
+<!ELEMENT description (#PCDATA)>
+
+<!ELEMENT configRegister (fieldName,regAddr,size,value)>
+<!ELEMENT fieldName (#PCDATA)>
+<!ELEMENT regAddr (#PCDATA)>
+<!ELEMENT size (#PCDATA)>
+<!ELEMENT value (#PCDATA)>
+
+<!ELEMENT dataRegister (fieldName,regAddr,size,postProcess?,guid)>
+<!ELEMENT postProcess (type?,offset?,scale?,tableFile?,function?)>
+<!ELEMENT type (#PCDATA)>
+<!ELEMENT offset (#PCDATA)>
+<!ELEMENT scale (#PCDATA)>
+<!ELEMENT tableFile (#PCDATA)>
+<!ELEMENT function (#PCDATA)>
+<!ELEMENT guid (#PCDATA)>
+
+<!ELEMENT virtualRegister (fieldName,regAddr,size,postProcess,guid)>
