@@ -1,9 +1,14 @@
 package ca.brood;
+import org.apache.log4j.Logger;
+import org.apache.log4j.PropertyConfigurator;
+
 
 public class Softlogger {
-
+	private Logger log;
 	public Softlogger() {
-		
+		log = Logger.getLogger(Softlogger.class);
+		PropertyConfigurator.configure("logger.config");
+		log.fatal("Testing");
 	}
 	public void run() {
 
