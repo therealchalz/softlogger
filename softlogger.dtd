@@ -1,8 +1,7 @@
-<!ELEMENT softlogger (name,poll,tableFilePath,logFilePath,dataFilePath,server,channel*)>
+<!ELEMENT softlogger (name,poll,tableFilePath,dataFilePath,server,channel*)>
 <!ELEMENT name (#PCDATA)>
 <!ELEMENT poll (#PCDATA)>
 <!ELEMENT tableFilePath (#PCDATA)>
-<!ELEMENT logFilePath (#PCDATA)>
 <!ELEMENT dataFilePath (#PCDATA)>
 
 <!ELEMENT server (user,host,(password|key),configPoll,path)>
@@ -39,4 +38,6 @@
 <!ELEMENT function (#PCDATA)>
 <!ELEMENT guid (#PCDATA)>
 
-<!ELEMENT virtualRegister (fieldName,regAddr,size,postProcess,guid)>
+<!ELEMENT virtualRegister (fieldName,operand*,postProcess,guid)>
+<!ELEMENT operand ((regAddr,size,postProcess?)|value)>
+<!ATTLIST operand id CDATA #REQUIRED>

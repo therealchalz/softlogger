@@ -1,54 +1,68 @@
-<!DOCTYPE softlogger SYSTEM "softlogger.dtd">
 <softlogger>
-	<name>name</name>
-	<poll>poll</poll>
-	<tableFilePath>tableFilePath</tableFilePath>
-	<logFilePath>logFilePath</logFilePath>
-	<dataFilePath>dataFilePath</dataFilePath>
+	<name>Riverdale</name>
+	<poll>60</poll>
+	<tableFilePath>lut</tableFilePath>
+	<dataFilePath>data</dataFilePath>
 	<server>
-		<user>user</user>
-		<host>host</host>
-		<key>key</key>
+		<user>tsco</user>
+		<host>datacloud.server.com</host>
 		
-		<configPoll>configPoll</configPoll>
-		<path>path</path>
-	</server>
+		<configPoll>3600</configPoll>
+		<path>/save/data/here</path>
+		<password>fakePass01</password></server>
 	<channel>
 		<tcp>
-			<host>host</host>
+			<host>192.168.5.22</host>
 		</tcp>
 		<device>
-			<address>address</address>
-			<description>description</description>
-			<configRegister>
-				<fieldName>fieldName</fieldName>
-				<regAddr>regAddr</regAddr>
-				<size>size</size>
-				<value>value</value>
-			</configRegister>
+			<address>1</address>
+			<description>WattsOn</description>
 			<dataRegister>
-				<fieldName>fieldName</fieldName>
-				<regAddr>regAddr</regAddr>
-				<size>size</size>
+				<fieldName>Power</fieldName>
+				<regAddr>0x301</regAddr>
+				<size>4</size>
 				<postProcess>
-					<tableFile>tableFile</tableFile></postProcess>
-				<guid>guid</guid>
+					<type>FLT32</type></postProcess>
+				<guid>D3SPWH00034</guid>
 			</dataRegister>
-			<virtualRegister>
-				<fieldName>fieldName</fieldName>
-				<regAddr>regAddr</regAddr>
-				<size>size</size>
-				<postProcess>
-					<scale>scale</scale></postProcess>
-				<guid>guid</guid>
-			</virtualRegister>
 		</device>
 	</channel>
 	<channel>
 		<serial>
-			<comport>comport</comport>
-			<baud>baud</baud>
+			<comport>COM3</comport>
+			<baud>9600</baud>
 		</serial>
-		
+		<device>
+			<address>1</address>
+			<description>Floor 1 DSI</description>
+			<configRegister>
+				<fieldName>Number of sensors</fieldName>
+				<regAddr>0x02</regAddr>
+				<size>2</size>
+				<value>10</value>
+			</configRegister>
+			<dataRegister>
+				<fieldName>Unit 411 Power</fieldName>
+				<regAddr>0x0A</regAddr>
+				<size>2</size>
+				<postProcess>
+					<tableFile>100ACT.dat</tableFile></postProcess>
+				<guid>D3SIA00023</guid>
+			</dataRegister>
+			<virtualRegister>
+				<fieldName>Power</fieldName>
+				<operand id="0">
+					<regAddr>0x0A</regAddr>
+					<size>2</size>
+				</operand>
+				<operand id="">
+					<value>120</value>
+				</operand>
+				<postProcess>
+					<function>mult</function></postProcess>
+				<guid>guid</guid>
+			</virtualRegister>
+		</device>
+
 	</channel>
 </softlogger>
