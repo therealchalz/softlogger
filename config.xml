@@ -1,6 +1,6 @@
 <softlogger>
 	<name>Riverdale</name>
-	<poll>60</poll>
+	<poll>test</poll>
 	<tableFilePath>lut</tableFilePath>
 	<dataFilePath>data</dataFilePath>
 	<server>

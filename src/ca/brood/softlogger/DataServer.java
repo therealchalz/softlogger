@@ -1,4 +1,4 @@
-package ca.brood;
+package ca.brood.softlogger;
 
 import org.apache.log4j.Logger;
 import org.w3c.dom.Node;
@@ -37,7 +37,12 @@ public class DataServer {
 				password = configNode.getFirstChild().getNodeValue();
 			} else if (("configpoll".compareToIgnoreCase(configNode.getNodeName())==0))	{
 				log.debug("Server poll config period: "+configNode.getFirstChild().getNodeValue());
-				configPoll = Integer.parseInt(configNode.getFirstChild().getNodeValue());
+				try {
+					configPoll = Integer.parseInt(configNode.getFirstChild().getNodeValue());
+				} catch (NumberFormatException e) {
+					log.error("Invalid server poll config period.  Using default of 3600.");
+					configPoll = 3600;
+				}
 			} else if (("path".compareToIgnoreCase(configNode.getNodeName())==0))	{
 				log.debug("Server data file path: "+configNode.getFirstChild().getNodeValue());
 				serverPath = configNode.getFirstChild().getNodeValue();
@@ -55,8 +60,8 @@ public class DataServer {
 			return false;
 		}
 		if (configPoll < 0 || configPoll > 2592000) {//30 days
-			log.fatal("Server poll config is out of range (must be in [1,2592000]).");
-			return false;
+			log.error("Server poll config is out of range (must be in [1,2592000]).  Using default of 3600.");
+			configPoll = 3600;
 		}
 		if (password.equals("") && keyfile.equals("")) {
 			log.fatal("Must specify a keyfile or a password in the server definition");
