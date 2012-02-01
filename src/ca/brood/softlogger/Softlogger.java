@@ -21,14 +21,14 @@ public class Softlogger {
 	private boolean configValid = false;
 	
 	private String loggerName = "Unnamed Logger";
-	private int defaultDevicePoll = 60;
+	private int defaultDevicePoll = 0;
 	private String logFilePath = "log/";
 	private String tableFilePath = "lut/";
 	private String dataFilePath = "data/";
 	private String configFilePath = "";
 	
 	private DataServer server;
-	private Vector<ModbusChannel> channels;
+	private Vector<Channel> channels;
 	
 	public Softlogger() {
 		log = Logger.getLogger(Softlogger.class);
@@ -46,6 +46,10 @@ public class Softlogger {
 	public static void main(String[] args) {
 		Softlogger s = new Softlogger();
 		s.configure("config.xml");
+	}
+	
+	public void run() {
+		
 	}
 
 	private boolean loadConfig(String filename) {
@@ -122,11 +126,11 @@ public class Softlogger {
 		}
 		
 		loggerConfigNodes = doc.getElementsByTagName("channel");
-		channels = new Vector<ModbusChannel>();
+		channels = new Vector<Channel>();
 		boolean workingChannel = false;
 		for (int i=0; i<loggerConfigNodes.getLength(); i++) {
 			currentConfigNode = loggerConfigNodes.item(i);
-			ModbusChannel mc = new ModbusChannel();
+			Channel mc = new Channel();
 			if (mc.configure(currentConfigNode)) {
 				workingChannel = true;
 				channels.add(mc);

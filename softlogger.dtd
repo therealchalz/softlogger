@@ -13,7 +13,8 @@
 <!ELEMENT path (#PCDATA)>
 
 <!ELEMENT channel ((tcp|serial),device*)>
-<!ELEMENT tcp (host,poll?)>
+<!ELEMENT tcp (host,port?,poll?)>
+<!ELEMENT port (#PCDATA)>
 
 <!ELEMENT serial (comport,baud,poll?)>
 <!ELEMENT comport (#PCDATA)>

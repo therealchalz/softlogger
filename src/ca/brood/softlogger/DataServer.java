@@ -7,15 +7,14 @@ import org.w3c.dom.NodeList;
 public class DataServer {
 	private Logger log;
 	
-	private String username;
-	private String host;
-	private String password;
-	private String keyfile;
-	private String serverPath;
-	private int configPoll;
+	private String username = "";
+	private String host = "";
+	private String password = "";
+	private String keyfile = "";
+	private String serverPath = "";
+	private int configPoll = 0;
 	public DataServer() {
 		log = Logger.getLogger(DataServer.class);
-		log.info("DataServer Loading...");
 	}
 	public boolean configure(Node serverNode) {
 		NodeList configNodes = serverNode.getChildNodes();
@@ -59,7 +58,7 @@ public class DataServer {
 		if (serverPath.equals("")) { log.fatal("Missing path in server definition.");
 			return false;
 		}
-		if (configPoll < 0 || configPoll > 2592000) {//30 days
+		if (configPoll < 1 || configPoll > 2592000) {//30 days
 			log.error("Server poll config is out of range (must be in [1,2592000]).  Using default of 3600.");
 			configPoll = 3600;
 		}
