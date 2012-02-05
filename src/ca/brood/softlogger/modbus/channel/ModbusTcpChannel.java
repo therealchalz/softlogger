@@ -1,5 +1,7 @@
 package ca.brood.softlogger.modbus.channel;
 
+import net.wimpi.modbus.ModbusException;
+import net.wimpi.modbus.io.ModbusTCPTransaction;
 import net.wimpi.modbus.io.ModbusTransport;
 import net.wimpi.modbus.msg.*;
 import net.wimpi.modbus.util.*;
@@ -10,6 +12,7 @@ import org.w3c.dom.NodeList;
 
 import java.io.IOException;
 import java.net.InetAddress;
+import java.net.SocketException;
 import java.net.UnknownHostException;
 
 public class ModbusTcpChannel extends ModbusChannel {
@@ -17,7 +20,6 @@ public class ModbusTcpChannel extends ModbusChannel {
 	private TCPMasterConnection connection = null;
 	private InetAddress host = null;
 	private int port = 0;
-	private int poll = 0;
 	
 	public ModbusTcpChannel() {
 		super();
@@ -35,6 +37,7 @@ public class ModbusTcpChannel extends ModbusChannel {
 	public synchronized boolean configure(Node channelNode) {
 		this.close();
 		this.host = null;
+		super.configure(channelNode);
 		NodeList configNodes = channelNode.getChildNodes();
 		for (int i=0; i<configNodes.getLength(); i++) {
 			Node configNode = configNodes.item(i);
@@ -42,6 +45,7 @@ public class ModbusTcpChannel extends ModbusChannel {
 				continue;
 			} else if (("host".compareToIgnoreCase(configNode.getNodeName())==0))	{
 				try {
+					//TODO: Speed this up by checking if the config is a file (in which case use getByAddress instead, and avoid the NS lookup)
 					this.host = InetAddress.getByName(configNode.getFirstChild().getNodeValue());
 				} catch (UnknownHostException e) {
 					log.fatal("Could not get proper address for host: "+configNode.getFirstChild().getNodeValue());
@@ -88,9 +92,22 @@ public class ModbusTcpChannel extends ModbusChannel {
 	}
 
 	@Override
-	public synchronized ModbusResponse executeRequest(ModbusRequest req) {
-		// TODO Auto-generated method stub
-		return null;
+	public synchronized ModbusResponse executeRequest(ModbusRequest req) throws Exception,ModbusException {
+		if (!isOpen()) {
+			log.warn("Trying to execute request on closed TCP connection");
+			if (!this.open()) {
+				log.error("Couldn't open the connection... Aborting.");
+				throw new Exception("Connection Closed");
+			}
+		}
+		log.trace("Preparing transaction");
+		ModbusTCPTransaction trans = new ModbusTCPTransaction(this.connection);
+		
+		trans.setRequest(req);
+		log.trace("Transaction is ready for executing");
+		trans.execute();
+		log.trace("Request sent, getting response.");
+		return trans.getResponse();
 	}
 
 	@Override
@@ -104,7 +121,7 @@ public class ModbusTcpChannel extends ModbusChannel {
 	public synchronized boolean open() {
 		if (this.isOpen()) {
 			log.warn("Trying to open an already open connection... aborting");
-			return false;
+			return true;
 		}
 		connection = new TCPMasterConnection(this.host);
 		connection.setPort(this.port);

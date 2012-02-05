@@ -8,7 +8,7 @@ public abstract class Register {
 	protected Logger log;
 	protected String fieldName;
 	
-	public Register() {
+	protected Register() {
 		log = Logger.getLogger(Register.class);
 	}
 	
@@ -21,8 +21,6 @@ public abstract class Register {
 			} else if (("fieldName".compareToIgnoreCase(configNode.getNodeName())==0)) {
 				fieldName = configNode.getFirstChild().getNodeValue();
 				registerNode.removeChild(configNode);
-			} else {
-				log.warn("Got unknown node in config: "+configNode.getNodeName());
 			}
 		}
 		if (fieldName.equals("")) {
@@ -30,5 +28,9 @@ public abstract class Register {
 			return false;
 		}
 		return true;
+	}
+	@Override
+	public String toString() {
+		return "Register: fieldname="+this.fieldName;
 	}
 }

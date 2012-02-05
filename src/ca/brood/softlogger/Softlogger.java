@@ -1,6 +1,6 @@
 package ca.brood.softlogger;
 
-import java.util.Vector;
+import java.util.ArrayList;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -28,7 +28,7 @@ public class Softlogger {
 	private String configFilePath = "";
 	
 	private DataServer server;
-	private Vector<Channel> channels;
+	private ArrayList<Channel> channels;
 	
 	public Softlogger() {
 		log = Logger.getLogger(Softlogger.class);
@@ -36,8 +36,12 @@ public class Softlogger {
 		configValid = false;
 	}
 	public void configure(String configFile) {
+		log.info("");
+		log.info("");
 		log.info("******************************");
-		log.info("Softlogger starting...  Using "+configFile);
+		log.info("SOFTLOGGER IS STARTING");
+		log.info("******************************");
+		log.info("Softlogger using config file: "+configFile);
 		configFilePath = configFile;
 		if (!loadConfig(configFilePath)) {
 			log.fatal("Error loading config file.");
@@ -46,10 +50,32 @@ public class Softlogger {
 	public static void main(String[] args) {
 		Softlogger s = new Softlogger();
 		s.configure("config.xml");
+		s.run();
+		try {
+			Thread.sleep(10000); //Run for 10 seconds
+		} catch (InterruptedException e) {
+		}
+		s.stop();
+		s.log.info("All done");
+	}
+	public void kill() {
+		log.info("Softlogger killing channels");
+		for (int i=0; i<channels.size(); i++) {
+			channels.get(i).kill();
+		}
+	}
+	public void stop() {
+		log.info("Softlogger stopping channels");
+		for (int i=0; i<channels.size(); i++) {
+			channels.get(i).stop();
+		}
 	}
 	
 	public void run() {
-		
+		//Start all the channels, which will in turn start all the devices
+		for (int i=0; i<channels.size(); i++) {
+			channels.get(i).run();
+		}
 	}
 
 	private boolean loadConfig(String filename) {
@@ -110,6 +136,7 @@ public class Softlogger {
 			dataFilePath = "data/";
 		}
 		
+		//Load the data server
 		loggerConfigNodes = doc.getElementsByTagName("server");
 		if (loggerConfigNodes.getLength() == 0) {
 			log.fatal("Could not find a server defined in the config file.");
@@ -125,8 +152,9 @@ public class Softlogger {
 			return false;
 		}
 		
+		//Load the channels
 		loggerConfigNodes = doc.getElementsByTagName("channel");
-		channels = new Vector<Channel>();
+		channels = new ArrayList<Channel>();
 		boolean workingChannel = false;
 		for (int i=0; i<loggerConfigNodes.getLength(); i++) {
 			currentConfigNode = loggerConfigNodes.item(i);
@@ -138,8 +166,12 @@ public class Softlogger {
 		}
 		
 		if (!workingChannel) {
-			log.fatal("No usable channel configured");
+			log.fatal("No usable channels configured");
 			return false;
+		}
+		
+		for (int i=0; i<channels.size(); i++) {
+			channels.get(i).setDefaultPoll(this.defaultDevicePoll);
 		}
 		
 		return true;

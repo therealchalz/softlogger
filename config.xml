@@ -12,32 +12,15 @@
 		<password>fakePass01</password></server>
 	<channel>
 		<tcp>
-			<host>192.168.5.22</host>
-		</tcp>
+			<host>127.0.0.1</host>
+			<port>502</port>
+			<poll>1</poll></tcp>
 		<device>
-			<address>1</address>
-			<description>WattsOn</description>
-			<dataRegister>
-				<fieldName>Power</fieldName>
-				<regAddr>0x301</regAddr>
-				<size>4</size>
-				<postProcess>
-					<type>FLT32</type></postProcess>
-				<guid>D3SPWH00034</guid>
-			</dataRegister>
-		</device>
-	</channel>
-	<channel>
-		<serial>
-			<comport>COM3</comport>
-			<baud>9600</baud>
-		</serial>
-		<device>
-			<address>1</address>
+			<address>15</address>
 			<description>Floor 1 DSI</description>
 			<configRegister>
 				<fieldName>Number of sensors</fieldName>
-				<regAddr>0x02</regAddr>
+				<regAddr>0x03</regAddr>
 				<size>2</size>
 				<value>10</value>
 			</configRegister>
@@ -62,7 +45,21 @@
 					<function>mult</function></postProcess>
 				<guid>guid</guid>
 			</virtualRegister>
+			<configRegister>
+				<fieldName>Number of counters</fieldName>
+				<regAddr>0x02</regAddr>
+				<size>2</size>
+				<value>2</value></configRegister>
+			<configRegister>
+				<fieldName>Number of Somethings at 7</fieldName>
+				<regAddr>0x07</regAddr>
+				<size>2</size>
+				<value>55</value></configRegister>
+			<configRegister>
+				<fieldName>Reset Reason</fieldName>
+				<regAddr>0x04</regAddr>
+				<size>2</size>
+				<value>9</value></configRegister>
 		</device>
-
 	</channel>
 </softlogger>
