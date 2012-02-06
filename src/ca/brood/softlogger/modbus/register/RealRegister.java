@@ -1,6 +1,12 @@
 package ca.brood.softlogger.modbus.register;
 
 import ca.brood.softlogger.util.*;
+import net.wimpi.modbus.msg.ModbusRequest;
+import net.wimpi.modbus.msg.ReadCoilsRequest;
+import net.wimpi.modbus.msg.ReadInputDiscretesRequest;
+import net.wimpi.modbus.msg.ReadInputRegistersRequest;
+import net.wimpi.modbus.msg.ReadMultipleRegistersRequest;
+
 import org.apache.log4j.Logger;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -10,6 +16,8 @@ public class RealRegister extends Register implements Comparable<RealRegister>{
 	protected int address = Integer.MAX_VALUE;
 	protected int size = 0;
 	protected int sizePerAddress = 2; //size of each address.  for 16-bit addresses, this is 2.  For coils, this is 1.  We know that the next contiguous register should be at this.address+(this.size/this.sizePerAddress)
+	protected RegisterType regType;
+	
 	protected RealRegister() {
 		super();
 		log = Logger.getLogger(RealRegister.class);
@@ -24,11 +32,20 @@ public class RealRegister extends Register implements Comparable<RealRegister>{
 			if (("#text".compareToIgnoreCase(configNode.getNodeName())==0))	{
 				continue;
 			} else if (("regAddr".compareToIgnoreCase(configNode.getNodeName())==0))	{
+				int addy = 0;
 				try {
-					this.address = Util.parseInt(configNode.getFirstChild().getNodeValue());
-					registerNode.removeChild(configNode);
+					addy = Util.parseInt(configNode.getFirstChild().getNodeValue());
 				} catch (NumberFormatException e) {
 					log.error("Couldn't parse regAddr to integer from: "+configNode.getFirstChild().getNodeValue());
+					return false;
+				}
+				try {
+					this.regType = RegisterType.fromAddress(addy);
+					this.address = RegisterType.getAddress(addy);
+					registerNode.removeChild(configNode);
+				} catch (NumberFormatException e) {
+					log.error("Error converting modbuss address to register type: "+addy);
+					return false;
 				}
 			} else if (("size".compareToIgnoreCase(configNode.getNodeName())==0))	{
 				try {
@@ -39,13 +56,27 @@ public class RealRegister extends Register implements Comparable<RealRegister>{
 				}
 			}
 		}
-		if (this.address < 1 || this.address > 65535) {
-			log.fatal("Parsed invalid address: "+this.address);
+		if (this.address < 0 || this.address > 65535) {
+			log.error("Parsed invalid address: "+this.address);
 			return false;
 		}
-		if (this.size < 1 || this.size > 4) {
-			log.fatal("Invalid size: "+this.size);
-			return false;
+		switch (this.regType) {
+		case INPUT_COIL:
+		case OUTPUT_COIL:
+			this.sizePerAddress = 1;
+			if (this.size != 1) {
+				log.warn("Got invalid size for an input or output coil.  Changing size to 1 from: "+this.size);
+				this.size = 1;
+			}
+			break;
+		case INPUT_REGISTER:
+		case OUTPUT_REGISTER:
+			this.sizePerAddress = 2;
+			if (this.size != 2 && this.size != 4) {
+				log.warn("Got invalid size for an input or output register.  Changing size to 2 from: "+this.size);
+				this.size = 2;
+			}
+			break;
 		}
 		return true;
 	}
@@ -73,6 +104,26 @@ public class RealRegister extends Register implements Comparable<RealRegister>{
 	
 	@Override
 	public String toString() {
-		return "RealRegister: fieldname="+this.fieldName+"; address="+this.address+"; size="+this.size;
+		return "RealRegister: fieldname="+this.fieldName+"; address="+this.address+"; size="+this.size+"; data: "+registerData.toString();
+	}
+	public ModbusRequest getRequest() {
+		//TODO: What happens if this.size % this.address != 0?
+		//TODO: Fix this to check what time of memory to read from
+		ModbusRequest request = null;
+		switch (this.regType) {
+		case INPUT_COIL:
+			request = new ReadInputDiscretesRequest(this.address, this.size/this.sizePerAddress);
+			break;
+		case OUTPUT_COIL:
+			request = new ReadCoilsRequest(this.address, this.size/this.sizePerAddress);
+			break;
+		case INPUT_REGISTER:
+			request = new ReadInputRegistersRequest(this.address, this.size/this.sizePerAddress);
+			break;
+		case OUTPUT_REGISTER:
+			request = new ReadMultipleRegistersRequest(this.address, this.size/this.sizePerAddress);
+		}
+		
+		return request;
 	}
 }

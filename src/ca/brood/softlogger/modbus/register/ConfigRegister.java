@@ -12,6 +12,10 @@ public class ConfigRegister extends RealRegister {
 		log = Logger.getLogger(ConfigRegister.class);
 	}
 	
+	public Integer getValue() {
+		return value;
+	}
+	
 	public boolean configure(Node registerNode) {
 		if (!super.configure(registerNode)) {
 			return false;
@@ -31,18 +35,16 @@ public class ConfigRegister extends RealRegister {
 				log.warn("Got unknown node in config: "+configNode.getNodeName());
 			}
 		}
+		if (this.regType == RegisterType.INPUT_COIL || this.regType == RegisterType.INPUT_REGISTER) {
+			log.error("Config register has a read-only type: "+this.regType);
+			return false;
+		}
 		log.trace(this.toString());
 		return true;
 	}
 	@Override
 	public String toString() {
-		return "ConfigRegister: fieldname="+this.fieldName+"; address="+this.address+"; size="+this.size+"; value="+this.value;
-	}
-	
-	public ReadMultipleRegistersRequest getRequest() {
-		//TODO: What happens if this.size % this.address != 0?
-		ReadMultipleRegistersRequest request = new ReadMultipleRegistersRequest(this.address, this.size/this.sizePerAddress);
-		return request;
+		return "ConfigRegister: fieldname="+this.fieldName+"; address="+this.address+"; size="+this.size+"; value="+this.value+"; data: "+registerData.toString();
 	}
 	 
 }

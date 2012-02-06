@@ -62,6 +62,10 @@ public class Device implements Runnable {
 				ConfigRegister c = new ConfigRegister();
 				if (c.configure(configNode))
 					configRegs.add(c);
+			} else if (("dataregister".compareToIgnoreCase(configNode.getNodeName())==0)) {
+				DataRegister d = new DataRegister();
+				if (d.configure(configNode))
+					dataRegs.add(d);
 			} else if (("poll".compareToIgnoreCase(configNode.getNodeName())==0)) {
 				try {
 					this.poll = Integer.parseInt(configNode.getFirstChild().getNodeValue());
@@ -102,15 +106,16 @@ public class Device implements Runnable {
 		if (this.channel == null) {
 			return;
 		}
-		log.trace("Device is running: "+this.description);
+		log.debug("Checking Config Registers");
 		//Treat the config registers as data registers - read them
 		for (int i=0; i<configRegs.size(); i++) {
 			ConfigRegister c = configRegs.get(i);
-			ReadMultipleRegistersRequest req = c.getRequest();
+			ModbusRequest req = c.getRequest();
 			req.setUnitID(this.address);
 			try {
-				ReadMultipleRegistersResponse resp = (ReadMultipleRegistersResponse) channel.executeRequest(req);
-				log.debug("Got response: "+resp.getRegisterValue(0));
+				ModbusResponse resp = channel.executeRequest(req);
+				log.debug("Got response: "+resp.getClass());
+				c.setData(resp);
 			} catch (ModbusException e) {
 				log.debug("Got modbus exception: "+e.getMessage());
 			} catch (Exception e) {
@@ -120,7 +125,25 @@ public class Device implements Runnable {
 		}
 		//If a config register's value is invalid, write the correct one
 		//Read the data registers
+		log.debug("Checking data Registers");
+		for (int i=0; i<dataRegs.size(); i++) {
+			DataRegister d = dataRegs.get(i);
+			ModbusRequest req = d.getRequest();
+			req.setUnitID(this.address);
+			try {
+				ModbusResponse resp = channel.executeRequest(req);
+				log.debug("Got response: "+resp.getClass());
+				d.setData(resp);
+			} catch (ModbusException e) {
+				log.debug("Got modbus exception: "+e.getMessage());
+			} catch (Exception e) {
+				log.debug("Got no response....");
+				return; //Couldn't do a modbus request
+			}
+		}
 		//Work on the virtual registers
 		//All done
+		log.debug(this.configRegs);
+		log.debug(this.dataRegs);
 	}
 }

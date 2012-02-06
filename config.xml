@@ -20,14 +20,14 @@
 			<description>Floor 1 DSI</description>
 			<configRegister>
 				<fieldName>Number of sensors</fieldName>
-				<regAddr>0x03</regAddr>
+				<regAddr>400002</regAddr>
 				<size>2</size>
 				<value>10</value>
 			</configRegister>
 			<dataRegister>
 				<fieldName>Unit 411 Power</fieldName>
-				<regAddr>0x0A</regAddr>
-				<size>2</size>
+				<regAddr>300000</regAddr>
+				<size>4</size>
 				<postProcess>
 					<tableFile>100ACT.dat</tableFile></postProcess>
 				<guid>D3SIA00023</guid>
@@ -47,17 +47,17 @@
 			</virtualRegister>
 			<configRegister>
 				<fieldName>Number of counters</fieldName>
-				<regAddr>0x02</regAddr>
+				<regAddr>300001</regAddr>
 				<size>2</size>
 				<value>2</value></configRegister>
 			<configRegister>
 				<fieldName>Number of Somethings at 7</fieldName>
-				<regAddr>0x07</regAddr>
+				<regAddr>400007</regAddr>
 				<size>2</size>
 				<value>55</value></configRegister>
 			<configRegister>
 				<fieldName>Reset Reason</fieldName>
-				<regAddr>0x04</regAddr>
+				<regAddr>400003</regAddr>
 				<size>2</size>
 				<value>9</value></configRegister>
 		</device>

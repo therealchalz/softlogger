@@ -1,5 +1,7 @@
 package ca.brood.softlogger.modbus.register;
 
+import net.wimpi.modbus.msg.ModbusResponse;
+
 import org.apache.log4j.Logger;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -7,9 +9,23 @@ import org.w3c.dom.NodeList;
 public abstract class Register {
 	protected Logger log;
 	protected String fieldName;
+	protected RegisterData registerData;
 	
 	protected Register() {
 		log = Logger.getLogger(Register.class);
+		registerData = new RegisterData();
+	}
+	public void setData(ModbusResponse r) {
+		registerData.setData(r);
+	}
+	public void setData(Integer i) {
+		registerData.setData(i);
+	}
+	public void setData(Float f) {
+		registerData.setDataFloat(f);
+	}
+	public void setData(Boolean b) {
+		registerData.setData(b);
 	}
 	
 	public boolean configure(Node registerNode) {
@@ -31,6 +47,6 @@ public abstract class Register {
 	}
 	@Override
 	public String toString() {
-		return "Register: fieldname="+this.fieldName;
+		return "Register: fieldname="+this.fieldName+", data: "+registerData.toString();
 	}
 }
