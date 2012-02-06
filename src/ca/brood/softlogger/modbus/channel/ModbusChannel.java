@@ -11,9 +11,17 @@ public abstract class ModbusChannel {
 	protected Logger log;
 	protected int poll = 0;
 	protected int defaultPoll = 0;
+	protected final int id;
+	protected final int channelId;
+	private static int nextId = 1;
 	
-	protected ModbusChannel() {
-		log = Logger.getLogger(ModbusChannel.class);
+	protected ModbusChannel(int chanId) {
+		id = getNextId();
+		channelId = chanId;
+		log = Logger.getLogger(ModbusChannel.class.toString()+" Channel: "+chanId+" ID: "+id);
+	}
+	public static synchronized int getNextId() {
+		return nextId++;
 	}
 	
 	public int getPollRate() {

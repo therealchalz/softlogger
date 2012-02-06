@@ -15,9 +15,9 @@ public class ModbusSerialChannel extends ModbusChannel {
 	private int poll = 0;
 	private SerialConnection connection = null;
 	
-	public ModbusSerialChannel() {
-		super();
-		log = Logger.getLogger(ModbusSerialChannel.class);
+	public ModbusSerialChannel(int chanId) {
+		super(chanId);
+		log = Logger.getLogger(ModbusSerialChannel.class.toString()+" Channel: "+chanId+" ID: "+id);
 	}
 
 	@Override

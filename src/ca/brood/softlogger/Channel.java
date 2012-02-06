@@ -15,16 +15,20 @@ public class Channel implements Runnable {
 	private ScheduledExecutorService threadBoss;
 	
 	private ArrayList<Device> devices = null;
-	
+	private final int id;
 	private ModbusChannel channel = null;
 	private int poll = 0;
 	private int defaultPoll = 0;
-	
+	private static int nextId = 1;
 	
 	public Channel() {
-		log = Logger.getLogger(Channel.class);
+		this.id = getNextId();
+		log = Logger.getLogger(Channel.class.toString()+" ID "+id);
 		devices = new ArrayList<Device>();
 		threadBoss = new ScheduledThreadPoolExecutor(1); //1 thread
+	}
+	public static synchronized int getNextId() {
+		return nextId++;
 	}
 	public int getPollRate() {
 		if (poll != 0)
@@ -50,16 +54,16 @@ public class Channel implements Runnable {
 			if (("#text".compareToIgnoreCase(configNode.getNodeName())==0))	{
 				continue;
 			} else if (("device".compareToIgnoreCase(configNode.getNodeName())==0))	{
-				Device d = new Device();
+				Device d = new Device(this.id);
 				d.configure(configNode);
 				devices.add(d);
 			} else if (("serial".compareToIgnoreCase(configNode.getNodeName())==0))	{
-				this.channel = new ModbusSerialChannel();
+				this.channel = new ModbusSerialChannel(this.id);
 				if (!this.channel.configure(configNode)) {
 					return false;
 				}
 			} else if (("tcp".compareToIgnoreCase(configNode.getNodeName())==0))	{
-				this.channel = new ModbusTcpChannel();
+				this.channel = new ModbusTcpChannel(this.id);
 				if (!this.channel.configure(configNode)) {
 					return false;
 				}

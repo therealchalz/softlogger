@@ -21,9 +21,9 @@ public class ModbusTcpChannel extends ModbusChannel {
 	private InetAddress host = null;
 	private int port = 0;
 	
-	public ModbusTcpChannel() {
-		super();
-		log = Logger.getLogger(ModbusTcpChannel.class);
+	public ModbusTcpChannel(int chanId) {
+		super(chanId);
+		log = Logger.getLogger(ModbusTcpChannel.class.toString()+" Channel: "+chanId+" ID: "+id);
 	}
 	@Override
 	public synchronized boolean close() {

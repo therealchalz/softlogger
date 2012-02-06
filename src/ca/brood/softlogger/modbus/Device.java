@@ -14,7 +14,8 @@ import net.wimpi.modbus.msg.*;
 
 public class Device implements Runnable {
 	private Logger log;
-	
+	private final int id;
+	private final int channelId;
 	private int address = Integer.MAX_VALUE;
 	private String description = "";
 	private ArrayList<ConfigRegister> configRegs;
@@ -24,12 +25,19 @@ public class Device implements Runnable {
 	private ScheduledFuture<?> future = null;
 	private int poll = 0;
 	private int defaultPoll = 0;
+	private static volatile int nextId = 1;
 	
-	public Device() {
-		log = Logger.getLogger(Device.class);
+	public Device(int channelId) {
+		this.id = getNextDeviceId();
+		this.channelId = channelId;
+		log = Logger.getLogger(Device.class.toString()+" Channel: "+channelId+" Device: "+id);
 		configRegs = new ArrayList<ConfigRegister>();
 		dataRegs = new ArrayList<DataRegister>();
 		virtualRegs = new ArrayList<VirtualRegister>();
+	}
+	
+	private static synchronized int getNextDeviceId() {
+		return nextId++;
 	}
 	
 	public void setFuture(ScheduledFuture<?> fut) {
