@@ -4,11 +4,11 @@
 <!ELEMENT tableFilePath (#PCDATA)>
 <!ELEMENT dataFilePath (#PCDATA)>
 
-<!ELEMENT server (user,host,(password|key),configPoll,path)>
+<!ELEMENT server (user,host,(password|keyfile),configPoll,path)>
 <!ELEMENT user (#PCDATA)>
 <!ELEMENT host (#PCDATA)>
 <!ELEMENT password (#PCDATA)>
-<!ELEMENT key (#PCDATA)>
+<!ELEMENT keyfile (#PCDATA)>
 <!ELEMENT configPoll (#PCDATA)>
 <!ELEMENT path (#PCDATA)>
 
@@ -31,12 +31,9 @@
 <!ELEMENT value (#PCDATA)>
 
 <!ELEMENT dataRegister (fieldName,regAddr,size,postProcess?,guid)>
-<!ELEMENT postProcess (type?,offset?,scale?,tableFile?,function?)>
-<!ELEMENT type (#PCDATA)>
-<!ELEMENT offset (#PCDATA)>
+<!ELEMENT postProcess (scale|tableFile)>
 <!ELEMENT scale (#PCDATA)>
 <!ELEMENT tableFile (#PCDATA)>
-<!ELEMENT function (#PCDATA)>
 <!ELEMENT guid (#PCDATA)>
 
 <!ELEMENT virtualRegister (fieldName,operand*,postProcess,guid)>

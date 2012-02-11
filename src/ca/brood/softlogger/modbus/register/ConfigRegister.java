@@ -4,16 +4,28 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.apache.log4j.Logger;
 import net.wimpi.modbus.msg.*;
+import ca.brood.softlogger.util.*;
 
 public class ConfigRegister extends RealRegister {
-	private Integer value = null;
+	private RegisterData value = null;
 	public ConfigRegister() {
 		super();
 		log = Logger.getLogger(ConfigRegister.class);
 	}
 	
-	public Integer getValue() {
+	public RegisterData getValue() {
 		return value;
+	}
+	
+	public boolean dataIsGood() {
+		if (this.value.equals(this.registerData))
+			return true;
+		return false;
+	}
+	
+	public ModbusRequest getWriteRequest() {
+		WriteSingleRegisterRequest req = new WriteSingleRegisterRequest(this.address, this.value);
+		return req;
 	}
 	
 	public boolean configure(Node registerNode) {
@@ -27,7 +39,7 @@ public class ConfigRegister extends RealRegister {
 				continue;
 			} else if (("value".compareToIgnoreCase(configNode.getNodeName())==0))	{
 				try {
-					this.value = Integer.parseInt(configNode.getFirstChild().getNodeValue());
+					this.value = Util.parseRegisterData(configNode.getFirstChild().getNodeValue()); 
 				} catch (NumberFormatException e) {
 					log.error("Couldn't parse value to integer from: "+configNode.getFirstChild().getNodeValue());
 				}
@@ -44,7 +56,7 @@ public class ConfigRegister extends RealRegister {
 	}
 	@Override
 	public String toString() {
-		return "ConfigRegister: fieldname="+this.fieldName+"; address="+this.address+"; size="+this.size+"; value="+this.value+"; data: "+registerData.toString();
+		return "ConfigRegister: fieldname="+this.fieldName+"; address="+this.address+"; size="+this.size+"; properValue="+this.value+"; actualData: "+registerData.toString();
 	}
 	 
 }

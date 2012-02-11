@@ -4,7 +4,7 @@ import org.apache.log4j.Logger;
 
 import net.wimpi.modbus.msg.*;
 
-public class RegisterData {
+public class RegisterData implements net.wimpi.modbus.procimg.Register{
 	private Integer dataInt = null;
 	private Float dataFloat = null;
 	private Boolean dataBool = null;
@@ -116,5 +116,95 @@ public class RegisterData {
 			ret+="Bool: "+dataBool+", ";
 		}
 		return ret;
+	}
+	@Override
+	public boolean equals(Object other) {
+		if (RegisterData.class != other.getClass()) {
+			return false;
+		}
+		RegisterData d = (RegisterData)other;
+		if (this.dataBool == null && d.dataBool != null)
+			return false;
+		if (this.dataInt == null && d.dataInt != null)
+			return false;
+		if (this.dataFloat == null && d.dataFloat != null)
+			return false;
+		if (!(this.dataBool == null) && !(this.dataBool.equals(d.dataBool))) {
+			return false;
+		}
+		if (!(this.dataInt == null) && !(this.dataInt.equals(d.dataInt))) {
+			return false;
+		}
+		if (!(this.dataFloat == null) && !(this.dataFloat.equals(d.dataFloat))) {
+			return false;
+		}
+		return true;
+	}
+	
+	/*
+	 * These functions are from the JAMOD Register interface
+	 */
+	@Override
+	public void setValue(int v) {
+		this.setData(v);
+	}
+	@Override
+	public void setValue(short s) {
+		int i = s;
+		this.setData(i);
+	}
+	@Override
+	public void setValue(byte[] bytes) {
+		if (bytes.length >= 2) {
+			int i = bytes[0] << 8 + bytes[1];
+			if (bytes.length == 4) {
+				i = i << 16;
+				i += bytes[2] << 8 + bytes[3];
+			}
+			this.setData(i);
+		} else {
+			this.nullData();
+		}
+	}
+	@Override
+	public int getValue() {
+		Integer i = this.getInt();
+		if (i != null)
+			return i;
+		else {
+			log.warn("Called getValue on unset register");
+			return 0;
+		}
+	}
+	@Override
+	public byte[] toBytes() {
+		Integer oi = this.getInt();
+		if (oi != null) {
+			int i = oi;
+			byte[] ret = new byte[4];
+			ret[1] = (byte)(i&0xff);
+			ret[0] = (byte)((i&0xff00)>>8);
+			ret[3] = (byte)((i&0xff0000)>>16);
+			ret[2] = (byte)((i&0xff000000)>>24);
+			return ret;
+		} else {
+			log.warn("Called getValue on unset register");
+			return null;
+		}
+	}
+	@Override
+	public short toShort() {
+		Integer i = this.getInt();
+		if (i != null) {
+			short s = (short)((int)i);
+			return s;
+		} else {
+			log.warn("Called getValue on unset register");
+			return 0;
+		}
+	}
+	@Override
+	public int toUnsignedShort() {
+		return this.getValue();
 	}
 }

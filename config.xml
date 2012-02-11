@@ -1,28 +1,30 @@
 <softlogger>
-	<name>Riverdale</name>
-	<poll>test</poll>
+	<name>Environmental Monitoring</name>
+	<poll>60</poll> <!-- default poll rate in seconds -->
 	<tableFilePath>lut</tableFilePath>
 	<dataFilePath>data</dataFilePath>
 	<server>
 		<user>tsco</user>
 		<host>datacloud.server.com</host>
-		
 		<configPoll>3600</configPoll>
 		<path>/save/data/here</path>
-		<password>fakePass01</password></server>
+		<password>fakePass01</password> <!-- or <keyfile> element -->
+	</server>
 	<channel>
 		<tcp>
 			<host>127.0.0.1</host>
 			<port>502</port>
-			<poll>1</poll></tcp>
+			<poll>1</poll> <!-- default poll rate for this channel, overrides Softlogger poll -->
+		</tcp>
 		<device>
+			<!-- devices can each have a poll rate as well, which overrides their channel and softlogger default polls -->
 			<address>15</address>
 			<description>Floor 1 DSI</description>
 			<configRegister>
 				<fieldName>Number of sensors</fieldName>
-				<regAddr>400002</regAddr>
-				<size>2</size>
-				<value>10</value>
+				<regAddr>400002</regAddr>	<!-- Addresses can be of the form [0134][0-9]{4,5}.  The first digit indicates the type of register (input,output)*(coil,register). -->
+				<size>2</size> <!-- size in words of the register. 2 and 4 are supported -->
+				<value>10</value>	<!-- value for the config register, overwrite the device's register with this -->
 			</configRegister>
 			<dataRegister>
 				<fieldName>Unit 411 Power</fieldName>
@@ -34,11 +36,11 @@
 			</dataRegister>
 			<virtualRegister>
 				<fieldName>Power</fieldName>
-				<operand id="0">
+				<operand id="current">
 					<regAddr>0x0A</regAddr>
 					<size>2</size>
 				</operand>
-				<operand id="">
+				<operand id="voltage">
 					<value>120</value>
 				</operand>
 				<postProcess>

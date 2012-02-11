@@ -1,7 +1,5 @@
 package ca.brood.softlogger.modbus.register;
 
-import net.wimpi.modbus.msg.*;
-
 import org.apache.log4j.Logger;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;

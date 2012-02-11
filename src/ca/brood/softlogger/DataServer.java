@@ -14,7 +14,7 @@ public class DataServer {
 	private String serverPath = "";
 	private int configPoll = 0;
 	public DataServer() {
-		log = Logger.getLogger(DataServer.class);
+		log = Logger.getLogger("DataServer");
 	}
 	public boolean configure(Node serverNode) {
 		NodeList configNodes = serverNode.getChildNodes();
@@ -22,20 +22,17 @@ public class DataServer {
 			Node configNode = configNodes.item(i);
 			if (("#text".compareToIgnoreCase(configNode.getNodeName())==0))	{
 				continue;
+			} else if ("#comment".compareTo(configNode.getNodeName())==0) {
+				continue;
 			} else if (("user".compareToIgnoreCase(configNode.getNodeName())==0))	{
-				log.debug("Server username: "+configNode.getFirstChild().getNodeValue());
 				username = configNode.getFirstChild().getNodeValue();
 			} else if (("host".compareToIgnoreCase(configNode.getNodeName())==0))	{
-				log.debug("Server host: "+configNode.getFirstChild().getNodeValue());
 				host = configNode.getFirstChild().getNodeValue();
-			} else if (("key".compareToIgnoreCase(configNode.getNodeName())==0))	{
-				log.debug("Server keyfile: "+configNode.getFirstChild().getNodeValue());
+			} else if (("keyfile".compareToIgnoreCase(configNode.getNodeName())==0))	{
 				keyfile = configNode.getFirstChild().getNodeValue();
 			} else if (("password".compareToIgnoreCase(configNode.getNodeName())==0))	{
-				log.debug("Server password: "+configNode.getFirstChild().getNodeValue().replaceAll(".", "*"));
 				password = configNode.getFirstChild().getNodeValue();
 			} else if (("configpoll".compareToIgnoreCase(configNode.getNodeName())==0))	{
-				log.debug("Server poll config period: "+configNode.getFirstChild().getNodeValue());
 				try {
 					configPoll = Integer.parseInt(configNode.getFirstChild().getNodeValue());
 				} catch (NumberFormatException e) {
@@ -43,29 +40,44 @@ public class DataServer {
 					configPoll = 3600;
 				}
 			} else if (("path".compareToIgnoreCase(configNode.getNodeName())==0))	{
-				log.debug("Server data file path: "+configNode.getFirstChild().getNodeValue());
 				serverPath = configNode.getFirstChild().getNodeValue();
 			} else {
 				log.warn("Got unknown node in config: "+configNode.getNodeName());
 			}
 		}
-		if (username.equals("")) { log.fatal("Missing user in server definition.");
+		if (username.equals("")) { 
+			log.fatal("Missing user in server definition.");
 			return false;
 		}
-		if (host.equals("")) { log.fatal("Missing host in server definition.");
+		if (host.equals("")) { 
+			log.fatal("Missing host in server definition.");
 			return false;
 		}
-		if (serverPath.equals("")) { log.fatal("Missing path in server definition.");
+		if (serverPath.equals("")) { 
+			log.fatal("Missing path in server definition.");
 			return false;
 		}
-		if (configPoll < 1 || configPoll > 2592000) {//30 days
-			log.error("Server poll config is out of range (must be in [1,2592000]).  Using default of 3600.");
+		if (configPoll < 1) {
+			log.error("Server poll config is out of range (must be larger than 0).  Using default of 3600.");
 			configPoll = 3600;
 		}
 		if (password.equals("") && keyfile.equals("")) {
 			log.fatal("Must specify a keyfile or a password in the server definition");
 			return false;
 		}
+		logThis();
 		return true;
+	}
+	
+	public void logThis() {
+		log.info("Server username: "+this.username);
+		log.info("Server host: "+this.host);
+		log.info("Server poll config period: "+this.configPoll);
+		log.info("Server data file path: "+this.serverPath);
+		if (this.password.equals("")) {
+			log.info("Server keyfile: "+this.keyfile);
+		} else {
+			log.info("Server password: "+this.password.replaceAll(".", "*"));
+		}
 	}
 }

@@ -18,7 +18,7 @@ public abstract class ModbusChannel {
 	protected ModbusChannel(int chanId) {
 		id = getNextId();
 		channelId = chanId;
-		log = Logger.getLogger(ModbusChannel.class.toString()+" Channel: "+chanId+" ID: "+id);
+		log = Logger.getLogger(ModbusChannel.class.toString()+" SoftloggerChannel: "+chanId+" ID: "+id);
 	}
 	public static synchronized int getNextId() {
 		return nextId++;

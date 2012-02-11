@@ -17,7 +17,7 @@ public class ModbusSerialChannel extends ModbusChannel {
 	
 	public ModbusSerialChannel(int chanId) {
 		super(chanId);
-		log = Logger.getLogger(ModbusSerialChannel.class.toString()+" Channel: "+chanId+" ID: "+id);
+		log = Logger.getLogger(ModbusSerialChannel.class.toString()+" SoftloggerChannel: "+chanId+" ID: "+id);
 	}
 
 	@Override
@@ -111,7 +111,7 @@ public class ModbusSerialChannel extends ModbusChannel {
 		try {
 			connection.open();
 		} catch (Exception e) {
-			log.error("Serial Channel could open connection");
+			log.error("Serial channel could open connection");
 			return false;
 		}
 		return true;

@@ -5,12 +5,10 @@ import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.ParserConfigurationException;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.Node;
-import org.w3c.dom.Element;
 
 
 import java.io.File;
@@ -18,22 +16,19 @@ import java.io.File;
 
 public class Softlogger {
 	private Logger log;
-	private boolean configValid = false;
 	
 	private String loggerName = "Unnamed Logger";
 	private int defaultDevicePoll = 0;
-	private String logFilePath = "log/";
 	private String tableFilePath = "lut/";
 	private String dataFilePath = "data/";
 	private String configFilePath = "";
 	
 	private DataServer server;
-	private ArrayList<Channel> channels;
+	private ArrayList<SoftloggerChannel> softloggerChannels;
 	
 	public Softlogger() {
-		log = Logger.getLogger(Softlogger.class);
+		log = Logger.getLogger("Softlogger");
 		PropertyConfigurator.configure("logger.config");
-		configValid = false;
 	}
 	public void configure(String configFile) {
 		log.info("");
@@ -59,22 +54,22 @@ public class Softlogger {
 		s.log.info("All done");
 	}
 	public void kill() {
-		log.info("Softlogger killing channels");
-		for (int i=0; i<channels.size(); i++) {
-			channels.get(i).kill();
+		log.info("Softlogger killing softloggerChannels");
+		for (int i=0; i<softloggerChannels.size(); i++) {
+			softloggerChannels.get(i).kill();
 		}
 	}
 	public void stop() {
-		log.info("Softlogger stopping channels");
-		for (int i=0; i<channels.size(); i++) {
-			channels.get(i).stop();
+		log.info("Softlogger stopping softloggerChannels");
+		for (int i=0; i<softloggerChannels.size(); i++) {
+			softloggerChannels.get(i).stop();
 		}
 	}
 	
 	public void run() {
-		//Start all the channels, which will in turn start all the devices
-		for (int i=0; i<channels.size(); i++) {
-			channels.get(i).run();
+		//Start all the softloggerChannels, which will in turn start all the devices
+		for (int i=0; i<softloggerChannels.size(); i++) {
+			softloggerChannels.get(i).run();
 		}
 	}
 
@@ -152,26 +147,26 @@ public class Softlogger {
 			return false;
 		}
 		
-		//Load the channels
+		//Load the softloggerChannels
 		loggerConfigNodes = doc.getElementsByTagName("channel");
-		channels = new ArrayList<Channel>();
+		softloggerChannels = new ArrayList<SoftloggerChannel>();
 		boolean workingChannel = false;
 		for (int i=0; i<loggerConfigNodes.getLength(); i++) {
 			currentConfigNode = loggerConfigNodes.item(i);
-			Channel mc = new Channel();
+			SoftloggerChannel mc = new SoftloggerChannel();
 			if (mc.configure(currentConfigNode)) {
 				workingChannel = true;
-				channels.add(mc);
+				softloggerChannels.add(mc);
 			}
 		}
 		
 		if (!workingChannel) {
-			log.fatal("No usable channels configured");
+			log.fatal("No usable softloggerChannels configured");
 			return false;
 		}
 		
-		for (int i=0; i<channels.size(); i++) {
-			channels.get(i).setDefaultPoll(this.defaultDevicePoll);
+		for (int i=0; i<softloggerChannels.size(); i++) {
+			softloggerChannels.get(i).setDefaultPoll(this.defaultDevicePoll);
 		}
 		
 		return true;

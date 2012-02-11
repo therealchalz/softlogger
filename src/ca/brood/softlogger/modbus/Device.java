@@ -15,12 +15,11 @@ import net.wimpi.modbus.msg.*;
 public class Device implements Runnable {
 	private Logger log;
 	private final int id;
-	private final int channelId;
 	private int address = Integer.MAX_VALUE;
 	private String description = "";
 	private ArrayList<ConfigRegister> configRegs;
 	private ArrayList<DataRegister> dataRegs;
-	private ArrayList<VirtualRegister> virtualRegs;
+	//private ArrayList<VirtualRegister> virtualRegs;
 	private ModbusChannel channel = null;
 	private ScheduledFuture<?> future = null;
 	private int poll = 0;
@@ -29,11 +28,10 @@ public class Device implements Runnable {
 	
 	public Device(int channelId) {
 		this.id = getNextDeviceId();
-		this.channelId = channelId;
-		log = Logger.getLogger(Device.class.toString()+" Channel: "+channelId+" Device: "+id);
+		log = Logger.getLogger("Device: "+id+" on Channel: "+channelId);
 		configRegs = new ArrayList<ConfigRegister>();
 		dataRegs = new ArrayList<DataRegister>();
-		virtualRegs = new ArrayList<VirtualRegister>();
+		//virtualRegs = new ArrayList<VirtualRegister>();
 	}
 	
 	private static synchronized int getNextDeviceId() {
@@ -132,6 +130,24 @@ public class Device implements Runnable {
 			}
 		}
 		//If a config register's value is invalid, write the correct one
+		for (int i=0; i<configRegs.size(); i++) {
+			ConfigRegister c = configRegs.get(i);
+			if (!c.dataIsGood()) {
+				log.debug("Config register has wrong value: "+c.toString());
+				ModbusRequest req = c.getWriteRequest();
+				req.setUnitID(this.address);
+				try {
+					ModbusResponse resp = channel.executeRequest(req);
+					log.debug("Got response: "+resp.getClass());
+					c.setData(resp);
+				} catch (ModbusException e) {
+					log.debug("Got modbus exception: "+e.getMessage());
+				} catch (Exception e) {
+					log.debug("Got no response....");
+					return; //Couldn't do a modbus request
+				}
+			}
+		}
 		//Read the data registers
 		log.debug("Checking data Registers");
 		for (int i=0; i<dataRegs.size(); i++) {

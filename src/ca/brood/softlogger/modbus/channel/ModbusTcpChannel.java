@@ -2,17 +2,12 @@ package ca.brood.softlogger.modbus.channel;
 
 import net.wimpi.modbus.ModbusException;
 import net.wimpi.modbus.io.ModbusTCPTransaction;
-import net.wimpi.modbus.io.ModbusTransport;
 import net.wimpi.modbus.msg.*;
-import net.wimpi.modbus.util.*;
 import net.wimpi.modbus.net.*;
 import org.apache.log4j.Logger;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-
-import java.io.IOException;
 import java.net.InetAddress;
-import java.net.SocketException;
 import java.net.UnknownHostException;
 
 public class ModbusTcpChannel extends ModbusChannel {
@@ -23,7 +18,7 @@ public class ModbusTcpChannel extends ModbusChannel {
 	
 	public ModbusTcpChannel(int chanId) {
 		super(chanId);
-		log = Logger.getLogger(ModbusTcpChannel.class.toString()+" Channel: "+chanId+" ID: "+id);
+		log = Logger.getLogger("ModbusTCPChannel: "+id+" on Channel: "+chanId);
 	}
 	@Override
 	public synchronized boolean close() {
