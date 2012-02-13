@@ -20,7 +20,7 @@
 <!ELEMENT comport (#PCDATA)>
 <!ELEMENT baud (#PCDATA)>
 
-<!ELEMENT device (address,description,poll?,configRegister*,dataRegister*,virtualRegister*)>
+<!ELEMENT device (address,description,poll?,(configRegister|dataRegister|virtualRegister)*)>
 <!ELEMENT address (#PCDATA)>
 <!ELEMENT description (#PCDATA)>
 
@@ -28,6 +28,7 @@
 <!ELEMENT fieldName (#PCDATA)>
 <!ELEMENT regAddr (#PCDATA)>
 <!ELEMENT size (#PCDATA)>
+<!ATTLIST size type CDATA #REQUIRED>
 <!ELEMENT value (#PCDATA)>
 
 <!ELEMENT dataRegister (fieldName,regAddr,size,postProcess?,guid)>

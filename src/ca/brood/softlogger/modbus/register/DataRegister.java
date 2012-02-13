@@ -7,14 +7,18 @@ import org.w3c.dom.NodeList;
 
 
 public class DataRegister extends RealRegister {
-	public DataRegister() {
-		super();
+	public DataRegister(int device) {
+		super(device);
 		log = Logger.getLogger(DataRegister.class);
+	}
+	private void setupLog(int device, int address) {
+		log = Logger.getLogger("DataRegister: D: "+device+" A: "+address);
 	}
 	public boolean configure(Node registerNode) {
 		if (!super.configure(registerNode)) {
 			return false;
 		}
+		this.setupLog(device, address);
 		NodeList configNodes = registerNode.getChildNodes();
 		for (int i=0; i<configNodes.getLength(); i++) {
 			Node configNode = configNodes.item(i);
@@ -24,7 +28,7 @@ public class DataRegister extends RealRegister {
 				log.warn("Got unknown node in config: "+configNode.getNodeName());
 			}
 		}
-		log.trace(this.toString());
+		log.debug(this.toString());
 		return true;
 	}
 	@Override

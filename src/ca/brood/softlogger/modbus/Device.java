@@ -65,11 +65,11 @@ public class Device implements Runnable {
 				this.description = configNode.getFirstChild().getNodeValue();
 				log.debug("Device description: "+this.description);
 			} else if (("configregister".compareToIgnoreCase(configNode.getNodeName())==0)) {
-				ConfigRegister c = new ConfigRegister();
+				ConfigRegister c = new ConfigRegister(this.id);
 				if (c.configure(configNode))
 					configRegs.add(c);
 			} else if (("dataregister".compareToIgnoreCase(configNode.getNodeName())==0)) {
-				DataRegister d = new DataRegister();
+				DataRegister d = new DataRegister(this.id);
 				if (d.configure(configNode))
 					dataRegs.add(d);
 			} else if (("poll".compareToIgnoreCase(configNode.getNodeName())==0)) {
@@ -112,7 +112,7 @@ public class Device implements Runnable {
 		if (this.channel == null) {
 			return;
 		}
-		log.debug("Checking Config Registers");
+		log.trace("Checking Config Registers");
 		//Treat the config registers as data registers - read them
 		for (int i=0; i<configRegs.size(); i++) {
 			ConfigRegister c = configRegs.get(i);
@@ -120,16 +120,16 @@ public class Device implements Runnable {
 			req.setUnitID(this.address);
 			try {
 				ModbusResponse resp = channel.executeRequest(req);
-				log.debug("Got response: "+resp.getClass());
 				c.setData(resp);
 			} catch (ModbusException e) {
-				log.debug("Got modbus exception: "+e.getMessage());
+				log.trace("Got modbus exception: "+e.getMessage());
 			} catch (Exception e) {
-				log.debug("Got no response....");
+				log.trace("Got no response....");
 				return; //Couldn't do a modbus request
 			}
 		}
 		//If a config register's value is invalid, write the correct one
+		log.trace("Writing config registers");
 		for (int i=0; i<configRegs.size(); i++) {
 			ConfigRegister c = configRegs.get(i);
 			if (!c.dataIsGood()) {
@@ -138,30 +138,28 @@ public class Device implements Runnable {
 				req.setUnitID(this.address);
 				try {
 					ModbusResponse resp = channel.executeRequest(req);
-					log.debug("Got response: "+resp.getClass());
 					c.setData(resp);
 				} catch (ModbusException e) {
-					log.debug("Got modbus exception: "+e.getMessage());
+					log.trace("Got modbus exception: "+e.getMessage());
 				} catch (Exception e) {
-					log.debug("Got no response....");
+					log.trace("Got no response....");
 					return; //Couldn't do a modbus request
 				}
 			}
 		}
 		//Read the data registers
-		log.debug("Checking data Registers");
+		log.trace("Checking data Registers");
 		for (int i=0; i<dataRegs.size(); i++) {
 			DataRegister d = dataRegs.get(i);
 			ModbusRequest req = d.getRequest();
 			req.setUnitID(this.address);
 			try {
 				ModbusResponse resp = channel.executeRequest(req);
-				log.debug("Got response: "+resp.getClass());
 				d.setData(resp);
 			} catch (ModbusException e) {
-				log.debug("Got modbus exception: "+e.getMessage());
+				log.trace("Got modbus exception: "+e.getMessage());
 			} catch (Exception e) {
-				log.debug("Got no response....");
+				log.trace("Got no response....");
 				return; //Couldn't do a modbus request
 			}
 		}

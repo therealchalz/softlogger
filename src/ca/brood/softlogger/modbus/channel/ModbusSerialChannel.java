@@ -1,5 +1,7 @@
 package ca.brood.softlogger.modbus.channel;
 
+import net.wimpi.modbus.ModbusException;
+import net.wimpi.modbus.io.ModbusSerialTransaction;
 import net.wimpi.modbus.msg.*;
 import net.wimpi.modbus.util.*;
 import net.wimpi.modbus.net.*;
@@ -85,9 +87,18 @@ public class ModbusSerialChannel extends ModbusChannel {
 	}
 
 	@Override
-	public synchronized ModbusResponse executeRequest(ModbusRequest req) {
-		log.error("Serial channel executeRequest not implemented");
-		return null;
+	public synchronized ModbusResponse executeRequest(ModbusRequest req) throws Exception,ModbusException  {
+		if (!isOpen()) {
+			log.warn("Trying to execute request on closed serial connection");
+			if (!this.open()) {
+				log.error("Couldn't open the connection... Aborting.");
+				throw new Exception("Connection Closed");
+			}
+		}
+		ModbusSerialTransaction trans = new ModbusSerialTransaction(this.connection);
+		trans.setRequest(req);
+		trans.execute();
+		return trans.getResponse();
 	}
 
 	@Override

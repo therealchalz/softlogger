@@ -3,12 +3,23 @@ package ca.brood.softlogger;
 import java.util.ArrayList;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
+
+import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.DocumentBuilder;
+import javax.xml.transform.Source;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamSource;
+import javax.xml.validation.Schema;
+import javax.xml.validation.SchemaFactory;
+import javax.xml.validation.Validator;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.Node;
+import org.xml.sax.SAXException;
+
+import ca.brood.softlogger.util.*;
 
 
 import java.io.File;
@@ -29,6 +40,7 @@ public class Softlogger {
 	public Softlogger() {
 		log = Logger.getLogger("Softlogger");
 		PropertyConfigurator.configure("logger.config");
+		softloggerChannels = new ArrayList<SoftloggerChannel>();
 	}
 	public void configure(String configFile) {
 		log.info("");
@@ -76,13 +88,21 @@ public class Softlogger {
 	private boolean loadConfig(String filename) {
 		File xmlFile = new File(filename);
 		DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+		dbFactory.setValidating(true);
+		dbFactory.setNamespaceAware(true);
+		XmlErrorCallback error = new XmlErrorCallback();
 		Document doc;
 		try {
 			DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+			dBuilder.setErrorHandler(new SimpleXmlErrorHandler(this.log, error));
 			doc = dBuilder.parse(xmlFile);
+			
 			doc.getDocumentElement().normalize();
+			if (!error.isConfigValid()) {
+				throw new Exception("Config doesn't conform to schema.");
+			}
 		} catch (Exception e) {
-			log.fatal("Exception while trying to load config file: "+filename);
+			log.fatal("Exception while trying to load config file: "+filename + e.getMessage());
 			return false;
 		}
 		Node currentConfigNode = doc.getDocumentElement();
@@ -149,7 +169,6 @@ public class Softlogger {
 		
 		//Load the softloggerChannels
 		loggerConfigNodes = doc.getElementsByTagName("channel");
-		softloggerChannels = new ArrayList<SoftloggerChannel>();
 		boolean workingChannel = false;
 		for (int i=0; i<loggerConfigNodes.getLength(); i++) {
 			currentConfigNode = loggerConfigNodes.item(i);

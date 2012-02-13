@@ -15,12 +15,14 @@ import java.util.*;
 public class RealRegister extends Register implements Comparable<RealRegister>{
 	protected int address = Integer.MAX_VALUE;
 	protected int size = 0;
+	protected int device = 0;
 	protected int sizePerAddress = 2; //size of each address.  for 16-bit addresses, this is 2.  For coils, this is 1.  We know that the next contiguous register should be at this.address+(this.size/this.sizePerAddress)
 	protected RegisterType regType;
 	
-	protected RealRegister() {
+	protected RealRegister(int device) {
 		super();
-		log = Logger.getLogger(RealRegister.class);
+		this.device = device;
+		log = Logger.getLogger(RealRegister.class + " device: "+device);
 	}
 	public boolean configure(Node registerNode) {
 		if (!super.configure(registerNode)) {

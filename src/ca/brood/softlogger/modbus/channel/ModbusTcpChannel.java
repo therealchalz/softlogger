@@ -95,13 +95,11 @@ public class ModbusTcpChannel extends ModbusChannel {
 				throw new Exception("Connection Closed");
 			}
 		}
-		log.trace("Preparing transaction");
+		
 		ModbusTCPTransaction trans = new ModbusTCPTransaction(this.connection);
 		
 		trans.setRequest(req);
-		log.trace("Transaction is ready for executing");
 		trans.execute();
-		log.trace("Request sent, getting response.");
 		return trans.getResponse();
 	}
 

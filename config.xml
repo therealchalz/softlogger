@@ -1,4 +1,4 @@
-<softlogger>
+<!DOCTYPE softlogger SYSTEM "softlogger.dtd"><softlogger>
 	<name>Environmental Monitoring</name>
 	<poll>60</poll> <!-- default poll rate in seconds -->
 	<tableFilePath>lut</tableFilePath>
@@ -21,10 +21,10 @@
 			<address>15</address>
 			<description>Floor 1 DSI</description>
 			<configRegister>
-				<fieldName>Number of sensors</fieldName>
+				<fieldName>Some negative config</fieldName>
 				<regAddr>400002</regAddr>	<!-- Addresses can be of the form [0134][0-9]{4,5}.  The first digit indicates the type of register (input,output)*(coil,register). -->
-				<size>2</size> <!-- size in words of the register. 2 and 4 are supported -->
-				<value>10</value>	<!-- value for the config register, overwrite the device's register with this -->
+				<size type="s">2</size> <!-- size in words of the register. 2 and 4 are supported type=(s|u|f|)=(int|uint|float) -->
+				<value>-5</value>	<!-- value for the config register, overwrite the device's register with this -->
 			</configRegister>
 			<dataRegister>
 				<fieldName>Unit 411 Power</fieldName>
@@ -34,19 +34,14 @@
 					<tableFile>100ACT.dat</tableFile></postProcess>
 				<guid>D3SIA00023</guid>
 			</dataRegister>
-			<virtualRegister>
-				<fieldName>Power</fieldName>
-				<operand id="current">
-					<regAddr>0x0A</regAddr>
-					<size>2</size>
-				</operand>
-				<operand id="voltage">
-					<value>120</value>
-				</operand>
+			<dataRegister>
+				<fieldName>Unit 412 Power</fieldName>
+				<regAddr>300002</regAddr>
+				<size>4</size>
 				<postProcess>
-					<function>mult</function></postProcess>
-				<guid>guid</guid>
-			</virtualRegister>
+					<tableFile>100ACT.dat</tableFile></postProcess>
+				<guid>D3SIA00024</guid>
+			</dataRegister>
 			<configRegister>
 				<fieldName>Number of counters</fieldName>
 				<regAddr>300001</regAddr>

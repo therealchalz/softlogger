@@ -8,9 +8,12 @@ import ca.brood.softlogger.util.*;
 
 public class ConfigRegister extends RealRegister {
 	private RegisterData value = null;
-	public ConfigRegister() {
-		super();
-		log = Logger.getLogger(ConfigRegister.class);
+	public ConfigRegister(int device) {
+		super(device);
+		log = Logger.getLogger("ConfigRegister: D: "+device);
+	}
+	private void setupLog(int device, int address) {
+		log = Logger.getLogger("ConfigRegister: D: "+device+" A: "+address);
 	}
 	
 	public RegisterData getValue() {
@@ -32,6 +35,7 @@ public class ConfigRegister extends RealRegister {
 		if (!super.configure(registerNode)) {
 			return false;
 		}
+		this.setupLog(device, address);
 		NodeList configNodes = registerNode.getChildNodes();
 		for (int i=0; i<configNodes.getLength(); i++) {
 			Node configNode = configNodes.item(i);
@@ -51,7 +55,7 @@ public class ConfigRegister extends RealRegister {
 			log.error("Config register has a read-only type: "+this.regType);
 			return false;
 		}
-		log.trace(this.toString());
+		log.debug(this.toString());
 		return true;
 	}
 	@Override
