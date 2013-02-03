@@ -15,20 +15,20 @@ import net.wimpi.modbus.msg.*;
 public class Device implements Runnable {
 	private Logger log;
 	private final int id;
-	private int address = Integer.MAX_VALUE;
+	private int unitId = Integer.MAX_VALUE;
 	private String description = "";
 	private ArrayList<ConfigRegister> configRegs;
 	private ArrayList<DataRegister> dataRegs;
 	//private ArrayList<VirtualRegister> virtualRegs;
 	private ModbusChannel channel = null;
 	private ScheduledFuture<?> future = null;
-	private int poll = 0;
-	private int defaultPoll = 0;
+	private int scanRate = 0;
+	private int logInterval = 0;
 	private static volatile int nextId = 1;
 	
 	public Device(int channelId) {
 		this.id = getNextDeviceId();
-		log = Logger.getLogger("Device: "+id+" on Channel: "+channelId);
+		log = Logger.getLogger(Device.class+": "+id+" on Channel: "+channelId);
 		configRegs = new ArrayList<ConfigRegister>();
 		dataRegs = new ArrayList<DataRegister>();
 		//virtualRegs = new ArrayList<VirtualRegister>();
@@ -56,14 +56,15 @@ public class Device implements Runnable {
 		NodeList configNodes = deviceNode.getChildNodes();
 		for (int i=0; i<configNodes.getLength(); i++) {
 			Node configNode = configNodes.item(i);
-			if (("#text".compareToIgnoreCase(configNode.getNodeName())==0))	{
+			if (("#text".compareToIgnoreCase(configNode.getNodeName())==0)||
+					("#comment".compareToIgnoreCase(configNode.getNodeName())==0))	{
 				continue;
-			} else if (("address".compareToIgnoreCase(configNode.getNodeName())==0)) {
-				this.address = Integer.parseInt(configNode.getFirstChild().getNodeValue());
-				log.debug("Device address: "+this.address);
+			} else if (("unitId".compareToIgnoreCase(configNode.getNodeName())==0)) {
+				this.unitId = Integer.parseInt(configNode.getFirstChild().getNodeValue());
+				//log.debug("Device unitId: "+this.unitId);
 			} else if (("description".compareToIgnoreCase(configNode.getNodeName())==0)) {
 				this.description = configNode.getFirstChild().getNodeValue();
-				log.debug("Device description: "+this.description);
+				//log.debug("Device description: "+this.description);
 			} else if (("configregister".compareToIgnoreCase(configNode.getNodeName())==0)) {
 				ConfigRegister c = new ConfigRegister(this.id);
 				if (c.configure(configNode))
@@ -72,19 +73,26 @@ public class Device implements Runnable {
 				DataRegister d = new DataRegister(this.id);
 				if (d.configure(configNode))
 					dataRegs.add(d);
-			} else if (("poll".compareToIgnoreCase(configNode.getNodeName())==0)) {
+			} else if (("defaultScanRate".compareToIgnoreCase(configNode.getNodeName())==0)) {
 				try {
-					this.poll = Integer.parseInt(configNode.getFirstChild().getNodeValue());
+					this.scanRate = Integer.parseInt(configNode.getFirstChild().getNodeValue());
 				} catch (NumberFormatException e) {
-					log.error("Invalid device poll: "+configNode.getFirstChild().getNodeValue());
-					this.poll = 0;
+					log.error("Invalid device scan rate: "+configNode.getFirstChild().getNodeValue());
+					this.scanRate = 0;
+				}
+			} else if (("logInterval".compareToIgnoreCase(configNode.getNodeName())==0)) {
+				try {
+					this.logInterval = Integer.parseInt(configNode.getFirstChild().getNodeValue());
+				} catch (NumberFormatException e) {
+					log.error("Invalid device log interval: "+configNode.getFirstChild().getNodeValue());
+					this.logInterval = 0;
 				}
 			} else {
 				log.warn("Got unknown node in config: "+configNode.getNodeName());
 			}
 		}
-		if (this.address == Integer.MAX_VALUE) {
-			log.error("Error: Device does not have an address configured.");
+		if (this.unitId == Integer.MAX_VALUE) {
+			log.error("Error: Device does not have a unitId configured.");
 			return false;
 		}
 		
@@ -92,18 +100,25 @@ public class Device implements Runnable {
 		RealRegister.organizeRegisters(configRegs);
 		RealRegister.organizeRegisters(dataRegs);
 		
-		log.debug("Device's configuration registers: "+configRegs.toString());
-		log.debug("Device's data registers: "+dataRegs.toString());
 		return true;
 	}
-	public int getPollRate() {
-		if (poll != 0)
-			return poll;
-		return defaultPoll;
+	public int getScanRate() {
+		return scanRate;
 	}
-	public void setDefaultPoll(int poll) {
-		log.info("Setting device's default poll rate to "+poll);
-		this.defaultPoll = poll;
+	public void setDefaultScanRate(int rate) {
+		if (scanRate == 0)
+			scanRate = rate;
+		for (RealRegister r : this.configRegs) {
+			r.setDefaultScanRate(scanRate);
+		}
+		for (RealRegister r : this.dataRegs) {
+			r.setDefaultScanRate(scanRate);
+		}
+	}
+	
+	public void setDefaultLogInterval(int lo) {
+		if (logInterval == 0)
+			logInterval = lo;
 	}
 
 	@Override
@@ -114,10 +129,9 @@ public class Device implements Runnable {
 		}
 		log.trace("Checking Config Registers");
 		//Treat the config registers as data registers - read them
-		for (int i=0; i<configRegs.size(); i++) {
-			ConfigRegister c = configRegs.get(i);
+		for (ConfigRegister c : configRegs) {
 			ModbusRequest req = c.getRequest();
-			req.setUnitID(this.address);
+			req.setUnitID(this.unitId);
 			try {
 				ModbusResponse resp = channel.executeRequest(req);
 				c.setData(resp);
@@ -135,7 +149,7 @@ public class Device implements Runnable {
 			if (!c.dataIsGood()) {
 				log.debug("Config register has wrong value: "+c.toString());
 				ModbusRequest req = c.getWriteRequest();
-				req.setUnitID(this.address);
+				req.setUnitID(this.unitId);
 				try {
 					ModbusResponse resp = channel.executeRequest(req);
 					c.setData(resp);
@@ -149,10 +163,9 @@ public class Device implements Runnable {
 		}
 		//Read the data registers
 		log.trace("Checking data Registers");
-		for (int i=0; i<dataRegs.size(); i++) {
-			DataRegister d = dataRegs.get(i);
+		for (DataRegister d : dataRegs) {
 			ModbusRequest req = d.getRequest();
-			req.setUnitID(this.address);
+			req.setUnitID(this.unitId);
 			try {
 				ModbusResponse resp = channel.executeRequest(req);
 				d.setData(resp);
@@ -165,7 +178,18 @@ public class Device implements Runnable {
 		}
 		//Work on the virtual registers
 		//All done
-		log.debug(this.configRegs);
-		log.debug(this.dataRegs);
+	}
+	
+	public void printAll() {
+		log.info("Unit ID: "+this.unitId);
+		log.info("Description: "+this.description);
+		log.info("Scan rate: "+this.scanRate);
+		log.info("Log interval: "+this.logInterval);
+		for (ConfigRegister c : this.configRegs) {
+			log.info(c);
+		}
+		for (DataRegister d : this.dataRegs) {
+			log.info(d);
+		}
 	}
 }

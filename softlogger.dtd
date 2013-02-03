@@ -1,42 +1,45 @@
-<!ELEMENT softlogger (name,poll,tableFilePath,dataFilePath,server,channel*)>
+<!ELEMENT softlogger (name,defaultScanRate,logInterval,lookupTableFilePath,outputFilePath,server,channel*)>
 <!ELEMENT name (#PCDATA)>
-<!ELEMENT poll (#PCDATA)>
-<!ELEMENT tableFilePath (#PCDATA)>
-<!ELEMENT dataFilePath (#PCDATA)>
+<!ELEMENT defaultScanRate (#PCDATA)>
+<!ELEMENT logInterval (#PCDATA)>
+<!ELEMENT lookupTableFilePath (#PCDATA)>
+<!ELEMENT outputFilePath (#PCDATA)>
 
-<!ELEMENT server (user,host,(password|keyfile),configPoll,path)>
+<!ELEMENT server (user,host,port?,(password|keyfile),configPoll,homeFolder)>
 <!ELEMENT user (#PCDATA)>
 <!ELEMENT host (#PCDATA)>
+<!ELEMENT port (#PCDATA)>
 <!ELEMENT password (#PCDATA)>
 <!ELEMENT keyfile (#PCDATA)>
 <!ELEMENT configPoll (#PCDATA)>
-<!ELEMENT path (#PCDATA)>
+<!ELEMENT homeFolder (#PCDATA)>
 
-<!ELEMENT channel ((tcp|serial),device*)>
-<!ELEMENT tcp (host,port?,poll?)>
-<!ELEMENT port (#PCDATA)>
+<!ELEMENT channel (defaultScanRate?,logInterval?,(tcp|serial),device*)>
+<!ELEMENT tcp (host,port?)>
 
-<!ELEMENT serial (comport,baud,poll?)>
+<!ELEMENT serial (comport,baud)>
 <!ELEMENT comport (#PCDATA)>
 <!ELEMENT baud (#PCDATA)>
 
-<!ELEMENT device (address,description,poll?,(configRegister|dataRegister|virtualRegister)*)>
-<!ELEMENT address (#PCDATA)>
+<!ELEMENT device (unitId,description?,defaultScanRate?,logInterval?,(configRegister|dataRegister|virtualRegister)*)>
+<!ELEMENT unitId (#PCDATA)>
 <!ELEMENT description (#PCDATA)>
 
-<!ELEMENT configRegister (fieldName,regAddr,size,value)>
+<!ELEMENT configRegister (fieldName,scanRate?,registerAddress,size?,value)>
 <!ELEMENT fieldName (#PCDATA)>
-<!ELEMENT regAddr (#PCDATA)>
+<!ELEMENT scanRate (#PCDATA)>
+<!ATTLIST scanRate sampling (accumulate|sum|average|mean) "average">
+<!ELEMENT registerAddress (#PCDATA)>
 <!ELEMENT size (#PCDATA)>
-<!ATTLIST size type CDATA #REQUIRED>
+<!ATTLIST size type (s|u|f|int|uint|float|signed|unsigned) "unsigned">
 <!ELEMENT value (#PCDATA)>
 
-<!ELEMENT dataRegister (fieldName,regAddr,size,postProcess?,guid)>
-<!ELEMENT postProcess (scale|tableFile)>
-<!ELEMENT scale (#PCDATA)>
-<!ELEMENT tableFile (#PCDATA)>
+<!ELEMENT dataRegister (fieldName,scanRate?,registerAddress,size?,dataFunction?,guid)>
+<!ELEMENT dataFunction (#PCDATA)>
+<!ATTLIST dataFunction type (expression|lookupTable|customClass) #REQUIRED>
+
 <!ELEMENT guid (#PCDATA)>
 
-<!ELEMENT virtualRegister (fieldName,operand*,postProcess,guid)>
-<!ELEMENT operand ((regAddr,size,postProcess?)|value)>
+<!ELEMENT virtualRegister (fieldName,operand*,dataFunction,guid)>
+<!ELEMENT operand ((registerAddress,size,dataFunction?)|value)>
 <!ATTLIST operand id CDATA #REQUIRED>

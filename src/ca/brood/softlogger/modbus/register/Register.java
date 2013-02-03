@@ -32,7 +32,8 @@ public abstract class Register {
 		NodeList configNodes = registerNode.getChildNodes();
 		for (int i=0; i<configNodes.getLength(); i++) {
 			Node configNode = configNodes.item(i);
-			if (("#text".compareToIgnoreCase(configNode.getNodeName())==0))	{
+			if (("#text".compareToIgnoreCase(configNode.getNodeName())==0)||	
+				("#comment".compareToIgnoreCase(configNode.getNodeName())==0)) {
 				continue;
 			} else if (("fieldName".compareToIgnoreCase(configNode.getNodeName())==0)) {
 				fieldName = configNode.getFirstChild().getNodeValue();

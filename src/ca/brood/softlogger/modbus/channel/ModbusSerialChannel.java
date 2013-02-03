@@ -14,7 +14,6 @@ public class ModbusSerialChannel extends ModbusChannel {
 	private String comport = "";
 	private SerialParameters params = null;
 	private int baud = 0;
-	private int poll = 0;
 	private SerialConnection connection = null;
 	
 	public ModbusSerialChannel(int chanId) {
@@ -34,6 +33,7 @@ public class ModbusSerialChannel extends ModbusChannel {
 	public synchronized boolean configure(Node channelNode) {
 		this.close();
 		this.params = null;
+		super.configure(channelNode);
 		NodeList configNodes = channelNode.getChildNodes();
 		for (int i=0; i<configNodes.getLength(); i++) {
 			Node configNode = configNodes.item(i);
@@ -49,22 +49,11 @@ public class ModbusSerialChannel extends ModbusChannel {
 				} catch (NumberFormatException e) {
 					log.error("Couldn't parse baud to integer from: "+configNode.getFirstChild().getNodeValue());
 				}
-			} else if (("poll".compareToIgnoreCase(configNode.getNodeName())==0))	{
-				try {
-					this.poll = Integer.parseInt(configNode.getFirstChild().getNodeValue());
-					log.debug("Polling rate set to: "+this.poll);
-				} catch (NumberFormatException e) {
-					log.error("Couldn't parse polling rate to integer from: "+configNode.getFirstChild().getNodeValue());
-				}
-			} else {
+			}else {
 				log.warn("Got unknown node in config: "+configNode.getNodeName());
 			}
 		}
 		
-		if (this.poll < 0 || this.poll > 2592000) {//30 days
-			log.warn("Invalid poll, must be in [0,2592000]: "+this.poll+". Ignoring.");
-			this.poll = 0;
-		}
 		if (this.comport.equals("")) {
 			log.fatal("No com port selected.");
 			return false;
@@ -126,5 +115,11 @@ public class ModbusSerialChannel extends ModbusChannel {
 			return false;
 		}
 		return true;
+	}
+	
+	@Override
+	public void printAll() {
+		log.info("COM Port: "+this.comport);
+		log.info("Baud rate: "+this.baud);
 	}
 }

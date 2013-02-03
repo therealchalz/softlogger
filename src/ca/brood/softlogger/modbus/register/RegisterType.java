@@ -17,7 +17,7 @@ public enum RegisterType {
 		Logger log = null;
 		int pos = addr.indexOf('0');
 		int revPos = addr.length() - pos;
-		if (revPos != 5 && revPos != 6) {
+		if (revPos != 5 && revPos != 6 && pos != -1) {
 			log = Logger.getLogger(RegisterType.class);
 			log.warn("Trying to parse modbus address with funny range: "+address);
 		}
@@ -30,11 +30,11 @@ public enum RegisterType {
 		Logger log = null;
 		int pos = addr.indexOf('0');
 		int revPos = addr.length() - pos;
-		if (revPos != 5 && revPos != 6) {
+		if (revPos != 5 && revPos != 6 && pos != -1) {
 			log = Logger.getLogger(RegisterType.class);
 			log.warn("Trying to parse modbus address with funny range: "+address);
 		}
-		if (pos == 0) //leading 0, coil
+		if (pos == 0 || pos == -1) //leading 0, coil
 			return RegisterType.OUTPUT_COIL;
 		int range = Integer.parseInt(addr.substring(0, pos));
 		if (range == RegisterType.INPUT_COIL.leadingDigit)

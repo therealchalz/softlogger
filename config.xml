@@ -1,62 +1,87 @@
-<!DOCTYPE softlogger SYSTEM "softlogger.dtd"><softlogger>
-	<name>Environmental Monitoring</name>
-	<poll>60</poll> <!-- default poll rate in seconds -->
-	<tableFilePath>lut</tableFilePath>
-	<dataFilePath>data</dataFilePath>
+<!DOCTYPE softlogger SYSTEM "softlogger.dtd">
+<softlogger>
+	<name>Test Logger</name>
+	<defaultScanRate>11111</defaultScanRate> <!-- default scan rate in milliseconds -->
+	<logInterval>222</logInterval> <!-- default interval to write to output file in seconds -->
+	<lookupTableFilePath>lut</lookupTableFilePath>
+	<outputFilePath>data</outputFilePath>
 	<server>
-		<user>tsco</user>
-		<host>datacloud.server.com</host>
-		<configPoll>3600</configPoll>
-		<path>/save/data/here</path>
+		<user>logger</user>
+		<host>127.0.0.1</host>
+		<port>2222</port>
 		<password>fakePass01</password> <!-- or <keyfile> element -->
+		<!--
+		<keyfile>ssh/id_rsa</keyfile>
+		-->
+		<configPoll>3600</configPoll>
+		<homeFolder>/home/logger1/data</homeFolder>
 	</server>
 	<channel>
+		<defaultScanRate>333</defaultScanRate> <!-- default scan rate for this channel, overrides Softlogger scan rate -->
+		<logInterval>44</logInterval> <!-- overrides softlogger -->
 		<tcp>
 			<host>127.0.0.1</host>
 			<port>502</port>
-			<poll>1</poll> <!-- default poll rate for this channel, overrides Softlogger poll -->
 		</tcp>
+		<!--
+		<serial>
+			<comport>COM4</comport>
+			<baud>19200</baud>
+		</serial>
+		-->
 		<device>
-			<!-- devices can each have a poll rate as well, which overrides their channel and softlogger default polls -->
-			<address>15</address>
-			<description>Floor 1 DSI</description>
+			<!-- devices can each have a scan rate as well, which overrides their channel
+			and softlogger default scan rates.  Same thing for logInterval -->
+			<unitId>15</unitId>
+			<description>DSI #1</description>
+			<defaultScanRate>555</defaultScanRate>
+			<logInterval>66</logInterval>
 			<configRegister>
-				<fieldName>Some negative config</fieldName>
-				<regAddr>400002</regAddr>	<!-- Addresses can be of the form [0134][0-9]{4,5}.  The first digit indicates the type of register (input,output)*(coil,register). -->
-				<size type="s">2</size> <!-- size in words of the register. 2 and 4 are supported type=(s|u|f|)=(int|uint|float) -->
+				<fieldName>Config coil 1 true</fieldName>
+				<registerAddress>000001</registerAddress>
+				<value>true</value>
+			</configRegister>
+			<configRegister>
+				<fieldName>Config value 1</fieldName>
+				<scanRate>4200</scanRate>
+				<registerAddress>400003</registerAddress>	<!-- Addresses can be of the form [0134][0-9]{4,5}.  The first digit indicates the type of register (input,output)*(coil,register). -->
+				<size type="signed">2</size> <!-- size in words of the register. 2 and 4 are supported type=(s|u|f|)=(int|uint|float) -->
 				<value>-5</value>	<!-- value for the config register, overwrite the device's register with this -->
 			</configRegister>
 			<dataRegister>
-				<fieldName>Unit 411 Power</fieldName>
-				<regAddr>300000</regAddr>
-				<size>4</size>
-				<postProcess>
-					<tableFile>100ACT.dat</tableFile></postProcess>
-				<guid>D3SIA00023</guid>
+				<fieldName>Measurement 1</fieldName>
+				<registerAddress>300001</registerAddress>
+				<guid>D3M01</guid>
 			</dataRegister>
 			<dataRegister>
-				<fieldName>Unit 412 Power</fieldName>
-				<regAddr>300002</regAddr>
-				<size>4</size>
-				<postProcess>
-					<tableFile>100ACT.dat</tableFile></postProcess>
-				<guid>D3SIA00024</guid>
+				<fieldName>Measurement 2</fieldName>
+				<scanRate>33000</scanRate>
+				<registerAddress>300003</registerAddress>
+				<size>2</size>
+				<dataFunction type="lookupTable">LUT1.dat</dataFunction>
+				<guid>D3M02</guid>
 			</dataRegister>
-			<configRegister>
-				<fieldName>Number of counters</fieldName>
-				<regAddr>300001</regAddr>
-				<size>2</size>
-				<value>2</value></configRegister>
-			<configRegister>
-				<fieldName>Number of Somethings at 7</fieldName>
-				<regAddr>400007</regAddr>
-				<size>2</size>
-				<value>55</value></configRegister>
-			<configRegister>
-				<fieldName>Reset Reason</fieldName>
-				<regAddr>400003</regAddr>
-				<size>2</size>
-				<value>9</value></configRegister>
+			<dataRegister>
+				<fieldName>Measurement 3</fieldName>
+				<scanRate sampling="sum">10000</scanRate>
+				<registerAddress>300005</registerAddress>
+				<size type="float">1</size>
+				<guid>D3M03</guid>
+			</dataRegister>
+			<dataRegister>
+				<fieldName>Measurement 4</fieldName>
+				<registerAddress>400005</registerAddress>
+				<size type="float">2</size>
+				<dataFunction type="expression">PI*$*1000/sqrt(E)</dataFunction>
+				<guid>D3M04</guid>
+			</dataRegister>
+			<dataRegister>
+				<fieldName>Measurement 5</fieldName>
+				<scanRate sampling="average">5000</scanRate>
+				<registerAddress>400007</registerAddress>
+				<size type="float">2</size>
+				<guid>D3M5</guid>
+			</dataRegister>
 		</device>
 	</channel>
 </softlogger>

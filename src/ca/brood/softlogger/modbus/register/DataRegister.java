@@ -7,32 +7,44 @@ import org.w3c.dom.NodeList;
 
 
 public class DataRegister extends RealRegister {
+	private String guid = "";
+	
 	public DataRegister(int device) {
 		super(device);
 		log = Logger.getLogger(DataRegister.class);
 	}
-	private void setupLog(int device, int address) {
-		log = Logger.getLogger("DataRegister: D: "+device+" A: "+address);
+	private void setupLog() {
+		log = Logger.getLogger(DataRegister.class+" GUID: "+this.guid);
 	}
 	public boolean configure(Node registerNode) {
 		if (!super.configure(registerNode)) {
 			return false;
 		}
-		this.setupLog(device, address);
 		NodeList configNodes = registerNode.getChildNodes();
 		for (int i=0; i<configNodes.getLength(); i++) {
 			Node configNode = configNodes.item(i);
-			if (("#text".compareToIgnoreCase(configNode.getNodeName())==0))	{
+			if (("#text".compareToIgnoreCase(configNode.getNodeName())==0) ||
+					("#comment".compareToIgnoreCase(configNode.getNodeName())==0))	{
 				continue;
-			} else {
+			} else if ("guid".compareToIgnoreCase(configNode.getNodeName())==0){
+				this.guid = configNode.getFirstChild().getNodeValue();
+			}else {
 				log.warn("Got unknown node in config: "+configNode.getNodeName());
 			}
 		}
-		log.debug(this.toString());
+		
+		if (this.guid.equals("")) {
+			log.error("No guid configured.");
+			return false;
+		}
+		
+		this.setupLog();
+		
+		//log.debug(this.toString());
 		return true;
 	}
 	@Override
 	public String toString() {
-		return "DataRegister: fieldname="+this.fieldName+"; address="+this.address+"; size="+this.size+"; data: "+registerData.toString();
+		return "DataRegister: guid="+this.guid+"; fieldname="+this.fieldName+"; address="+this.address+"; type="+this.regType+"; size="+this.size+"; scanRate="+this.scanRate+"; data: "+registerData.toString();
 	}
 }

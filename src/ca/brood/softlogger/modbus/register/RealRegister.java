@@ -16,6 +16,7 @@ public class RealRegister extends Register implements Comparable<RealRegister>{
 	protected int address = Integer.MAX_VALUE;
 	protected int size = 0;
 	protected int device = 0;
+	protected int scanRate = 0;
 	protected int sizePerAddress = 2; //size of each address.  for 16-bit addresses, this is 2.  For coils, this is 1.  We know that the next contiguous register should be at this.address+(this.size/this.sizePerAddress)
 	protected RegisterType regType;
 	
@@ -24,6 +25,11 @@ public class RealRegister extends Register implements Comparable<RealRegister>{
 		this.device = device;
 		log = Logger.getLogger(RealRegister.class + " device: "+device);
 	}
+	public void setDefaultScanRate(int rate) {
+		if (scanRate == 0) {
+			scanRate = rate;
+		}
+	}
 	public boolean configure(Node registerNode) {
 		if (!super.configure(registerNode)) {
 			return false;
@@ -31,14 +37,15 @@ public class RealRegister extends Register implements Comparable<RealRegister>{
 		NodeList configNodes = registerNode.getChildNodes();
 		for (int i=0; i<configNodes.getLength(); i++) {
 			Node configNode = configNodes.item(i);
-			if (("#text".compareToIgnoreCase(configNode.getNodeName())==0))	{
+			if (("#text".compareToIgnoreCase(configNode.getNodeName())==0) || 
+					("#comment".compareToIgnoreCase(configNode.getNodeName())==0))	{
 				continue;
-			} else if (("regAddr".compareToIgnoreCase(configNode.getNodeName())==0))	{
+			} else if (("registerAddress".compareToIgnoreCase(configNode.getNodeName())==0))	{
 				int addy = 0;
 				try {
 					addy = Util.parseInt(configNode.getFirstChild().getNodeValue());
 				} catch (NumberFormatException e) {
-					log.error("Couldn't parse regAddr to integer from: "+configNode.getFirstChild().getNodeValue());
+					log.error("Couldn't parse register Address to integer from: "+configNode.getFirstChild().getNodeValue());
 					return false;
 				}
 				try {
@@ -56,9 +63,17 @@ public class RealRegister extends Register implements Comparable<RealRegister>{
 				} catch (NumberFormatException e) {
 					log.error("Couldn't parse size to integer from: "+configNode.getFirstChild().getNodeValue());
 				}
+			} else if ("scanRate".compareToIgnoreCase(configNode.getNodeName())==0){
+				try {
+					this.scanRate = Integer.parseInt(configNode.getFirstChild().getNodeValue());
+					registerNode.removeChild(configNode);
+				} catch (NumberFormatException e) {
+					log.error("Invalid scan rate: "+configNode.getFirstChild().getNodeValue());
+					this.scanRate = 0;
+				}
 			}
 		}
-		if (this.address < 0 || this.address > 65535) {
+		if (this.address < 1 || this.address > 65535) {
 			log.error("Parsed invalid address: "+this.address);
 			return false;
 		}
@@ -67,16 +82,18 @@ public class RealRegister extends Register implements Comparable<RealRegister>{
 		case OUTPUT_COIL:
 			this.sizePerAddress = 1;
 			if (this.size != 1) {
-				log.warn("Got invalid size for an input or output coil.  Changing size to 1 from: "+this.size);
+				if (this.size != 0)
+					log.warn("Got invalid size for an input or output coil.  Changing size to 1 from: "+this.size);
 				this.size = 1;
 			}
 			break;
 		case INPUT_REGISTER:
 		case OUTPUT_REGISTER:
 			this.sizePerAddress = 2;
-			if (this.size != 2 && this.size != 4) {
-				log.warn("Got invalid size for an input or output register.  Changing size to 2 from: "+this.size);
-				this.size = 2;
+			if (this.size != 1 && this.size != 2) {
+				if (this.size != 0)
+					log.warn("Got invalid size for an input or output register.  Changing size to 2 from: "+this.size);
+				this.size = 1;
 			}
 			break;
 		}
@@ -94,14 +111,12 @@ public class RealRegister extends Register implements Comparable<RealRegister>{
 	
 	@Override
 	public int compareTo(RealRegister other) {
-		if (other.address == this.address)
-			return 0;
-		if (other.address < this.address)
-			return 1;
-		if (other.address > this.address)
-			return -1;
-		//should never get here
-		return 0;
+		int ret = this.regType.compareTo(other.regType);
+		if (ret != 0) {
+			return ret;
+		}
+		ret = this.address - other.address;
+		return ret;
 	}
 	
 	@Override

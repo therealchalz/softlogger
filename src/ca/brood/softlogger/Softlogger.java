@@ -29,16 +29,17 @@ public class Softlogger {
 	private Logger log;
 	
 	private String loggerName = "Unnamed Logger";
-	private int defaultDevicePoll = 0;
+	private int defaultScanRate = 0;
+	private int logInterval = 0;
 	private String tableFilePath = "lut/";
-	private String dataFilePath = "data/";
+	private String outputFilePath = "data/";
 	private String configFilePath = "";
 	
 	private DataServer server;
 	private ArrayList<SoftloggerChannel> softloggerChannels;
 	
 	public Softlogger() {
-		log = Logger.getLogger("Softlogger");
+		log = Logger.getLogger(Softlogger.class);
 		PropertyConfigurator.configure("logger.config");
 		softloggerChannels = new ArrayList<SoftloggerChannel>();
 	}
@@ -102,7 +103,7 @@ public class Softlogger {
 				throw new Exception("Config doesn't conform to schema.");
 			}
 		} catch (Exception e) {
-			log.fatal("Exception while trying to load config file: "+filename + e.getMessage());
+			log.fatal("Exception while trying to load config file: "+filename + " " + e.getMessage());
 			return false;
 		}
 		Node currentConfigNode = doc.getDocumentElement();
@@ -111,24 +112,33 @@ public class Softlogger {
 		for (int i=0; i<loggerConfigNodes.getLength(); i++) {
 			Node configNode = loggerConfigNodes.item(i);
 			if ("name".compareToIgnoreCase(configNode.getNodeName())==0){
-				log.debug("Logger Name: "+configNode.getFirstChild().getNodeValue());
+				//log.debug("Logger Name: "+configNode.getFirstChild().getNodeValue());
 				this.loggerName = configNode.getFirstChild().getNodeValue();
-			} else if ("poll".compareToIgnoreCase(configNode.getNodeName())==0){
-				log.debug("Default poll period: "+configNode.getFirstChild().getNodeValue());
+			} else if ("defaultScanRate".compareToIgnoreCase(configNode.getNodeName())==0){
+				//log.debug("Default scan rate: "+configNode.getFirstChild().getNodeValue());
 				try {
-					this.defaultDevicePoll = Integer.parseInt(configNode.getFirstChild().getNodeValue());
+					this.defaultScanRate = Integer.parseInt(configNode.getFirstChild().getNodeValue());
 				} catch (NumberFormatException e) {
-					log.error("Invalid device poll: "+configNode.getFirstChild().getNodeValue());
-					this.defaultDevicePoll = 0;
+					log.error("Invalid scan rate: "+configNode.getFirstChild().getNodeValue());
+					this.defaultScanRate = 0;
 				}
-			} else if ("tableFilePath".compareToIgnoreCase(configNode.getNodeName())==0){
-				log.debug("Lookup table path: "+configNode.getFirstChild().getNodeValue());
+			} else if ("logInterval".compareToIgnoreCase(configNode.getNodeName())==0){
+				//log.debug("Default logging interval: "+configNode.getFirstChild().getNodeValue());
+				try {
+					this.logInterval = Integer.parseInt(configNode.getFirstChild().getNodeValue());
+				} catch (NumberFormatException e) {
+					log.error("Invalid log interval: "+configNode.getFirstChild().getNodeValue());
+					this.logInterval = 0;
+				}
+			} else if ("lookupTableFilePath".compareToIgnoreCase(configNode.getNodeName())==0){
+				//log.debug("Lookup table path: "+configNode.getFirstChild().getNodeValue());
 				this.tableFilePath = configNode.getFirstChild().getNodeValue();
-			} else if ("dataFilePath".compareToIgnoreCase(configNode.getNodeName())==0){
-				log.debug("Data file path: "+configNode.getFirstChild().getNodeValue());
-				this.dataFilePath = configNode.getFirstChild().getNodeValue();
+			} else if ("outputFilePath".compareToIgnoreCase(configNode.getNodeName())==0){
+				//log.debug("Output file path: "+configNode.getFirstChild().getNodeValue());
+				this.outputFilePath = configNode.getFirstChild().getNodeValue();
 			} else if (("server".compareToIgnoreCase(configNode.getNodeName())==0) || 
-			("channel".compareToIgnoreCase(configNode.getNodeName())==0)|| 
+			("channel".compareToIgnoreCase(configNode.getNodeName())==0)||
+			("#comment".compareToIgnoreCase(configNode.getNodeName())==0)||
 			("#text".compareToIgnoreCase(configNode.getNodeName())==0))	{
 				continue;
 			} else {
@@ -138,17 +148,21 @@ public class Softlogger {
 		if (loggerName.equals("")) {
 			log.warn("Softlogger name is blank");
 		}
-		if (defaultDevicePoll < 0) {
-			log.warn("Softlogger default device poll rate is invalid.  Using default of 60.");
-			defaultDevicePoll = 60;
+		if (defaultScanRate <= 0) {
+			log.warn("Softlogger default scan rate is invalid.  Using default of 5000.");
+			defaultScanRate = 5000;
+		}
+		if (logInterval <= 0) {
+			log.warn("Softlogger default logging interval is invalid.  Using default of 600.");
+			logInterval = 600;
 		}
 		if (tableFilePath.equals("")) {
 			log.warn("Softlogger lookup table file path is invalid.  Using default of lut/");
 			tableFilePath = "lut/";
 		}
-		if (dataFilePath.equals("")) {
+		if (outputFilePath.equals("")) {
 			log.warn("Softlogger data file path is invalid.  Using default of data/");
-			dataFilePath = "data/";
+			outputFilePath = "data/";
 		}
 		
 		//Load the data server
@@ -185,9 +199,27 @@ public class Softlogger {
 		}
 		
 		for (int i=0; i<softloggerChannels.size(); i++) {
-			softloggerChannels.get(i).setDefaultPoll(this.defaultDevicePoll);
+			softloggerChannels.get(i).setDefaultScanRate(this.defaultScanRate);
+			softloggerChannels.get(i).setDefaultLogInterval(this.logInterval);
 		}
 		
+		this.printAll();
+		
+		
 		return true;
+	}
+	public void printAll() {
+		log.info("Name: "+this.loggerName);
+		if (defaultScanRate > 0)
+			log.info("Default scan rate: "+this.defaultScanRate);
+		if (logInterval > 0)
+			log.info("Default log interval: "+this.logInterval);
+		log.info("Lookup table file path: "+this.tableFilePath);
+		log.info("Output file path: "+this.outputFilePath);
+		
+		this.server.printAll();
+		for (SoftloggerChannel c : this.softloggerChannels) {
+			c.printAll();
+		}
 	}
 }

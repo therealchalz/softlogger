@@ -18,7 +18,7 @@ public class ModbusTcpChannel extends ModbusChannel {
 	
 	public ModbusTcpChannel(int chanId) {
 		super(chanId);
-		log = Logger.getLogger("ModbusTCPChannel: "+id+" on Channel: "+chanId);
+		log = Logger.getLogger(ModbusTcpChannel.class+": "+id+" on Channel: "+chanId);
 	}
 	@Override
 	public synchronized boolean close() {
@@ -36,7 +36,8 @@ public class ModbusTcpChannel extends ModbusChannel {
 		NodeList configNodes = channelNode.getChildNodes();
 		for (int i=0; i<configNodes.getLength(); i++) {
 			Node configNode = configNodes.item(i);
-			if (("#text".compareToIgnoreCase(configNode.getNodeName())==0))	{
+			if (("#text".compareToIgnoreCase(configNode.getNodeName())==0)||
+					("#comment".compareToIgnoreCase(configNode.getNodeName())==0))	{
 				continue;
 			} else if (("host".compareToIgnoreCase(configNode.getNodeName())==0))	{
 				try {
@@ -46,31 +47,20 @@ public class ModbusTcpChannel extends ModbusChannel {
 					log.fatal("Could not get proper address for host: "+configNode.getFirstChild().getNodeValue());
 					return false;
 				}
-				log.debug("Host set to: "+this.host.getHostAddress()+" ("+this.host.getHostName()+")");
+				//log.debug("Host set to: "+this.host.getHostAddress()+" ("+this.host.getHostName()+")");
 			} else if (("port".compareToIgnoreCase(configNode.getNodeName())==0))	{
 				try {
 					this.port = Integer.parseInt(configNode.getFirstChild().getNodeValue());
-					log.debug("Port set to: "+this.port);
+					//log.debug("Port set to: "+this.port);
 				} catch (NumberFormatException e) {
 					log.error("Couldn't parse port to integer from: "+configNode.getFirstChild().getNodeValue());
-				}
-			} else if (("poll".compareToIgnoreCase(configNode.getNodeName())==0))	{
-				try {
-					this.poll = Integer.parseInt(configNode.getFirstChild().getNodeValue());
-					log.debug("Polling rate set to: "+this.poll);
-				} catch (NumberFormatException e) {
-					log.error("Couldn't parse polling rate to integer from: "+configNode.getFirstChild().getNodeValue());
 				}
 			} else {
 				log.warn("Got unknown node in config: "+configNode.getNodeName());
 			}
 		}
 		
-		if (this.poll < 0 || this.poll > 2592000) {//30 days
-			log.warn("Invalid poll, must be in [0,2592000]: "+this.poll+". Ignoring.");
-			this.poll = 0;
-		}
-		if (this.port > 65535) {
+		if (this.port > 65535 || this.port < 1) {
 			log.fatal("Bad port configured: "+this.port);
 			return false;
 		}
@@ -125,5 +115,11 @@ public class ModbusTcpChannel extends ModbusChannel {
 			return false;
 		}
 		return true;
+	}
+	
+	@Override
+	public void printAll() {
+		log.info("Host: " + this.host);
+		log.info("Port: " + this.port);
 	}
 }
