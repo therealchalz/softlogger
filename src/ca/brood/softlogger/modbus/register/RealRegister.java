@@ -30,6 +30,9 @@ public class RealRegister extends Register implements Comparable<RealRegister>{
 			scanRate = rate;
 		}
 	}
+	public int getScanRate() {
+		return this.scanRate;
+	}
 	public boolean configure(Node registerNode) {
 		if (!super.configure(registerNode)) {
 			return false;
@@ -99,15 +102,6 @@ public class RealRegister extends Register implements Comparable<RealRegister>{
 		}
 		return true;
 	}
-
-	//Performs an inline sort of the passed in array of registers by address.
-	//Also arranges the registers into contiguous groups and returns them (not completed).
-	public static ArrayList<ArrayList<? extends RealRegister>> organizeRegisters(ArrayList<? extends RealRegister> in) {
-		//TODO: Finish this.  Need to group the registers together
-		ArrayList<ArrayList<? extends RealRegister>> ret = new ArrayList<ArrayList<? extends RealRegister>>();
-		Collections.sort(in);		
-		return ret;
-	}
 	
 	@Override
 	public int compareTo(RealRegister other) {
@@ -142,5 +136,21 @@ public class RealRegister extends Register implements Comparable<RealRegister>{
 		}
 		
 		return request;
+	}
+	public static class ScanRateComparator implements Comparator<RealRegister> {
+
+		@Override
+		public int compare(RealRegister arg0, RealRegister arg1) {
+			int ret = arg0.scanRate - arg1.scanRate;
+			if (ret != 0)
+				return ret;
+			ret = arg0.regType.compareTo(arg1.regType);
+			if (ret != 0)
+				return ret;
+			ret = arg0.address - arg1.address;
+			if (ret != 0);
+				return ret;
+		}
+		
 	}
 }

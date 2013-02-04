@@ -3,6 +3,9 @@ import ca.brood.softlogger.modbus.channel.ModbusChannel;
 import ca.brood.softlogger.modbus.register.*;
 
 import java.util.ArrayList;
+import java.util.PriorityQueue;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.concurrent.ScheduledFuture;
 
 import org.apache.log4j.Logger;
@@ -17,8 +20,8 @@ public class Device implements Runnable {
 	private final int id;
 	private int unitId = Integer.MAX_VALUE;
 	private String description = "";
-	private ArrayList<ConfigRegister> configRegs;
-	private ArrayList<DataRegister> dataRegs;
+	private SortedSet<ConfigRegister> configRegs;
+	private SortedSet<DataRegister> dataRegs;
 	//private ArrayList<VirtualRegister> virtualRegs;
 	private ModbusChannel channel = null;
 	private ScheduledFuture<?> future = null;
@@ -29,8 +32,8 @@ public class Device implements Runnable {
 	public Device(int channelId) {
 		this.id = getNextDeviceId();
 		log = Logger.getLogger(Device.class+": "+id+" on Channel: "+channelId);
-		configRegs = new ArrayList<ConfigRegister>();
-		dataRegs = new ArrayList<DataRegister>();
+		configRegs = new TreeSet<ConfigRegister>();
+		dataRegs = new TreeSet<DataRegister>();
 		//virtualRegs = new ArrayList<VirtualRegister>();
 	}
 	
@@ -50,6 +53,36 @@ public class Device implements Runnable {
 	
 	public void setChannel(ModbusChannel chan) {
 		this.channel = chan;
+	}
+	
+	private PriorityQueue<RealRegister> getAllRegistersByScanRate() {
+		PriorityQueue<RealRegister> ret = new PriorityQueue<RealRegister>(configRegs.size()+dataRegs.size(), new RealRegister.ScanRateComparator());
+		ret.addAll(configRegs);
+		ret.addAll(dataRegs);
+		return ret;
+	}
+	
+	public void buildScanGroupQueue(PriorityQueue<ScanGroup> dest) {
+		//Get all registers ordered by scan rate, then type, then address
+		PriorityQueue<RealRegister> regs = getAllRegistersByScanRate();
+		
+		//Combine all the registers with the same scan rate into scan groups
+		ScanGroup scanGroup = null;
+		int scanRate = Integer.MAX_VALUE;
+		while(!regs.isEmpty()) {
+			if (scanGroup == null) {
+				scanRate = regs.peek().getScanRate();
+				scanGroup = new ScanGroup(scanRate, this);
+				scanGroup.addRegister(regs.poll());
+			} else {
+				if (regs.peek().getScanRate() == scanRate) {
+					scanGroup.addRegister(regs.poll());
+				} else {
+					dest.add(scanGroup);
+					scanGroup = null;
+				}
+			}
+		}
 	}
 	
 	public boolean configure(Node deviceNode) {
@@ -96,10 +129,6 @@ public class Device implements Runnable {
 			return false;
 		}
 		
-		//Sort the registers
-		RealRegister.organizeRegisters(configRegs);
-		RealRegister.organizeRegisters(dataRegs);
-		
 		return true;
 	}
 	public int getScanRate() {
@@ -144,8 +173,7 @@ public class Device implements Runnable {
 		}
 		//If a config register's value is invalid, write the correct one
 		log.trace("Writing config registers");
-		for (int i=0; i<configRegs.size(); i++) {
-			ConfigRegister c = configRegs.get(i);
+		for (ConfigRegister c : configRegs) {
 			if (!c.dataIsGood()) {
 				log.debug("Config register has wrong value: "+c.toString());
 				ModbusRequest req = c.getWriteRequest();

@@ -25,7 +25,6 @@ public class SoftloggerChannel implements Runnable {
 		this.id = getNextId();
 		log = Logger.getLogger(SoftloggerChannel.class+" ID: "+id);
 		devices = new ArrayList<Device>();
-		threadBoss = new ScheduledThreadPoolExecutor(1); //TODO: 1 thread. Maybe for TCP we should have a thread for each device?
 	}
 	public static synchronized int getNextId() {
 		return nextId++;
@@ -107,8 +106,8 @@ public class SoftloggerChannel implements Runnable {
 		channel.open();
 		
 		//Schedule the devices in the thread pool
-		for (int i=0; i<devices.size(); i++) {
-			Device d = devices.get(i);
+		threadBoss = new ScheduledThreadPoolExecutor(1); //TODO: 1 thread. Maybe for TCP we should have a thread for each device?
+		for (Device d : devices) {
 			d.setFuture(threadBoss.scheduleAtFixedRate(d, 0, d.getScanRate(), TimeUnit.SECONDS));
 		}
 		

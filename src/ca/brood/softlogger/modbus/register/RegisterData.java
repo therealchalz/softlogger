@@ -16,11 +16,16 @@ public class RegisterData implements net.wimpi.modbus.procimg.Register{
 		this.setData(resp);
 	}
 	
-	private void nullData() {
+	public void nullData() {
 		dataInt = null;
 		dataFloat = null;
 		dataBool = null;
 	}
+	
+	public boolean isNull() {
+		return (dataInt == null && dataFloat == null && dataBool == null);
+	}
+	
 	//Should always check for null first when getting these values
 	public Integer getInt() {
 		return dataInt;
