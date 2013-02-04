@@ -6,7 +6,7 @@
 	<lookupTableFilePath>lut</lookupTableFilePath>
 	<outputFilePath>data</outputFilePath>
 	<server>
-		<user>logger</user>
+		<user>logger1</user>
 		<host>127.0.0.1</host>
 		<port>2222</port>
 		<password>fakePass01</password> <!-- or <keyfile> element -->
