@@ -126,13 +126,13 @@ public class SoftloggerChannel implements Runnable {
 				}
 			}
 		}
-		log.debug("Done issuing stop commands, check status of threads");
+		log.debug("Done issuing stop commands.");
 		//I'm willing to wait a maximum of 5 seconds for the threads to close cleanly
 		try {
 			threadBoss.awaitTermination(5, TimeUnit.SECONDS);
 		} catch (InterruptedException e) {
 		}
-		log.debug("Done checking threads.  Killing all devices now");
+		
 		this.kill();
 	}
 	public void kill() {
