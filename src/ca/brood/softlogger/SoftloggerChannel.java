@@ -6,6 +6,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import ca.brood.softlogger.modbus.Device;
+import ca.brood.softlogger.modbus.DeviceUpdater;
 import ca.brood.softlogger.modbus.channel.*;
 import java.util.concurrent.*;
 
@@ -15,6 +16,7 @@ public class SoftloggerChannel implements Runnable {
 	private ScheduledExecutorService threadBoss;
 	
 	private ArrayList<Device> devices = null;
+	private DeviceUpdater deviceUpdater;
 	private final int id;
 	private ModbusChannel channel = null;
 	private int scanRate = 0;
@@ -105,27 +107,25 @@ public class SoftloggerChannel implements Runnable {
 			return;
 		channel.open();
 		
-		//Schedule the devices in the thread pool
+		deviceUpdater = new DeviceUpdater(devices, this.id);
+		
 		threadBoss = new ScheduledThreadPoolExecutor(1); //TODO: 1 thread. Maybe for TCP we should have a thread for each device?
-		for (Device d : devices) {
-			d.setFuture(threadBoss.scheduleAtFixedRate(d, 0, d.getScanRate(), TimeUnit.SECONDS));
-		}
+		deviceUpdater.setFuture(threadBoss.schedule(deviceUpdater, 0, TimeUnit.SECONDS));
 		
 	}
 	
 	public void stop() {
 		threadBoss.shutdown();
-		for (int i=0; i<devices.size(); i++) {
-			Device d = devices.get(i);
-			if (d.getFuture() != null) {
-				if (!d.getFuture().isDone() && !d.getFuture().isCancelled()) {
-					log.info("Stopping device: "+d.getDescription());
-					d.getFuture().cancel(false);
-				} else {
-					log.info("Device is already stopped :"+d.getDescription());
+		
+		if (deviceUpdater != null) {
+			if (deviceUpdater.getFuture() != null) {
+				if (!deviceUpdater.getFuture().isDone() && !deviceUpdater.getFuture().isCancelled()) {
+					log.info("Stopping channel");
+					deviceUpdater.getFuture().cancel(false);
 				}
 			}
 		}
+		
 		log.debug("Done issuing stop commands.");
 		//I'm willing to wait a maximum of 5 seconds for the threads to close cleanly
 		try {
@@ -136,12 +136,11 @@ public class SoftloggerChannel implements Runnable {
 		this.kill();
 	}
 	public void kill() {
-		for (int i=0; i<devices.size(); i++) {
-			Device d = devices.get(i);
-			if (d.getFuture() != null) {
-				if (!d.getFuture().isDone() && !d.getFuture().isCancelled()) {
-					log.info("Killing device: "+d.getDescription());
-					d.getFuture().cancel(true);
+		if (deviceUpdater != null) {
+			if (deviceUpdater.getFuture() != null) {
+				if (!deviceUpdater.getFuture().isDone() && !deviceUpdater.getFuture().isCancelled()) {
+					log.info("Killing channel");
+					deviceUpdater.getFuture().cancel(true);
 				}
 			}
 		}

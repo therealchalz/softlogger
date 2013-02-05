@@ -22,9 +22,9 @@ public class Device implements Runnable {
 	private String description = "";
 	private SortedSet<ConfigRegister> configRegs;
 	private SortedSet<DataRegister> dataRegs;
-	//private ArrayList<VirtualRegister> virtualRegs;
 	private ModbusChannel channel = null;
-	private ScheduledFuture<?> future = null;
+	private PriorityQueue<ScanGroup> scanGroups;
+	
 	private int scanRate = 0;
 	private int logInterval = 0;
 	private static volatile int nextId = 1;
@@ -34,18 +34,11 @@ public class Device implements Runnable {
 		log = Logger.getLogger(Device.class+": "+id+" on Channel: "+channelId);
 		configRegs = new TreeSet<ConfigRegister>();
 		dataRegs = new TreeSet<DataRegister>();
-		//virtualRegs = new ArrayList<VirtualRegister>();
+		scanGroups = new PriorityQueue<ScanGroup>();
 	}
 	
 	private static synchronized int getNextDeviceId() {
 		return nextId++;
-	}
-	
-	public void setFuture(ScheduledFuture<?> fut) {
-		this.future = fut;
-	}
-	public ScheduledFuture<?> getFuture() {
-		return future;
 	}
 	public String getDescription() {
 		return this.description;
@@ -62,7 +55,21 @@ public class Device implements Runnable {
 		return ret;
 	}
 	
-	public void buildScanGroupQueue(PriorityQueue<ScanGroup> dest) {
+	//return -1 if no scan groups
+	//otherwise return number of milliseconds until next scan
+	public int getTtl() {
+		ScanGroup top = scanGroups.peek();
+		if (top == null) {
+			return -1;
+		}
+		int ttl = top.getTtl();
+		if (ttl < 0)
+			return 0;
+		return ttl;
+	}
+	
+	private void buildScanGroupQueue() {
+		scanGroups = new PriorityQueue<ScanGroup>();
 		//Get all registers ordered by scan rate, then type, then address
 		PriorityQueue<RealRegister> regs = getAllRegistersByScanRate();
 		
@@ -72,13 +79,17 @@ public class Device implements Runnable {
 		while(!regs.isEmpty()) {
 			if (scanGroup == null) {
 				scanRate = regs.peek().getScanRate();
-				scanGroup = new ScanGroup(scanRate, this);
+				if (scanRate == 0) {
+					log.warn("Got 0 scanrate: " +regs);
+				}
+				scanGroup = new ScanGroup(scanRate);
 				scanGroup.addRegister(regs.poll());
 			} else {
 				if (regs.peek().getScanRate() == scanRate) {
 					scanGroup.addRegister(regs.poll());
 				} else {
-					dest.add(scanGroup);
+					log.debug("Adding Scangroup: "+scanGroup);
+					scanGroups.add(scanGroup);
 					scanGroup = null;
 				}
 			}
@@ -129,6 +140,8 @@ public class Device implements Runnable {
 			return false;
 		}
 		
+		buildScanGroupQueue();
+		
 		return true;
 	}
 	public int getScanRate() {
@@ -143,6 +156,7 @@ public class Device implements Runnable {
 		for (RealRegister r : this.dataRegs) {
 			r.setDefaultScanRate(scanRate);
 		}
+		buildScanGroupQueue();
 	}
 	
 	public void setDefaultLogInterval(int lo) {
@@ -156,6 +170,23 @@ public class Device implements Runnable {
 		if (this.channel == null) {
 			return;
 		}
+		
+		int ttl = getTtl();
+		log.info("TTL: "+ttl);
+		
+		if (ttl > 10)
+			return;
+		
+		SortedSet<RealRegister> registersToProcess = new TreeSet<RealRegister>();
+		ScanGroup next = scanGroups.poll();
+		registersToProcess.addAll(next.getRegisters());
+		
+		log.info("Registers to process: "+registersToProcess);
+		
+		
+		
+		
+		/*
 		log.trace("Checking Config Registers");
 		//Treat the config registers as data registers - read them
 		for (ConfigRegister c : configRegs) {
@@ -204,6 +235,7 @@ public class Device implements Runnable {
 				return; //Couldn't do a modbus request
 			}
 		}
+		*/
 		//Work on the virtual registers
 		//All done
 	}
