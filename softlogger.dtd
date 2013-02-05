@@ -21,7 +21,7 @@
 <!ELEMENT comport (#PCDATA)>
 <!ELEMENT baud (#PCDATA)>
 
-<!ELEMENT device (unitId,description?,defaultScanRate?,logInterval?,(configRegister|dataRegister|virtualRegister)*)>
+<!ELEMENT device (unitId,description?,defaultScanRate?,logInterval?,(configRegister|dataRegister)*)>
 <!ELEMENT unitId (#PCDATA)>
 <!ELEMENT description (#PCDATA)>
 
@@ -37,9 +37,4 @@
 <!ELEMENT dataRegister (fieldName,scanRate?,registerAddress,size?,dataFunction?,guid)>
 <!ELEMENT dataFunction (#PCDATA)>
 <!ATTLIST dataFunction type (expression|lookupTable|customClass) #REQUIRED>
-
 <!ELEMENT guid (#PCDATA)>
-
-<!ELEMENT virtualRegister (fieldName,operand*,dataFunction,guid)>
-<!ELEMENT operand ((registerAddress,size,dataFunction?)|value)>
-<!ATTLIST operand id CDATA #REQUIRED>
