@@ -118,21 +118,19 @@ public class RealRegister extends Register implements Comparable<RealRegister>{
 		return "RealRegister: fieldname="+this.fieldName+"; address="+this.address+"; size="+this.size+"; data: "+registerData.toString();
 	}
 	public ModbusRequest getRequest() {
-		//TODO: What happens if this.size % this.address != 0?
-		//TODO: Fix this to check what time of memory to read from
 		ModbusRequest request = null;
 		switch (this.regType) {
 		case INPUT_COIL:
-			request = new ReadInputDiscretesRequest(this.address, this.size/this.sizePerAddress);
+			request = new ReadInputDiscretesRequest(this.address, this.size*this.sizePerAddress);
 			break;
 		case OUTPUT_COIL:
-			request = new ReadCoilsRequest(this.address, this.size/this.sizePerAddress);
+			request = new ReadCoilsRequest(this.address, this.size*this.sizePerAddress);
 			break;
 		case INPUT_REGISTER:
-			request = new ReadInputRegistersRequest(this.address, this.size/this.sizePerAddress);
+			request = new ReadInputRegistersRequest(this.address, this.size*this.sizePerAddress);
 			break;
 		case OUTPUT_REGISTER:
-			request = new ReadMultipleRegistersRequest(this.address, this.size/this.sizePerAddress);
+			request = new ReadMultipleRegistersRequest(this.address, this.size*this.sizePerAddress);
 		}
 		
 		return request;
