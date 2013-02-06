@@ -34,7 +34,7 @@
 			and softlogger default scan rates.  Same thing for logInterval -->
 			<unitId>15</unitId>
 			<description>DSI #1</description>
-			<defaultScanRate>555</defaultScanRate>
+			<defaultScanRate>1000</defaultScanRate>
 			<logInterval>66</logInterval>
 			<configRegister>
 				<fieldName>Config coil 1 true</fieldName>
@@ -43,7 +43,7 @@
 			</configRegister>
 			<configRegister>
 				<fieldName>Config value 1</fieldName>
-				<scanRate>4200</scanRate>
+				<scanRate>333</scanRate>
 				<registerAddress>400003</registerAddress>	<!-- Addresses can be of the form [0134][0-9]{4,5}.  The first digit indicates the type of register (input,output)*(coil,register). -->
 				<size type="signed">2</size> <!-- size in words of the register. 2 and 4 are supported type=(s|u|f|)=(int|uint|float) -->
 				<value>-5</value>	<!-- value for the config register, overwrite the device's register with this -->
@@ -55,7 +55,7 @@
 			</dataRegister>
 			<dataRegister>
 				<fieldName>Measurement 2</fieldName>
-				<scanRate>33000</scanRate>
+				<scanRate>500</scanRate>
 				<registerAddress>300003</registerAddress>
 				<size>2</size>
 				<dataFunction type="lookupTable">LUT1.dat</dataFunction>
@@ -63,13 +63,14 @@
 			</dataRegister>
 			<dataRegister>
 				<fieldName>Measurement 3</fieldName>
-				<scanRate sampling="sum">10000</scanRate>
+				<scanRate sampling="sum">250</scanRate>
 				<registerAddress>300005</registerAddress>
 				<size type="float">1</size>
 				<guid>D3M03</guid>
 			</dataRegister>
 			<dataRegister>
 				<fieldName>Measurement 4</fieldName>
+				<scanRate>333</scanRate>
 				<registerAddress>400005</registerAddress>
 				<size type="float">2</size>
 				<dataFunction type="expression">PI*$*1000/sqrt(E)</dataFunction>
@@ -77,7 +78,7 @@
 			</dataRegister>
 			<dataRegister>
 				<fieldName>Measurement 5</fieldName>
-				<scanRate sampling="average">5000</scanRate>
+				<scanRate sampling="average">500</scanRate>
 				<registerAddress>400007</registerAddress>
 				<size type="float">2</size>
 				<guid>D3M5</guid>

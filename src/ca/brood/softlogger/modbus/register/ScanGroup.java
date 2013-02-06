@@ -27,10 +27,10 @@ public class ScanGroup implements Comparable<ScanGroup>{
 		return registers;
 	}
 	
-	public void elapsed(int time) {
+	public void elapsed(long elapsedMillis) {
 		//allowing negative values ensures ordering remains constant when several groups
 		//reach EOL at the same time.
-		ttl -= time;
+		ttl -= elapsedMillis;
 	}
 	
 	public boolean ready() {

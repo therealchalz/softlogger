@@ -2,18 +2,13 @@ package ca.brood.softlogger.modbus;
 import ca.brood.softlogger.modbus.channel.ModbusChannel;
 import ca.brood.softlogger.modbus.register.*;
 
-import java.util.ArrayList;
 import java.util.PriorityQueue;
 import java.util.SortedSet;
 import java.util.TreeSet;
-import java.util.concurrent.ScheduledFuture;
 
 import org.apache.log4j.Logger;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-
-import net.wimpi.modbus.ModbusException;
-import net.wimpi.modbus.msg.*;
 
 public class Device implements Runnable {
 	private Logger log;
@@ -55,6 +50,12 @@ public class Device implements Runnable {
 		return ret;
 	}
 	
+	public void elapsed(long elapsedMillis) {
+		for (ScanGroup s : scanGroups) {
+			s.elapsed(elapsedMillis);
+		}
+	}
+	
 	//return -1 if no scan groups
 	//otherwise return number of milliseconds until next scan
 	public int getTtl() {
@@ -93,6 +94,10 @@ public class Device implements Runnable {
 					scanGroup = null;
 				}
 			}
+		}
+		if (scanGroup != null) {
+			log.debug("Adding Scangroup: "+scanGroup);
+			scanGroups.add(scanGroup);
 		}
 	}
 	
@@ -156,6 +161,7 @@ public class Device implements Runnable {
 		for (RealRegister r : this.dataRegs) {
 			r.setDefaultScanRate(scanRate);
 		}
+
 		buildScanGroupQueue();
 	}
 	
@@ -172,18 +178,18 @@ public class Device implements Runnable {
 		}
 		
 		int ttl = getTtl();
-		log.info("TTL: "+ttl);
+		long time = System.currentTimeMillis();
+		log.info("Time: "+time+" TTL: "+ttl);
 		
-		if (ttl > 10)
-			return;
-		
-		SortedSet<RealRegister> registersToProcess = new TreeSet<RealRegister>();
-		ScanGroup next = scanGroups.poll();
-		registersToProcess.addAll(next.getRegisters());
-		
-		log.info("Registers to process: "+registersToProcess);
-		
-		
+		while (getTtl() < 10 && getTtl() >= 0) {
+			SortedSet<RealRegister> registersToProcess = new TreeSet<RealRegister>();
+			ScanGroup next = scanGroups.poll();
+			next.reset();
+			scanGroups.add(next);
+			registersToProcess.addAll(next.getRegisters());
+			
+			log.info("Registers to process: "+registersToProcess);
+		}
 		
 		
 		/*

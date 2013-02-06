@@ -8,12 +8,10 @@ import org.w3c.dom.NodeList;
 import ca.brood.softlogger.modbus.Device;
 import ca.brood.softlogger.modbus.DeviceUpdater;
 import ca.brood.softlogger.modbus.channel.*;
-import java.util.concurrent.*;
+
 
 public class SoftloggerChannel implements Runnable {
 	private Logger log;
-	
-	private ScheduledExecutorService threadBoss;
 	
 	private ArrayList<Device> devices = null;
 	private DeviceUpdater deviceUpdater;
@@ -109,44 +107,24 @@ public class SoftloggerChannel implements Runnable {
 		
 		deviceUpdater = new DeviceUpdater(devices, this.id);
 		
-		threadBoss = new ScheduledThreadPoolExecutor(1); //TODO: 1 thread. Maybe for TCP we should have a thread for each device?
-		deviceUpdater.setFuture(threadBoss.schedule(deviceUpdater, 0, TimeUnit.SECONDS));
+		deviceUpdater.setName("Channel-"+this.id);
+		
+		deviceUpdater.beginUpdating();
 		
 	}
 	
 	public void stop() {
-		threadBoss.shutdown();
 		
 		if (deviceUpdater != null) {
-			if (deviceUpdater.getFuture() != null) {
-				if (!deviceUpdater.getFuture().isDone() && !deviceUpdater.getFuture().isCancelled()) {
-					log.info("Stopping channel");
-					deviceUpdater.getFuture().cancel(false);
-				}
-			}
+			deviceUpdater.stopUpdating();
 		}
 		
 		log.debug("Done issuing stop commands.");
-		//I'm willing to wait a maximum of 5 seconds for the threads to close cleanly
-		try {
-			threadBoss.awaitTermination(5, TimeUnit.SECONDS);
-		} catch (InterruptedException e) {
-		}
 		
-		this.kill();
-	}
-	public void kill() {
-		if (deviceUpdater != null) {
-			if (deviceUpdater.getFuture() != null) {
-				if (!deviceUpdater.getFuture().isDone() && !deviceUpdater.getFuture().isCancelled()) {
-					log.info("Killing channel");
-					deviceUpdater.getFuture().cancel(true);
-				}
-			}
-		}
-		threadBoss.shutdownNow();
 		this.channel.close();
+		
 	}
+
 	public void printAll() {
 		if (this.scanRate > 0)
 			log.info("Scan rate: "+scanRate);
