@@ -56,6 +56,7 @@ public class Softlogger {
 		} catch (InterruptedException e) {
 		}
 		s.stop();
+		ThreadPerformanceMonitor.printPerformanceData();
 		s.log.info("All done");
 	}
 	public void kill() {

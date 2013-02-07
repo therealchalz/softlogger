@@ -3,6 +3,8 @@ package ca.brood.softlogger.modbus;
 import java.util.ArrayList;
 import org.apache.log4j.Logger;
 
+import ca.brood.softlogger.util.ThreadPerformanceMonitor;
+
 public class DeviceUpdater extends Thread {
 	
 	private ArrayList<Device> devices;
@@ -43,6 +45,7 @@ public class DeviceUpdater extends Thread {
 	
 	@Override
 	public void run() {
+		ThreadPerformanceMonitor.threadStarting();
 		log.info("Running");
 		
 		long timer = System.currentTimeMillis();
@@ -80,10 +83,12 @@ public class DeviceUpdater extends Thread {
 			if (sleepTime > 10) {
 				try {
 					log.trace("Sleeping for "+sleepTime+" milliseconds.");
+					ThreadPerformanceMonitor.threadStopping();
 					Thread.sleep(sleepTime);
 				} catch (InterruptedException e) {
 				}
 			}
+			ThreadPerformanceMonitor.threadStarting();
 		}
 	}
 }

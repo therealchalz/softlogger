@@ -30,6 +30,7 @@ public class ScanGroup implements Comparable<ScanGroup>{
 	public void elapsed(long elapsedMillis) {
 		//allowing negative values ensures ordering remains constant when several groups
 		//reach EOL at the same time.
+		//It is also used for performance monitoring - a negative TTL means we're running slow
 		ttl -= elapsedMillis;
 	}
 	
