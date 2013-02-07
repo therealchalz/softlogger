@@ -2,9 +2,15 @@ package ca.brood.softlogger.modbus;
 import ca.brood.softlogger.modbus.channel.ModbusChannel;
 import ca.brood.softlogger.modbus.register.*;
 
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.PriorityQueue;
 import java.util.SortedSet;
 import java.util.TreeSet;
+
+import net.wimpi.modbus.ModbusException;
+import net.wimpi.modbus.msg.ModbusRequest;
+import net.wimpi.modbus.msg.ModbusResponse;
 
 import org.apache.log4j.Logger;
 import org.w3c.dom.Node;
@@ -169,6 +175,62 @@ public class Device implements Runnable {
 		if (logInterval == 0)
 			logInterval = lo;
 	}
+	
+	private ModbusRequest getModbusRequest(RealRegister first, RealRegister last) {
+		//log.info("Creating modbus request from: "+first+" to: "+last);
+		int size = last.getAddress() - first.getAddress() + last.getSize();
+		ModbusRequest ret = first.getRequest(size);
+		ret.setUnitID(this.unitId);
+		log.info("Created Request: "+ret);
+		return ret;
+	}
+
+	private void updateRegisters(SortedSet<RealRegister> regs) {
+		//TODO: allow for sparse requests: if it is 'worth it,' we should be able to
+		//make a read multiple request for a block of registers even if we've only 
+		//hit the scan rate for 'most' of the registers.  May as well make slightly
+		//fewer requests and get a bit of extra scanning in.  This option must be
+		//configurable though - in some cases you may not want to scan certain registers
+		//an extra amount or something.
+		
+		Iterator<RealRegister> registerIterator = regs.iterator();
+		RealRegister firstOfRequest = null;
+		RealRegister lastOfRequest = null;
+		ArrayList<ModbusRequest> requests = new ArrayList<ModbusRequest>();
+		while (registerIterator.hasNext()) {
+			if (firstOfRequest == null) {
+				firstOfRequest = registerIterator.next();
+				lastOfRequest = firstOfRequest;
+			} else {
+				RealRegister nextRegister = registerIterator.next();
+				int nextAddress = lastOfRequest.getAddress() + lastOfRequest.getSize();
+				if (firstOfRequest.getRegisterType().equals(nextRegister.getRegisterType()) && nextRegister.getAddress()==nextAddress) {
+					lastOfRequest = nextRegister;
+				} else {
+					ModbusRequest request = getModbusRequest(firstOfRequest, lastOfRequest);
+					requests.add(request);
+					firstOfRequest = nextRegister;
+					lastOfRequest = firstOfRequest;
+				}
+			}
+		}
+		if (firstOfRequest != null & lastOfRequest != null) {
+			ModbusRequest request = getModbusRequest(firstOfRequest, lastOfRequest);
+			requests.add(request);
+		}
+		
+		for (ModbusRequest r : requests) {
+			try {
+				//ModbusResponse resp = channel.executeRequest(r);
+				//c.setData(resp);
+			//} catch (ModbusException e) {
+			//	log.trace("Got modbus exception: "+e.getMessage());
+			} catch (Exception e) {
+				log.trace("Got no response....");
+				return; //Couldn't do a modbus request
+			}
+		}
+	}
 
 	@Override
 	public void run() {
@@ -177,20 +239,17 @@ public class Device implements Runnable {
 			return;
 		}
 		
-		int ttl = getTtl();
-		long time = System.currentTimeMillis();
-		log.info("Time: "+time+" TTL: "+ttl);
-		
+		SortedSet<RealRegister> registersToProcess = new TreeSet<RealRegister>();
 		while (getTtl() < 10 && getTtl() >= 0) {
-			SortedSet<RealRegister> registersToProcess = new TreeSet<RealRegister>();
 			ScanGroup next = scanGroups.poll();
 			next.reset();
 			scanGroups.add(next);
-			registersToProcess.addAll(next.getRegisters());
 			
-			log.info("Registers to process: "+registersToProcess);
+			registersToProcess.addAll(next.getRegisters());
 		}
 		
+		log.info("Registers to process: "+registersToProcess);
+		updateRegisters(registersToProcess);
 		
 		/*
 		log.trace("Checking Config Registers");

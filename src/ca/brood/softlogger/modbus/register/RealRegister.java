@@ -17,7 +17,6 @@ public class RealRegister extends Register implements Comparable<RealRegister>{
 	protected int size = 0;
 	protected int device = 0;
 	protected int scanRate = 0;
-	protected int sizePerAddress = 2; //size of each address.  for 16-bit addresses, this is 2.  For coils, this is 1.  We know that the next contiguous register should be at this.address+(this.size/this.sizePerAddress)
 	protected RegisterType regType;
 	
 	protected RealRegister(int device) {
@@ -29,6 +28,15 @@ public class RealRegister extends Register implements Comparable<RealRegister>{
 		if (scanRate == 0) {
 			scanRate = rate;
 		}
+	}
+	public RegisterType getRegisterType() {
+		return regType;
+	}
+	public int getAddress() {
+		return address;
+	}
+	public int getSize() {
+		return size;
 	}
 	public int getScanRate() {
 		return this.scanRate;
@@ -83,7 +91,6 @@ public class RealRegister extends Register implements Comparable<RealRegister>{
 		switch (this.regType) {
 		case INPUT_COIL:
 		case OUTPUT_COIL:
-			this.sizePerAddress = 1;
 			if (this.size != 1) {
 				if (this.size != 0)
 					log.warn("Got invalid size for an input or output coil.  Changing size to 1 from: "+this.size);
@@ -92,7 +99,6 @@ public class RealRegister extends Register implements Comparable<RealRegister>{
 			break;
 		case INPUT_REGISTER:
 		case OUTPUT_REGISTER:
-			this.sizePerAddress = 2;
 			if (this.size != 1 && this.size != 2) {
 				if (this.size != 0)
 					log.warn("Got invalid size for an input or output register.  Changing size to 2 from: "+this.size);
@@ -118,19 +124,22 @@ public class RealRegister extends Register implements Comparable<RealRegister>{
 		return "RealRegister: fieldname="+this.fieldName+"; address="+this.address+"; size="+this.size+"; data: "+registerData.toString();
 	}
 	public ModbusRequest getRequest() {
+		return getRequest(this.size);
+	}
+	public ModbusRequest getRequest(int size) {
 		ModbusRequest request = null;
 		switch (this.regType) {
 		case INPUT_COIL:
-			request = new ReadInputDiscretesRequest(this.address, this.size*this.sizePerAddress);
+			request = new ReadInputDiscretesRequest(this.address, size);
 			break;
 		case OUTPUT_COIL:
-			request = new ReadCoilsRequest(this.address, this.size*this.sizePerAddress);
+			request = new ReadCoilsRequest(this.address, size);
 			break;
 		case INPUT_REGISTER:
-			request = new ReadInputRegistersRequest(this.address, this.size*this.sizePerAddress);
+			request = new ReadInputRegistersRequest(this.address, size);
 			break;
 		case OUTPUT_REGISTER:
-			request = new ReadMultipleRegistersRequest(this.address, this.size*this.sizePerAddress);
+			request = new ReadMultipleRegistersRequest(this.address, size);
 		}
 		
 		return request;
