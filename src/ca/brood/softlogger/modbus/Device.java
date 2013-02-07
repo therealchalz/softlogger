@@ -221,10 +221,11 @@ public class Device implements Runnable {
 		
 		for (ModbusRequest r : requests) {
 			try {
-				//ModbusResponse resp = channel.executeRequest(r);
+				ModbusResponse resp = channel.executeRequest(r);
+				log.info("Got response: "+resp);
 				//c.setData(resp);
-			//} catch (ModbusException e) {
-			//	log.trace("Got modbus exception: "+e.getMessage());
+			} catch (ModbusException e) {
+				log.trace("Got modbus exception: "+e.getMessage());
 			} catch (Exception e) {
 				log.trace("Got no response....");
 				return; //Couldn't do a modbus request
