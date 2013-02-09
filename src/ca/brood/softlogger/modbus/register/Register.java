@@ -15,6 +15,15 @@ public abstract class Register {
 		log = Logger.getLogger(Register.class);
 		registerData = new RegisterData();
 	}
+	public int getInteger() {
+		return registerData.getInt();
+	}
+	public boolean getBoolean() {
+		return registerData.getBool();
+	}
+	public int getShort() {
+		return registerData.getShort();
+	}
 	public void setData(ModbusResponse r) {
 		registerData.setData(r);
 	}

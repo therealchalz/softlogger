@@ -27,6 +27,9 @@ public class RegisterData implements net.wimpi.modbus.procimg.Register{
 	}
 	
 	//Should always check for null first when getting these values
+	public Short getShort() {
+		return dataInt.shortValue();
+	}
 	public Integer getInt() {
 		return dataInt;
 	}
@@ -38,29 +41,29 @@ public class RegisterData implements net.wimpi.modbus.procimg.Register{
 	}
 	public void setData(Boolean b) {
 		if (b) {
-			dataInt = null;
-			dataFloat = null;
+			dataInt = 1;
+			dataFloat = 1f;
 			dataBool = true;
 		} else {
-			dataInt = null;
-			dataFloat = null;
+			dataInt = 0;
+			dataFloat = 0f;
 			dataBool = false;
 		}
 	}
 	public void setData(Integer i) {
 		dataInt = i;
 		dataFloat = new Float(i);
-		dataBool = null;
+		dataBool = (i != 0 ? true : false);
 	}
 	public void setDataFloat(Integer i) {
 		dataFloat = Float.intBitsToFloat(i);
 		dataInt = dataFloat.intValue();
-		dataBool = null;
+		dataBool = (i != 0 ? true : false);
 	}
 	public void setDataFloat(Float f) {
 		dataFloat = new Float(f);
 		dataInt = dataFloat.intValue();
-		dataBool = null;
+		dataBool = (dataInt != 0 ? true : false);
 	}
 	public void setData(ModbusResponse resp) {
 		if (resp.getClass() == ReadCoilsResponse.class) {

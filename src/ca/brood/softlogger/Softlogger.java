@@ -52,7 +52,7 @@ public class Softlogger {
 		s.configure("config.xml");
 		s.run();
 		try {
-			Thread.sleep(10000); //Run for 10 seconds
+			Thread.sleep(5000);
 		} catch (InterruptedException e) {
 		}
 		s.stop();

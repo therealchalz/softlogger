@@ -36,6 +36,7 @@
 			<description>DSI #1</description>
 			<defaultScanRate>1000</defaultScanRate>
 			<logInterval>66</logInterval>
+			
 			<configRegister>
 				<fieldName>Config coil 1 true</fieldName>
 				<registerAddress>000001</registerAddress>
@@ -82,6 +83,16 @@
 				<registerAddress>400007</registerAddress>
 				<size type="float">2</size>
 				<guid>D3M5</guid>
+			</dataRegister>
+			<dataRegister>
+				<fieldName>Measurement 6</fieldName>
+				<registerAddress>000001</registerAddress>
+				<guid>D3M6</guid>
+			</dataRegister>
+			<dataRegister>
+				<fieldName>Measurement 7</fieldName>
+				<registerAddress>100001</registerAddress>
+				<guid>D3M7</guid>
 			</dataRegister>
 		</device>
 	</channel>

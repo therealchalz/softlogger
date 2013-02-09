@@ -3,6 +3,7 @@ import ca.brood.softlogger.modbus.channel.ModbusChannel;
 import ca.brood.softlogger.modbus.register.*;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.PriorityQueue;
 import java.util.SortedSet;
@@ -11,6 +12,10 @@ import java.util.TreeSet;
 import net.wimpi.modbus.ModbusException;
 import net.wimpi.modbus.msg.ModbusRequest;
 import net.wimpi.modbus.msg.ModbusResponse;
+import net.wimpi.modbus.msg.ReadCoilsResponse;
+import net.wimpi.modbus.msg.ReadInputDiscretesResponse;
+import net.wimpi.modbus.msg.ReadInputRegistersResponse;
+import net.wimpi.modbus.msg.ReadMultipleRegistersResponse;
 
 import org.apache.log4j.Logger;
 import org.w3c.dom.Node;
@@ -21,8 +26,8 @@ public class Device implements Runnable {
 	private final int id;
 	private int unitId = Integer.MAX_VALUE;
 	private String description = "";
-	private SortedSet<ConfigRegister> configRegs;
-	private SortedSet<DataRegister> dataRegs;
+	private ArrayList<ConfigRegister> configRegs;
+	private ArrayList<DataRegister> dataRegs;
 	private ModbusChannel channel = null;
 	private PriorityQueue<ScanGroup> scanGroups;
 	
@@ -33,8 +38,8 @@ public class Device implements Runnable {
 	public Device(int channelId) {
 		this.id = getNextDeviceId();
 		log = Logger.getLogger(Device.class+": "+id+" on Channel: "+channelId);
-		configRegs = new TreeSet<ConfigRegister>();
-		dataRegs = new TreeSet<DataRegister>();
+		configRegs = new ArrayList<ConfigRegister>();
+		dataRegs = new ArrayList<DataRegister>();
 		scanGroups = new PriorityQueue<ScanGroup>();
 	}
 	
@@ -109,6 +114,7 @@ public class Device implements Runnable {
 	
 	public boolean configure(Node deviceNode) {
 		NodeList configNodes = deviceNode.getChildNodes();
+		//TODO: check for duplicate GUIDs on the modbus variables
 		for (int i=0; i<configNodes.getLength(); i++) {
 			Node configNode = configNodes.item(i);
 			if (("#text".compareToIgnoreCase(configNode.getNodeName())==0)||
@@ -122,12 +128,19 @@ public class Device implements Runnable {
 				//log.debug("Device description: "+this.description);
 			} else if (("configregister".compareToIgnoreCase(configNode.getNodeName())==0)) {
 				ConfigRegister c = new ConfigRegister(this.id);
-				if (c.configure(configNode))
+				if (c.configure(configNode)) {
+					log.debug("Adding config register: "+c);
 					configRegs.add(c);
+				} else 
+					log.warn("Error configuring a config register: "+configNode);
 			} else if (("dataregister".compareToIgnoreCase(configNode.getNodeName())==0)) {
 				DataRegister d = new DataRegister(this.id);
-				if (d.configure(configNode))
+				if (d.configure(configNode)) {
+					log.debug("Adding data register: "+d);
 					dataRegs.add(d);
+				} else
+					log.warn("Error configuring a data register: "+configNode);
+					
 			} else if (("defaultScanRate".compareToIgnoreCase(configNode.getNodeName())==0)) {
 				try {
 					this.scanRate = Integer.parseInt(configNode.getFirstChild().getNodeValue());
@@ -150,6 +163,9 @@ public class Device implements Runnable {
 			log.error("Error: Device does not have a unitId configured.");
 			return false;
 		}
+		
+		Collections.sort(configRegs);
+		Collections.sort(dataRegs);
 		
 		buildScanGroupQueue();
 		
@@ -184,15 +200,132 @@ public class Device implements Runnable {
 		log.info("Created Request: "+ret);
 		return ret;
 	}
+	public RegisterType getTypeOfResponse(ModbusResponse response) {
+		if (response instanceof ReadCoilsResponse) {
+			return RegisterType.OUTPUT_COIL;
+		}
+		if (response instanceof ReadInputDiscretesResponse) {
+			return RegisterType.INPUT_COIL;
+		}
+		if (response instanceof ReadInputRegistersResponse) {
+			return RegisterType.INPUT_REGISTER;
+		}
+		else  {
+			return RegisterType.OUTPUT_REGISTER;
+		}
+	}
+	private ArrayList<RealRegister> getRegisters(int baseAddress, ModbusResponse response) {
+		ArrayList<RealRegister> ret = new ArrayList<RealRegister>();
+		int numWords = getDataLength(response);
+		RegisterType type = getTypeOfResponse(response);
+		ArrayList<RealRegister> registerList = new ArrayList<RealRegister>();
+		registerList.addAll(dataRegs);
+		registerList.addAll(configRegs);
+		Collections.sort(registerList);
+		addressLoop:
+		for (int address = baseAddress; address < baseAddress+numWords; address++) {
+			//naive implementation
+			//TODO optimize
+			Iterator<RealRegister> registerIterator = registerList.iterator();
+			RealRegister reg = null;
+			while (registerIterator.hasNext()) {
+				reg = registerIterator.next();
+				if (type == reg.getRegisterType())
+					break;
+			}
+			do {
+				if (reg == null) {
+					break addressLoop;
+				}
+				if (address == reg.getAddress() && type == reg.getRegisterType()) {
+					log.info("Adding register (add : "+address+", type: "+type+"): "+reg);
+					ret.add(reg);
+				}
+				if (registerIterator.hasNext()) {
+					reg = registerIterator.next();
+				}
+			} while (registerIterator.hasNext());
+			
+			if (reg == null) {
+				break addressLoop;
+			}
+			if (address == reg.getAddress() && type == reg.getRegisterType()) {
+				log.info("Adding register (add : "+address+", type: "+type+"): "+reg);
+				ret.add(reg);
+			}
+			
+		}
+		return ret;
+	}
+	private int getDataLength(ModbusResponse response) {
+		if (response instanceof ReadCoilsResponse) {
+			return ((ReadCoilsResponse)response).getBitCount();
+		}
+		if (response instanceof ReadInputDiscretesResponse) {
+			return ((ReadInputDiscretesResponse)response).getBitCount();
+		}
+		if (response instanceof ReadInputRegistersResponse) {
+			return ((ReadInputRegistersResponse)response).getWordCount();
+		}
+		if (response instanceof ReadMultipleRegistersResponse) {
+			return ((ReadMultipleRegistersResponse)response).getWordCount();
+		}
+		return 0;
+	}
+	private void setRegisterData(RealRegister reg, ModbusResponse response, int offset) {
+		if (response instanceof ReadCoilsResponse) {
+			if (offset > getDataLength(response)) {
+				log.error("Invalid offset for ReadCoilsResponse: "+offset+" : "+getDataLength(response));
+				reg.setData(false);
+			} else {
+				reg.setData(((ReadCoilsResponse)response).getCoilStatus(offset));
+			}
+		}
+		if (response instanceof ReadInputDiscretesResponse) {
+			if (offset > getDataLength(response)) {
+				log.error("Invalid offset for ReadInputDiscretesResponse: "+offset+" : "+getDataLength(response));
+				reg.setData(false);
+			} else {
+				reg.setData(((ReadInputDiscretesResponse)response).getDiscreteStatus(offset));
+			}
+		}
+		if (response instanceof ReadInputRegistersResponse) {
+			if (getDataLength(response) >= offset+reg.getSize() && reg.getSize() == 1) {
+				//16 bit register reading.  read it as int, set the float value equal to the int value, and set the bool following C-style evaluation rules
+				reg.setData(new Integer(((ReadInputRegistersResponse)response).getRegister(offset).getValue()));
+			} else if (getDataLength(response) >= offset+reg.getSize() && reg.getSize() == 2) {
+				//32-bit register reading
+				//TODO: figure out how to decide if we should treat the number as IEEE 754 or not.  Right now assume it is int.
+				int newVal = (((ReadInputRegistersResponse)response).getRegister(offset).getValue() << 16) + ((ReadInputRegistersResponse)response).getRegister(offset+1).getValue();
+				log.info("Registers 1: "+((ReadInputRegistersResponse)response).getRegister(offset).getValue()+" Register 2: "+((ReadInputRegistersResponse)response).getRegister(offset+1).getValue()+" new Value: "+newVal);
+				reg.setData(newVal);
+			} else { //not 1 or 2 words
+				log.error("Invalid offset for ReadInputRegisterResponse: "+offset+" : "+getDataLength(response)+" : "+reg.getSize());
+				reg.setData((int)Short.MIN_VALUE);
+				return;
+			}
+		}
+		if (response instanceof ReadMultipleRegistersResponse) {
+			if (getDataLength(response) >= offset+reg.getSize() && reg.getSize() == 1) {
+				//16 bit register reading.  read it as int, set the float value equal to the int value, and set the bool following C-style evaluation rules
+				reg.setData(new Integer(((ReadMultipleRegistersResponse)response).getRegister(offset).getValue()));
+			} else if (getDataLength(response) >= offset+reg.getSize() && reg.getSize() == 2) {
+				//32-bit register reading
+				//TODO: figure out how to decide if we should treat the number as IEEE 754 or not.  Right now assume it is int.
+				int newVal = (((ReadMultipleRegistersResponse)response).getRegister(offset).getValue() << 16) + ((ReadMultipleRegistersResponse)response).getRegister(offset+1).getValue();
+				reg.setData(newVal);
+			} else { //not 1 or 2 words
+				log.error("Invalid offset for ReadMultipleRegistersResponse: "+offset+" : "+getDataLength(response)+" : "+reg.getSize());
+				reg.setData((int)Short.MIN_VALUE);
+				return;
+			}
+		}
+	}
 
 	private void updateRegisters(SortedSet<RealRegister> regs) {
-		//TODO: allow for sparse requests: if it is 'worth it,' we should be able to
-		//make a read multiple request for a block of registers even if we've only 
-		//hit the scan rate for 'most' of the registers.  May as well make slightly
-		//fewer requests and get a bit of extra scanning in.  This option must be
-		//configurable though - in some cases you may not want to scan certain registers
-		//an extra amount or something.
 		
+		
+		//First build a list of modbus requests
 		Iterator<RealRegister> registerIterator = regs.iterator();
 		RealRegister firstOfRequest = null;
 		RealRegister lastOfRequest = null;
@@ -219,15 +352,25 @@ public class Device implements Runnable {
 			requests.add(request);
 		}
 		
+		//Execute each request.  Update our registers that have addresses that
+		// match addresses in the response
 		for (ModbusRequest r : requests) {
 			try {
 				ModbusResponse resp = channel.executeRequest(r);
-				log.info("Got response: "+resp);
+				int baseAddress = r.getReference();
+				log.info("Got response (baseAddress: "+baseAddress+"): "+resp);
+				ArrayList<RealRegister> regsToUpdate = getRegisters(baseAddress, resp);
+				for (RealRegister regToUpdate : regsToUpdate) {
+					int addy = regToUpdate.getAddress() - baseAddress;
+					log.info("Got Register To Update (offset: "+addy+"): "+regToUpdate);
+					this.setRegisterData(regToUpdate, resp, addy);
+					log.info(" New Val: "+regToUpdate.getInteger());
+				}
 				//c.setData(resp);
 			} catch (ModbusException e) {
-				log.trace("Got modbus exception: "+e.getMessage());
+				log.trace("Got modbus exception: ",e);
 			} catch (Exception e) {
-				log.trace("Got no response....");
+				log.trace("Got no response....", e);
 				return; //Couldn't do a modbus request
 			}
 		}
@@ -249,7 +392,7 @@ public class Device implements Runnable {
 			registersToProcess.addAll(next.getRegisters());
 		}
 		
-		log.info("Registers to process: "+registersToProcess);
+		//log.info("Registers to process: "+registersToProcess);
 		updateRegisters(registersToProcess);
 		
 		/*
