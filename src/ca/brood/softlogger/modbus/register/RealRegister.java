@@ -24,6 +24,14 @@ public class RealRegister extends Register implements Comparable<RealRegister>{
 		this.device = device;
 		log = Logger.getLogger(RealRegister.class + " device: "+device);
 	}
+	protected RealRegister(RealRegister r) {
+		super(r);
+		address = r.address;
+		size = r.size;
+		device = r.device;
+		scanRate = r.scanRate;
+		regType = r.regType;
+	}
 	public void setDefaultScanRate(int rate) {
 		if (scanRate == 0) {
 			scanRate = rate;

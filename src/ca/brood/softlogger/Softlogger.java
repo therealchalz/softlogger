@@ -11,6 +11,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.Node;
 
+import ca.brood.softlogger.modbus.Device;
 import ca.brood.softlogger.util.*;
 
 
@@ -29,6 +30,7 @@ public class Softlogger {
 	
 	private DataServer server;
 	private ArrayList<SoftloggerChannel> softloggerChannels;
+	private DataOutputManager dataOutputManager;
 	
 	public Softlogger() {
 		log = Logger.getLogger(Softlogger.class);
@@ -46,6 +48,11 @@ public class Softlogger {
 		if (!loadConfig(configFilePath)) {
 			log.fatal("Error loading config file.");
 		}
+		ArrayList<Device> devices = new ArrayList<Device>();
+		for (SoftloggerChannel channel : softloggerChannels) {
+			devices.addAll(channel.getDevices());
+		}
+		dataOutputManager = new DataOutputManager(devices);
 	}
 	public static void main(String[] args) {
 		Softlogger s = new Softlogger();
@@ -64,6 +71,7 @@ public class Softlogger {
 	}
 	public void stop() {
 		log.info("Softlogger stopping softloggerChannels");
+		dataOutputManager.stop();
 		for (int i=0; i<softloggerChannels.size(); i++) {
 			softloggerChannels.get(i).stop();
 		}
@@ -74,6 +82,7 @@ public class Softlogger {
 		for (int i=0; i<softloggerChannels.size(); i++) {
 			softloggerChannels.get(i).run();
 		}
+		dataOutputManager.start();
 	}
 
 	private boolean loadConfig(String filename) {

@@ -12,6 +12,11 @@ public class RegisterData implements net.wimpi.modbus.procimg.Register{
 	public RegisterData() {
 		
 	}
+	public RegisterData(RegisterData r) {
+		dataInt = r.dataInt;
+		dataFloat = r.dataFloat;
+		dataBool = r.dataBool;
+	}
 	public RegisterData(ModbusResponse resp) {
 		this.setData(resp);
 	}

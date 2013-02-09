@@ -26,6 +26,9 @@ public class SoftloggerChannel implements Runnable {
 		log = Logger.getLogger(SoftloggerChannel.class+" ID: "+id);
 		devices = new ArrayList<Device>();
 	}
+	public ArrayList<Device> getDevices() {
+		return devices;
+	}
 	public static synchronized int getNextId() {
 		return nextId++;
 	}

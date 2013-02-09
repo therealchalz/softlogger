@@ -364,7 +364,6 @@ public class Device implements Runnable {
 					int addy = regToUpdate.getAddress() - baseAddress;
 					log.info("Got Register To Update (offset: "+addy+"): "+regToUpdate);
 					this.setRegisterData(regToUpdate, resp, addy);
-					log.info(" New Val: "+regToUpdate.getInteger());
 				}
 				//c.setData(resp);
 			} catch (ModbusException e) {
@@ -374,6 +373,15 @@ public class Device implements Runnable {
 				return; //Couldn't do a modbus request
 			}
 		}
+	}
+	
+	public ArrayList<DataRegister> getDataRegisters() {
+		ArrayList<DataRegister> ret = new ArrayList<DataRegister>();
+		for (DataRegister d : this.dataRegs) {
+			DataRegister n = new DataRegister(d);
+			ret.add(n);
+		}
+		return ret;
 	}
 
 	@Override

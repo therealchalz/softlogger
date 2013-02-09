@@ -13,6 +13,10 @@ public class DataRegister extends RealRegister {
 		super(device);
 		log = Logger.getLogger(DataRegister.class);
 	}
+	public DataRegister(DataRegister d) {
+		super(d);
+		guid = d.guid;
+	}
 	private void setupLog() {
 		log = Logger.getLogger(DataRegister.class+" GUID: "+this.guid);
 	}

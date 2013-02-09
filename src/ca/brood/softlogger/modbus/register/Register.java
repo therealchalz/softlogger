@@ -7,13 +7,23 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 public abstract class Register {
-	protected Logger log;
+	protected Logger log = Logger.getLogger(Register.class);;
 	protected String fieldName;
 	protected RegisterData registerData;
 	
 	protected Register() {
-		log = Logger.getLogger(Register.class);
+		fieldName = "";
 		registerData = new RegisterData();
+	}
+	protected Register(Register r) {
+		fieldName = r.fieldName;
+		registerData = new RegisterData(r.registerData);
+	}
+	public boolean isNull() {
+		return registerData.isNull();
+	}
+	public String getFieldName() {
+		return fieldName;
 	}
 	public int getInteger() {
 		return registerData.getInt();
