@@ -21,7 +21,7 @@
 		<logInterval>44</logInterval> <!-- overrides softlogger -->
 		<tcp>
 			<host>127.0.0.1</host>
-			<port>502</port>
+			<port>5020</port>
 		</tcp>
 		<!--
 		<serial>

@@ -3,7 +3,8 @@ package ca.brood.softlogger.modbus.register;
 import java.util.Comparator;
 import java.util.SortedSet;
 import java.util.TreeSet;
-import java.util.logging.Logger;
+
+import org.apache.log4j.Logger;
 
 import ca.brood.softlogger.modbus.Device;
 
@@ -50,7 +51,7 @@ public class ScanGroup implements Comparable<ScanGroup>{
 		ttl = scanRate - timeSinceLastScan;
 		
 		if (scanRate < timeSinceLastScan && !cannotKeepUp) {
-			Logger.getGlobal().warning("Scangroup with rate of "+scanRate+" ms cannot keep up.");
+			Logger.getRootLogger().warn("Scangroup with rate of "+scanRate+" ms cannot keep up.");
 			cannotKeepUp = true;
 		}
 	}
