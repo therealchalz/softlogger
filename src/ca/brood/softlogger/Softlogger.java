@@ -38,6 +38,17 @@ public class Softlogger {
 	 * -If the same register address is defined multiple times in the config
 	 * and they're not all the same size, the wrong size may be requested.
 	 * 
+	 * TODO:
+	 * -dataFunction element (and type attribute)
+	 * -logging to CSV file using device log interval
+	 * 
+	 * Longer term TODO:
+	 * -logging to local database so other things can use the data (web realtime frontend etc)
+	 * -sending of file to remote server
+	 * -email alerts
+	 * -reverse tunnel
+	 * -uptime tracking(cpu, internet, rtunnel)
+	 *
 	 */
 	
 	
