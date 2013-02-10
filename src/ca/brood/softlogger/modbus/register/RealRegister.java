@@ -20,14 +20,16 @@ public class RealRegister extends Register implements Comparable<RealRegister>{
 	protected int scanRate = 0;
 	protected RegisterType regType;
 	protected ScanRateSampling sampling;
-	protected long samplingValue = 0;
+	protected double samplingValue = 0;
 	protected int samplingCount = 0;
+	protected RegisterSizeType sizeType;
 	
 	protected RealRegister(int device) {
 		super();
 		this.device = device;
 		log = Logger.getLogger(RealRegister.class + " device: "+device);
 		sampling = ScanRateSampling.MEAN;
+		sizeType = RegisterSizeType.UNSIGNED;
 	}
 	protected RealRegister(RealRegister r) {
 		super(r);
@@ -37,6 +39,12 @@ public class RealRegister extends Register implements Comparable<RealRegister>{
 		scanRate = r.scanRate;
 		regType = r.regType;
 		sampling = r.sampling;
+		samplingValue = r.samplingValue;
+		samplingCount = r.samplingCount;
+		sizeType = r.sizeType;
+	}
+	public RegisterSizeType getSizeType() {
+		return this.sizeType;
 	}
 	public void setNull() {
 		this.registerData.nullData();
@@ -58,7 +66,7 @@ public class RealRegister extends Register implements Comparable<RealRegister>{
 			break;
 		case SUM:
 			//Only for registers
-			samplingValue += temp.getInt();
+			samplingValue += temp.getFloat();
 			samplingCount ++;
 			this.setData((int)samplingValue);
 			break;
@@ -73,7 +81,7 @@ public class RealRegister extends Register implements Comparable<RealRegister>{
 					this.setData(false);
 				}
 			} else {
-				samplingValue += temp.getInt();
+				samplingValue += temp.getFloat();
 				this.setData((float)(samplingValue/samplingCount));
 			}
 			break;
@@ -136,6 +144,7 @@ public class RealRegister extends Register implements Comparable<RealRegister>{
 			} else if (("size".compareToIgnoreCase(configNode.getNodeName())==0))	{
 				try {
 					this.size = Util.parseInt(configNode.getFirstChild().getNodeValue());
+					this.sizeType = RegisterSizeType.fromString(configNode.getAttributes().item(0).getTextContent());
 					registerNode.removeChild(configNode);
 				} catch (NumberFormatException e) {
 					log.error("Couldn't parse size to integer from: "+configNode.getFirstChild().getNodeValue());
@@ -143,7 +152,7 @@ public class RealRegister extends Register implements Comparable<RealRegister>{
 			} else if ("scanRate".compareToIgnoreCase(configNode.getNodeName())==0){
 				try {
 					this.scanRate = Integer.parseInt(configNode.getFirstChild().getNodeValue());
-					this.sampling = ScanRateSampling.fromText(configNode.getAttributes().item(0).getTextContent());
+					this.sampling = ScanRateSampling.fromString(configNode.getAttributes().item(0).getTextContent());
 					registerNode.removeChild(configNode);
 				} catch (NumberFormatException e) {
 					log.error("Invalid scan rate: "+configNode.getFirstChild().getNodeValue());
@@ -178,6 +187,26 @@ public class RealRegister extends Register implements Comparable<RealRegister>{
 			if (sampling == ScanRateSampling.LATCHOFF || sampling == ScanRateSampling.LATCHON) {
 				log.warn("LATCHON / LATCHOFF samplings not allowed for non-coil registers. Using default of MEAN.");
 				sampling = ScanRateSampling.MEAN;
+			}
+			break;
+		}
+		
+		switch (this.sizeType) {
+		case SIGNED:
+			if (this.regType == RegisterType.INPUT_COIL || this.regType == RegisterType.OUTPUT_COIL) {
+				log.warn("SIGNED size type is ignored for input and output coils.");
+			}
+			break;
+		case UNSIGNED:
+			break;
+		case FLOAT:
+			if (this.regType == RegisterType.INPUT_COIL || this.regType == RegisterType.OUTPUT_COIL) {
+				log.error("FLOAT size type is ignored for input and output coils.");
+			} else {
+				if (this.size != 2) {
+					log.error("FLOAT size type can only be used with double word (size=2) registers.  Changing to unsigned integer type.");
+					this.sizeType = RegisterSizeType.UNSIGNED;
+				}
 			}
 			break;
 		}

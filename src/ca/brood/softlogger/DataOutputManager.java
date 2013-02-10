@@ -64,7 +64,7 @@ public class DataOutputManager implements Runnable {
 		for (DataRegister register : registers) {
 			try {
 				if (!register.isNull())
-					log.info(register.getFieldName()+"("+register.getAddress()+"): "+register.getInteger());
+					log.info(register.getFieldName()+"("+register.getAddress()+"): "+register.getFloat());
 				else
 					log.info(register.getFieldName()+"("+register.getAddress()+"): <null>");
 			} catch (Exception e) {

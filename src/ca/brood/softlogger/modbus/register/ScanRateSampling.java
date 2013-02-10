@@ -7,7 +7,7 @@ public enum ScanRateSampling {
 	LATCHON,
 	LATCHOFF;
 	
-	public static ScanRateSampling fromText(String text) {
+	public static ScanRateSampling fromString(String text) {
 		if (text.equalsIgnoreCase("average"))
 			return MEAN;
 		if (text.equalsIgnoreCase("sum"))

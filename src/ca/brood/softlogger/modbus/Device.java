@@ -295,15 +295,35 @@ public class Device implements Runnable {
 		}
 		if (response instanceof ReadInputRegistersResponse) {
 			if (getDataLength(response) >= offset+reg.getSize() && reg.getSize() == 1) {
-				//16 bit register reading.  read it as int, set the float value equal to the int value, and set the bool following C-style evaluation rules
-				reg.setData(new Integer(((ReadInputRegistersResponse)response).getRegister(offset).getValue()));
+				RegisterSizeType sizeType = reg.getSizeType();
+				int val;
+				if (sizeType == RegisterSizeType.SIGNED) {
+					short shortVal = (short) ((ReadInputRegistersResponse)response).getRegister(offset).getValue();
+					val = shortVal;
+				} else {
+					val = ((ReadInputRegistersResponse)response).getRegister(offset).getValue();
+				}
+				RegisterData temp = new RegisterData();
+				temp.setData(new Integer(val));
+				reg.setDataWithSampling(temp);
 			} else if (getDataLength(response) >= offset+reg.getSize() && reg.getSize() == 2) {
 				//32-bit register reading
-				//TODO: figure out how to decide if we should treat the number as IEEE 754 or not.  Right now assume it is int.
-				int newVal = (((ReadInputRegistersResponse)response).getRegister(offset).getValue() << 16) + ((ReadInputRegistersResponse)response).getRegister(offset+1).getValue();
-				log.info("Registers 1: "+((ReadInputRegistersResponse)response).getRegister(offset).getValue()+" Register 2: "+((ReadInputRegistersResponse)response).getRegister(offset+1).getValue()+" new Value: "+newVal);
+				RegisterSizeType sizeType = reg.getSizeType();
+				float val = 0;
+				switch (sizeType) {
+				case SIGNED:
+					val = (int)(((ReadInputRegistersResponse)response).getRegister(offset).getValue() << 16) + ((ReadInputRegistersResponse)response).getRegister(offset+1).getValue();
+					break;
+				case UNSIGNED:
+					val = (long)(((ReadInputRegistersResponse)response).getRegister(offset).getValue() << 16) + ((ReadInputRegistersResponse)response).getRegister(offset+1).getValue();
+					break;
+				case FLOAT:
+					val = Float.intBitsToFloat((((ReadInputRegistersResponse)response).getRegister(offset).getValue() << 16) + ((ReadInputRegistersResponse)response).getRegister(offset+1).getValue());
+					break;
+				}
+				log.info("Registers 1: "+((ReadInputRegistersResponse)response).getRegister(offset).getValue()+" Register 2: "+((ReadInputRegistersResponse)response).getRegister(offset+1).getValue()+" new Value: "+val);
 				RegisterData temp = new RegisterData();
-				temp.setData(newVal);
+				temp.setDataFloat(val);
 				reg.setDataWithSampling(temp);
 			} else { //not 1 or 2 words
 				log.error("Invalid offset for ReadInputRegisterResponse: "+offset+" : "+getDataLength(response)+" : "+reg.getSize());
@@ -313,16 +333,35 @@ public class Device implements Runnable {
 		}
 		if (response instanceof ReadMultipleRegistersResponse) {
 			if (getDataLength(response) >= offset+reg.getSize() && reg.getSize() == 1) {
-				//16 bit register reading.  read it as int, set the float value equal to the int value, and set the bool following C-style evaluation rules
+				RegisterSizeType sizeType = reg.getSizeType();
+				int val;
+				if (sizeType == RegisterSizeType.SIGNED) {
+					short shortVal = (short) ((ReadMultipleRegistersResponse)response).getRegister(offset).getValue();
+					val = shortVal;
+				} else {
+					val = ((ReadMultipleRegistersResponse)response).getRegister(offset).getValue();
+				}
 				RegisterData temp = new RegisterData();
-				temp.setData(new Integer(((ReadMultipleRegistersResponse)response).getRegister(offset).getValue()));
+				temp.setData(new Integer(val));
 				reg.setDataWithSampling(temp);
 			} else if (getDataLength(response) >= offset+reg.getSize() && reg.getSize() == 2) {
 				//32-bit register reading
-				//TODO: figure out how to decide if we should treat the number as IEEE 754 or not.  Right now assume it is int.
-				int newVal = (((ReadMultipleRegistersResponse)response).getRegister(offset).getValue() << 16) + ((ReadMultipleRegistersResponse)response).getRegister(offset+1).getValue();
+				RegisterSizeType sizeType = reg.getSizeType();
+				float val = 0;
+				switch (sizeType) {
+				case SIGNED:
+					val = (int)(((ReadMultipleRegistersResponse)response).getRegister(offset).getValue() << 16) + ((ReadMultipleRegistersResponse)response).getRegister(offset+1).getValue();
+					break;
+				case UNSIGNED:
+					val = (long)(((ReadMultipleRegistersResponse)response).getRegister(offset).getValue() << 16) + ((ReadMultipleRegistersResponse)response).getRegister(offset+1).getValue();
+					break;
+				case FLOAT:
+					val = Float.intBitsToFloat((((ReadMultipleRegistersResponse)response).getRegister(offset).getValue() << 16) + ((ReadMultipleRegistersResponse)response).getRegister(offset+1).getValue());
+					break;
+				}
+				log.info("Registers 1: "+((ReadMultipleRegistersResponse)response).getRegister(offset).getValue()+" Register 2: "+((ReadMultipleRegistersResponse)response).getRegister(offset+1).getValue()+" new Value: "+val);
 				RegisterData temp = new RegisterData();
-				temp.setData(newVal);
+				temp.setDataFloat(val);
 				reg.setDataWithSampling(temp);
 			} else { //not 1 or 2 words
 				log.error("Invalid offset for ReadMultipleRegistersResponse: "+offset+" : "+getDataLength(response)+" : "+reg.getSize());

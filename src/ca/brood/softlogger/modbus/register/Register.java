@@ -34,6 +34,9 @@ public abstract class Register {
 	public int getShort() {
 		return registerData.getShort();
 	}
+	public float getFloat() {
+		return registerData.getFloat();
+	}
 	public void setData(RegisterData data) {
 		this.registerData.setData(data);
 	}
