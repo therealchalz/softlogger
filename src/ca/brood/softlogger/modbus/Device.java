@@ -56,8 +56,8 @@ public class Device implements Runnable {
 		this.channel = chan;
 	}
 	
-	private PriorityQueue<RealRegister> getAllRegistersByScanRate() {
-		PriorityQueue<RealRegister> ret = new PriorityQueue<RealRegister>(configRegs.size()+dataRegs.size(), new RealRegister.ScanRateComparator());
+	private SortedSet<RealRegister> getAllRegistersByScanRate() {
+		SortedSet<RealRegister> ret = new TreeSet<RealRegister>(new RealRegister.ScanRateComparator());
 		ret.addAll(configRegs);
 		ret.addAll(dataRegs);
 		return ret;
@@ -85,11 +85,30 @@ public class Device implements Runnable {
 	private void buildScanGroupQueue() {
 		scanGroups = new PriorityQueue<ScanGroup>();
 		//Get all registers ordered by scan rate, then type, then address
-		PriorityQueue<RealRegister> regs = getAllRegistersByScanRate();
+		SortedSet<RealRegister> regs = getAllRegistersByScanRate();
 		
 		//Combine all the registers with the same scan rate into scan groups
 		ScanGroup scanGroup = null;
 		int scanRate = Integer.MAX_VALUE;
+		for (RealRegister reg : regs) {
+			if (scanGroup == null) {
+				scanRate = reg.getScanRate();
+				if (scanRate == 0) {
+					log.warn("Got 0 scanrate: " +regs);
+				}
+				scanGroup = new ScanGroup(scanRate);
+				scanGroup.addRegister(reg);
+			} else {
+				if (reg.getScanRate() == scanRate) {
+					scanGroup.addRegister(reg);
+				} else {
+					log.debug("Adding ScanGroup: "+scanGroup);
+					scanGroups.add(scanGroup);
+					scanGroup = null;
+				}
+			}
+		}
+		/*
 		while(!regs.isEmpty()) {
 			if (scanGroup == null) {
 				scanRate = regs.peek().getScanRate();
@@ -108,6 +127,7 @@ public class Device implements Runnable {
 				}
 			}
 		}
+		*/
 		if (scanGroup != null) {
 			log.debug("Adding Scangroup: "+scanGroup);
 			scanGroups.add(scanGroup);
@@ -194,32 +214,18 @@ public class Device implements Runnable {
 			logInterval = lo;
 	}
 	
-	private ModbusRequest getModbusRequest(RealRegister first, RealRegister last) {
-		log.info("Creating modbus request from: "+first+" to: "+last);
-		int size = last.getAddress() - first.getAddress() + last.getSize();
-		ModbusRequest ret = first.getRequest(size);
+	private ModbusRequest getModbusRequest(RealRegister from, RealRegister to) {
+		log.info("Creating modbus request from: "+from+" to: "+to);
+		int size = to.getAddress() - from.getAddress() + to.getSize();
+		ModbusRequest ret = from.getRequest(size);
 		ret.setUnitID(this.unitId);
 		//log.info("Created Request: "+ret);
 		return ret;
 	}
-	public RegisterType getTypeOfResponse(ModbusResponse response) {
-		if (response instanceof ReadCoilsResponse) {
-			return RegisterType.OUTPUT_COIL;
-		}
-		if (response instanceof ReadInputDiscretesResponse) {
-			return RegisterType.INPUT_COIL;
-		}
-		if (response instanceof ReadInputRegistersResponse) {
-			return RegisterType.INPUT_REGISTER;
-		}
-		else  {
-			return RegisterType.OUTPUT_REGISTER;
-		}
-	}
 	private ArrayList<RealRegister> getRegisters(int baseAddress, ModbusResponse response) {
 		ArrayList<RealRegister> ret = new ArrayList<RealRegister>();
 		int numWords = getDataLength(response);
-		RegisterType type = getTypeOfResponse(response);
+		RegisterType type = RegisterType.fromResponse(response);
 		ArrayList<RealRegister> registerList = new ArrayList<RealRegister>();
 		registerList.addAll(dataRegs);
 		registerList.addAll(configRegs);

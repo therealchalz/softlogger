@@ -1,5 +1,10 @@
 package ca.brood.softlogger.modbus.register;
 
+import net.wimpi.modbus.msg.ModbusResponse;
+import net.wimpi.modbus.msg.ReadCoilsResponse;
+import net.wimpi.modbus.msg.ReadInputDiscretesResponse;
+import net.wimpi.modbus.msg.ReadInputRegistersResponse;
+
 import org.apache.log4j.Logger;
 
 public enum RegisterType {
@@ -48,5 +53,20 @@ public enum RegisterType {
 		}
 		log.error("Error parsing modbus address - unknown range (falling back to OUTPUT_REGISTER). Leading digit: "+range+", address: "+address);
 		return RegisterType.OUTPUT_REGISTER;
+	}
+	
+	public static RegisterType fromResponse(ModbusResponse response) {
+		if (response instanceof ReadCoilsResponse) {
+			return RegisterType.OUTPUT_COIL;
+		}
+		if (response instanceof ReadInputDiscretesResponse) {
+			return RegisterType.INPUT_COIL;
+		}
+		if (response instanceof ReadInputRegistersResponse) {
+			return RegisterType.INPUT_REGISTER;
+		}
+		else  {
+			return RegisterType.OUTPUT_REGISTER;
+		}
 	}
 }
