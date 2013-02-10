@@ -20,7 +20,9 @@ public class DeviceUpdater extends Thread {
 	}
 	
 	private boolean getShouldRun() {
-		return shouldRun;
+		synchronized (shouldRun) {
+			return shouldRun;
+		}
 	}
 	
 	private void setShouldRun(boolean should) {
