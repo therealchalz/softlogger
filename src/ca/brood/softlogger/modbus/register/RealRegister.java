@@ -2,6 +2,7 @@ package ca.brood.softlogger.modbus.register;
 
 import ca.brood.softlogger.util.*;
 import net.wimpi.modbus.msg.ModbusRequest;
+import net.wimpi.modbus.msg.ModbusResponse;
 import net.wimpi.modbus.msg.ReadCoilsRequest;
 import net.wimpi.modbus.msg.ReadInputDiscretesRequest;
 import net.wimpi.modbus.msg.ReadInputRegistersRequest;
@@ -18,11 +19,15 @@ public class RealRegister extends Register implements Comparable<RealRegister>{
 	protected int device = 0;
 	protected int scanRate = 0;
 	protected RegisterType regType;
+	protected ScanRateSampling sampling;
+	protected long samplingValue = 0;
+	protected int samplingCount = 0;
 	
 	protected RealRegister(int device) {
 		super();
 		this.device = device;
 		log = Logger.getLogger(RealRegister.class + " device: "+device);
+		sampling = ScanRateSampling.MEAN;
 	}
 	protected RealRegister(RealRegister r) {
 		super(r);
@@ -31,10 +36,63 @@ public class RealRegister extends Register implements Comparable<RealRegister>{
 		device = r.device;
 		scanRate = r.scanRate;
 		regType = r.regType;
+		sampling = r.sampling;
+	}
+	public void setNull() {
+		this.registerData.nullData();
+	}
+	public void resetSampling() {
+		samplingValue = 0;
+		samplingCount = 0;
+		//Reset all latch-on and latch-off coils to null
+		if (this.getRegisterType() == RegisterType.INPUT_COIL || this.getRegisterType() == RegisterType.OUTPUT_COIL) {
+			if (this.sampling == ScanRateSampling.LATCHOFF || this.sampling == ScanRateSampling.LATCHON) {
+				this.registerData.nullData();
+			}
+		}
+	}
+	public void setDataWithSampling(RegisterData temp) {
+		switch (sampling) {
+		case LATEST:
+			this.setData(temp);
+			break;
+		case SUM:
+			//Only for registers
+			samplingValue += temp.getInt();
+			samplingCount ++;
+			this.setData((int)samplingValue);
+			break;
+		case MEAN:
+			samplingCount ++;
+			if (this.getRegisterType() == RegisterType.INPUT_COIL || this.getRegisterType() == RegisterType.OUTPUT_COIL) {
+				if (temp.getBool())
+					samplingValue ++;
+				if ((samplingValue/samplingCount) >0.5f) {
+					this.setData(true);
+				} else {
+					this.setData(false);
+				}
+			} else {
+				samplingValue += temp.getInt();
+				this.setData((float)(samplingValue/samplingCount));
+			}
+			break;
+		case LATCHON:
+			//only for coils
+			if (temp.getBool() || this.isNull())
+				this.setData(temp.getBool());
+			break;
+		case LATCHOFF:
+			//only for coils
+			if (!temp.getBool() || this.isNull())
+				this.setData(temp.getBool());
+			break;
+		}
 	}
 	public void setDefaultScanRate(int rate) {
 		if (scanRate == 0) {
 			scanRate = rate;
+			sampling = ScanRateSampling.MEAN;
 		}
 	}
 	public RegisterType getRegisterType() {
@@ -85,6 +143,7 @@ public class RealRegister extends Register implements Comparable<RealRegister>{
 			} else if ("scanRate".compareToIgnoreCase(configNode.getNodeName())==0){
 				try {
 					this.scanRate = Integer.parseInt(configNode.getFirstChild().getNodeValue());
+					this.sampling = ScanRateSampling.fromText(configNode.getAttributes().item(0).getTextContent());
 					registerNode.removeChild(configNode);
 				} catch (NumberFormatException e) {
 					log.error("Invalid scan rate: "+configNode.getFirstChild().getNodeValue());
@@ -104,6 +163,10 @@ public class RealRegister extends Register implements Comparable<RealRegister>{
 					log.warn("Got invalid size for an input or output coil.  Changing size to 1 from: "+this.size);
 				this.size = 1;
 			}
+			if (sampling == ScanRateSampling.SUM) {
+				log.warn("SUM sampling not allowed for coils.  Using default of MEAN.");
+				sampling = ScanRateSampling.MEAN;
+			}
 			break;
 		case INPUT_REGISTER:
 		case OUTPUT_REGISTER:
@@ -111,6 +174,10 @@ public class RealRegister extends Register implements Comparable<RealRegister>{
 				if (this.size != 0)
 					log.warn("Got invalid size for an input or output register.  Changing size to 2 from: "+this.size);
 				this.size = 1;
+			}
+			if (sampling == ScanRateSampling.LATCHOFF || sampling == ScanRateSampling.LATCHON) {
+				log.warn("LATCHON / LATCHOFF samplings not allowed for non-coil registers. Using default of MEAN.");
+				sampling = ScanRateSampling.MEAN;
 			}
 			break;
 		}

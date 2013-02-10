@@ -34,6 +34,9 @@ public abstract class Register {
 	public int getShort() {
 		return registerData.getShort();
 	}
+	public void setData(RegisterData data) {
+		this.registerData.setData(data);
+	}
 	public void setData(ModbusResponse r) {
 		registerData.setData(r);
 	}

@@ -276,17 +276,21 @@ public class Device implements Runnable {
 		if (response instanceof ReadCoilsResponse) {
 			if (offset > getDataLength(response)) {
 				log.error("Invalid offset for ReadCoilsResponse: "+offset+" : "+getDataLength(response));
-				reg.setData(false);
+				reg.setNull();
 			} else {
-				reg.setData(((ReadCoilsResponse)response).getCoilStatus(offset));
+				RegisterData temp = new RegisterData();
+				temp.setData(((ReadCoilsResponse)response).getCoilStatus(offset));
+				reg.setDataWithSampling(temp);
 			}
 		}
 		if (response instanceof ReadInputDiscretesResponse) {
 			if (offset > getDataLength(response)) {
 				log.error("Invalid offset for ReadInputDiscretesResponse: "+offset+" : "+getDataLength(response));
-				reg.setData(false);
+				reg.setNull();
 			} else {
-				reg.setData(((ReadInputDiscretesResponse)response).getDiscreteStatus(offset));
+				RegisterData temp = new RegisterData();
+				temp.setData(((ReadInputDiscretesResponse)response).getDiscreteStatus(offset));
+				reg.setDataWithSampling(temp);
 			}
 		}
 		if (response instanceof ReadInputRegistersResponse) {
@@ -298,32 +302,37 @@ public class Device implements Runnable {
 				//TODO: figure out how to decide if we should treat the number as IEEE 754 or not.  Right now assume it is int.
 				int newVal = (((ReadInputRegistersResponse)response).getRegister(offset).getValue() << 16) + ((ReadInputRegistersResponse)response).getRegister(offset+1).getValue();
 				log.info("Registers 1: "+((ReadInputRegistersResponse)response).getRegister(offset).getValue()+" Register 2: "+((ReadInputRegistersResponse)response).getRegister(offset+1).getValue()+" new Value: "+newVal);
-				reg.setData(newVal);
+				RegisterData temp = new RegisterData();
+				temp.setData(newVal);
+				reg.setDataWithSampling(temp);
 			} else { //not 1 or 2 words
 				log.error("Invalid offset for ReadInputRegisterResponse: "+offset+" : "+getDataLength(response)+" : "+reg.getSize());
-				reg.setData((int)Short.MIN_VALUE);
+				reg.setNull();
 				return;
 			}
 		}
 		if (response instanceof ReadMultipleRegistersResponse) {
 			if (getDataLength(response) >= offset+reg.getSize() && reg.getSize() == 1) {
 				//16 bit register reading.  read it as int, set the float value equal to the int value, and set the bool following C-style evaluation rules
-				reg.setData(new Integer(((ReadMultipleRegistersResponse)response).getRegister(offset).getValue()));
+				RegisterData temp = new RegisterData();
+				temp.setData(new Integer(((ReadMultipleRegistersResponse)response).getRegister(offset).getValue()));
+				reg.setDataWithSampling(temp);
 			} else if (getDataLength(response) >= offset+reg.getSize() && reg.getSize() == 2) {
 				//32-bit register reading
 				//TODO: figure out how to decide if we should treat the number as IEEE 754 or not.  Right now assume it is int.
 				int newVal = (((ReadMultipleRegistersResponse)response).getRegister(offset).getValue() << 16) + ((ReadMultipleRegistersResponse)response).getRegister(offset+1).getValue();
-				reg.setData(newVal);
+				RegisterData temp = new RegisterData();
+				temp.setData(newVal);
+				reg.setDataWithSampling(temp);
 			} else { //not 1 or 2 words
 				log.error("Invalid offset for ReadMultipleRegistersResponse: "+offset+" : "+getDataLength(response)+" : "+reg.getSize());
-				reg.setData((int)Short.MIN_VALUE);
+				reg.setNull();
 				return;
 			}
 		}
 	}
 
 	private void updateRegisters(SortedSet<RealRegister> regs) {
-		
 		
 		//First build a list of modbus requests
 		Iterator<RealRegister> registerIterator = regs.iterator();
@@ -403,58 +412,6 @@ public class Device implements Runnable {
 		//log.info("Registers to process: "+registersToProcess);
 		updateRegisters(registersToProcess);
 		
-		/*
-		log.trace("Checking Config Registers");
-		//Treat the config registers as data registers - read them
-		for (ConfigRegister c : configRegs) {
-			ModbusRequest req = c.getRequest();
-			req.setUnitID(this.unitId);
-			try {
-				ModbusResponse resp = channel.executeRequest(req);
-				c.setData(resp);
-			} catch (ModbusException e) {
-				log.trace("Got modbus exception: "+e.getMessage());
-			} catch (Exception e) {
-				log.trace("Got no response....");
-				return; //Couldn't do a modbus request
-			}
-		}
-		//If a config register's value is invalid, write the correct one
-		log.trace("Writing config registers");
-		for (ConfigRegister c : configRegs) {
-			if (!c.dataIsGood()) {
-				log.debug("Config register has wrong value: "+c.toString());
-				ModbusRequest req = c.getWriteRequest();
-				req.setUnitID(this.unitId);
-				try {
-					ModbusResponse resp = channel.executeRequest(req);
-					c.setData(resp);
-				} catch (ModbusException e) {
-					log.trace("Got modbus exception: "+e.getMessage());
-				} catch (Exception e) {
-					log.trace("Got no response....");
-					return; //Couldn't do a modbus request
-				}
-			}
-		}
-		//Read the data registers
-		log.trace("Checking data Registers");
-		for (DataRegister d : dataRegs) {
-			ModbusRequest req = d.getRequest();
-			req.setUnitID(this.unitId);
-			try {
-				ModbusResponse resp = channel.executeRequest(req);
-				d.setData(resp);
-			} catch (ModbusException e) {
-				log.trace("Got modbus exception: "+e.getMessage());
-			} catch (Exception e) {
-				log.trace("Got no response....");
-				return; //Couldn't do a modbus request
-			}
-		}
-		*/
-		//Work on the virtual registers
-		//All done
 	}
 	
 	public void printAll() {

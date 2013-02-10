@@ -44,6 +44,11 @@ public class RegisterData implements net.wimpi.modbus.procimg.Register{
 	public Boolean getBool() {
 		return dataBool;
 	}
+	public void setData(RegisterData r) {
+		dataInt = r.dataInt;
+		dataFloat = r.dataFloat;
+		dataBool = r.dataBool;
+	}
 	public void setData(Boolean b) {
 		if (b) {
 			dataInt = 1;

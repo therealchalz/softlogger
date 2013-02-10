@@ -28,7 +28,7 @@
 <!ELEMENT configRegister (fieldName,scanRate?,registerAddress,size?,value)>
 <!ELEMENT fieldName (#PCDATA)>
 <!ELEMENT scanRate (#PCDATA)>
-<!ATTLIST scanRate sampling (accumulate|sum|average|mean) "average">
+<!ATTLIST scanRate sampling (latchon|latchoff|latest|accumulate|sum|average|mean) "average">
 <!ELEMENT registerAddress (#PCDATA)>
 <!ELEMENT size (#PCDATA)>
 <!ATTLIST size type (s|u|f|int|uint|float|signed|unsigned) "unsigned">

@@ -79,7 +79,7 @@
 			</dataRegister>
 			<dataRegister>
 				<fieldName>Measurement 5</fieldName>
-				<scanRate sampling="average">500</scanRate>
+				<scanRate sampling="sum">500</scanRate>
 				<registerAddress>400007</registerAddress>
 				<size type="float">2</size>
 				<guid>D3M5</guid>

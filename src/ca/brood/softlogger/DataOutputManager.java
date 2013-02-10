@@ -46,15 +46,15 @@ public class DataOutputManager implements Runnable {
 		ThreadPerformanceMonitor.threadStarting();
 		log.info("Starting");
 		while (getKeepRunning()){
-			for (Device d: devices) {
-				printDeviceData(d);
-			}
 			try {
 				ThreadPerformanceMonitor.threadStopping();
 				Thread.sleep(1000);
 			} catch (InterruptedException e) {
 			}
 			ThreadPerformanceMonitor.threadStarting();
+			for (Device d: devices) {
+				printDeviceData(d);
+			}
 		}
 	}
 	
