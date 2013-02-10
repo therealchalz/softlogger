@@ -195,11 +195,11 @@ public class Device implements Runnable {
 	}
 	
 	private ModbusRequest getModbusRequest(RealRegister first, RealRegister last) {
-		//log.info("Creating modbus request from: "+first+" to: "+last);
+		log.info("Creating modbus request from: "+first+" to: "+last);
 		int size = last.getAddress() - first.getAddress() + last.getSize();
 		ModbusRequest ret = first.getRequest(size);
 		ret.setUnitID(this.unitId);
-		log.info("Created Request: "+ret);
+		//log.info("Created Request: "+ret);
 		return ret;
 	}
 	public RegisterType getTypeOfResponse(ModbusResponse response) {
@@ -240,7 +240,7 @@ public class Device implements Runnable {
 					break addressLoop;
 				}
 				if (address == reg.getAddress() && type == reg.getRegisterType()) {
-					log.info("Adding register (add : "+address+", type: "+type+"): "+reg);
+					//log.info("Adding register (add : "+address+", type: "+type+"): "+reg);
 					ret.add(reg);
 				}
 				if (registerIterator.hasNext()) {
@@ -252,7 +252,7 @@ public class Device implements Runnable {
 				break addressLoop;
 			}
 			if (address == reg.getAddress() && type == reg.getRegisterType()) {
-				log.info("Adding register (add : "+address+", type: "+type+"): "+reg);
+				//log.info("Adding register (add : "+address+", type: "+type+"): "+reg);
 				ret.add(reg);
 			}
 			
@@ -277,7 +277,7 @@ public class Device implements Runnable {
 	private void setRegisterData(RealRegister reg, ModbusResponse response, int offset) {
 		if (response instanceof ReadCoilsResponse) {
 			if (offset > getDataLength(response)) {
-				log.error("Invalid offset for ReadCoilsResponse: "+offset+" : "+getDataLength(response));
+				log.error("Invalid offset for ReadCoilsResponse - Offset: "+offset+" DataLength: "+getDataLength(response)+" "+reg);
 				reg.setNull();
 			} else {
 				RegisterData temp = new RegisterData();
@@ -287,7 +287,7 @@ public class Device implements Runnable {
 		}
 		if (response instanceof ReadInputDiscretesResponse) {
 			if (offset > getDataLength(response)) {
-				log.error("Invalid offset for ReadInputDiscretesResponse: "+offset+" : "+getDataLength(response));
+				log.error("Invalid offset for ReadInputDiscretesResponse - Offset: "+offset+" DataLength: "+getDataLength(response)+" "+reg);
 				reg.setNull();
 			} else {
 				RegisterData temp = new RegisterData();
@@ -323,12 +323,12 @@ public class Device implements Runnable {
 					val = Float.intBitsToFloat((((ReadInputRegistersResponse)response).getRegister(offset).getValue() << 16) + ((ReadInputRegistersResponse)response).getRegister(offset+1).getValue());
 					break;
 				}
-				log.info("Registers 1: "+((ReadInputRegistersResponse)response).getRegister(offset).getValue()+" Register 2: "+((ReadInputRegistersResponse)response).getRegister(offset+1).getValue()+" new Value: "+val);
+				//log.info("Registers 1: "+((ReadInputRegistersResponse)response).getRegister(offset).getValue()+" Register 2: "+((ReadInputRegistersResponse)response).getRegister(offset+1).getValue()+" new Value: "+val);
 				RegisterData temp = new RegisterData();
 				temp.setDataFloat(val);
 				reg.setDataWithSampling(temp);
 			} else { //not 1 or 2 words
-				log.error("Invalid offset for ReadInputRegisterResponse: "+offset+" : "+getDataLength(response)+" : "+reg.getSize());
+				log.error("Invalid offset for ReadInputRegisterResponse - Offset: "+offset+" DataLength: "+getDataLength(response)+" Size: "+reg.getSize()+" "+reg);
 				reg.setNull();
 				return;
 			}
@@ -361,12 +361,12 @@ public class Device implements Runnable {
 					val = Float.intBitsToFloat((((ReadMultipleRegistersResponse)response).getRegister(offset).getValue() << 16) + ((ReadMultipleRegistersResponse)response).getRegister(offset+1).getValue());
 					break;
 				}
-				log.info("Registers 1: "+((ReadMultipleRegistersResponse)response).getRegister(offset).getValue()+" Register 2: "+((ReadMultipleRegistersResponse)response).getRegister(offset+1).getValue()+" new Value: "+val);
+				//log.info("Registers 1: "+((ReadMultipleRegistersResponse)response).getRegister(offset).getValue()+" Register 2: "+((ReadMultipleRegistersResponse)response).getRegister(offset+1).getValue()+" new Value: "+val);
 				RegisterData temp = new RegisterData();
 				temp.setDataFloat(val);
 				reg.setDataWithSampling(temp);
 			} else { //not 1 or 2 words
-				log.error("Invalid offset for ReadMultipleRegistersResponse: "+offset+" : "+getDataLength(response)+" : "+reg.getSize());
+				log.error("Invalid offset for ReadMultipleRegistersResponse - Offset: "+offset+" DataLength: "+getDataLength(response)+" Size: "+reg.getSize()+" "+reg);
 				reg.setNull();
 				return;
 			}
@@ -406,14 +406,18 @@ public class Device implements Runnable {
 		// match addresses in the response
 		for (ModbusRequest r : requests) {
 			try {
+				log.trace("Executing request: "+r);
 				ModbusResponse resp = channel.executeRequest(r);
 				int baseAddress = r.getReference();
-				log.info("Got response (baseAddress: "+baseAddress+"): "+resp);
+				log.trace("Got response (baseAddress: "+baseAddress+"): "+resp);
 				ArrayList<RealRegister> regsToUpdate = getRegisters(baseAddress, resp);
 				for (RealRegister regToUpdate : regsToUpdate) {
 					int addy = regToUpdate.getAddress() - baseAddress;
-					log.info("Got Register To Update (offset: "+addy+"): "+regToUpdate);
+					//log.trace("Got Register To Update (offset: "+addy+"): "+regToUpdate);
 					this.setRegisterData(regToUpdate, resp, addy);
+					if (regToUpdate instanceof ConfigRegister) {
+						log.info("Set config register: "+regToUpdate);
+					}
 				}
 				//c.setData(resp);
 			} catch (ModbusException e) {
@@ -472,6 +476,26 @@ public class Device implements Runnable {
 		//log.info("Registers to process: "+registersToProcess);
 		synchronized (registerLock) {
 			updateRegisters(registersToProcess);
+		}
+
+		//If a config register's value is invalid, write the correct one
+		log.trace("Writing config registers");
+		for (ConfigRegister c : configRegs) {
+			if (!c.dataIsGood()) {
+				log.debug("Config register has wrong value: "+c.toString());
+				ModbusRequest req = c.getWriteRequest();
+				req.setUnitID(this.unitId);
+				try {
+					log.trace("Executing request: "+req);
+					ModbusResponse resp = channel.executeRequest(req);
+					log.trace("Got response: "+resp);
+					c.setData(resp);
+				} catch (ModbusException e) {
+					log.trace("Got modbus exception: ", e);
+				} catch (Exception e) {
+					log.trace("Got exception: ", e);
+				}
+			}
 		}
 		
 	}

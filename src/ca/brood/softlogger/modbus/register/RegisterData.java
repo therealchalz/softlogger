@@ -3,6 +3,7 @@ package ca.brood.softlogger.modbus.register;
 import org.apache.log4j.Logger;
 
 import net.wimpi.modbus.msg.*;
+import net.wimpi.modbus.procimg.SimpleRegister;
 
 public class RegisterData implements net.wimpi.modbus.procimg.Register{
 	private Integer dataInt = null;
@@ -16,6 +17,20 @@ public class RegisterData implements net.wimpi.modbus.procimg.Register{
 		dataInt = r.dataInt;
 		dataFloat = r.dataFloat;
 		dataBool = r.dataBool;
+	}
+	public net.wimpi.modbus.procimg.Register getHighRegisterInt() {
+		 net.wimpi.modbus.procimg.Register ret = new SimpleRegister(dataInt>>16);
+		 return ret;
+	}
+	public net.wimpi.modbus.procimg.Register getLowRegisterInt() {
+		 net.wimpi.modbus.procimg.Register ret = new SimpleRegister(dataInt&0xFFFF);
+		 return ret;
+	}
+	public net.wimpi.modbus.procimg.Register[] getBothRegisters() {
+		net.wimpi.modbus.procimg.Register[] ret = new net.wimpi.modbus.procimg.Register[2];
+		ret[0] = getHighRegisterInt();
+		ret[1] = getLowRegisterInt();
+		return ret;
 	}
 	public RegisterData(ModbusResponse resp) {
 		this.setData(resp);

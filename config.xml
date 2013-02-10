@@ -94,6 +94,13 @@
 				<registerAddress>100001</registerAddress>
 				<guid>D3M7</guid>
 			</dataRegister>
+			<dataRegister>
+				<fieldName>Measurement 8</fieldName>
+				<scanRate sampling="latest">500</scanRate>
+				<registerAddress>400003</registerAddress>
+				<size type="signed">2</size>
+				<guid>D3M8</guid>
+			</dataRegister>
 		</device>
 	</channel>
 </softlogger>

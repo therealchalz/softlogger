@@ -27,7 +27,18 @@ public class ConfigRegister extends RealRegister {
 	}
 	
 	public ModbusRequest getWriteRequest() {
-		WriteSingleRegisterRequest req = new WriteSingleRegisterRequest(this.address, this.value);
+		//TODO:
+		ModbusRequest req = null;
+		if (this.getRegisterType() == RegisterType.OUTPUT_COIL) {
+			req = new WriteCoilRequest(this.address, this.value.getBool());
+		}
+		if (this.getRegisterType() == RegisterType.OUTPUT_REGISTER) {
+			if (this.size == 2) {
+				req = new WriteMultipleRegistersRequest(this.address, this.value.getBothRegisters());
+			} else {
+				req = new WriteSingleRegisterRequest(this.address, this.value);
+			}
+		}
 		return req;
 	}
 	
@@ -56,6 +67,9 @@ public class ConfigRegister extends RealRegister {
 			log.error("Config register has a read-only type: "+this.regType);
 			return false;
 		}
+		
+		this.sampling = ScanRateSampling.LATEST;
+		
 		//log.debug(this.toString());
 		return true;
 	}

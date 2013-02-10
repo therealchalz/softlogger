@@ -32,6 +32,15 @@ public class Softlogger {
 	private ArrayList<SoftloggerChannel> softloggerChannels;
 	private DataOutputManager dataOutputManager;
 	
+	
+	/*
+	 * BUGS:
+	 * -If the same register address is defined multiple times in the config
+	 * and they're not all the same size, the wrong size may be requested.
+	 * 
+	 */
+	
+	
 	public Softlogger() {
 		log = Logger.getLogger(Softlogger.class);
 		PropertyConfigurator.configure("logger.config");
@@ -59,7 +68,7 @@ public class Softlogger {
 		s.configure("config.xml");
 		s.run();
 		try {
-			Thread.sleep(5000);
+			Thread.sleep(3000);
 		} catch (InterruptedException e) {
 		}
 		s.stop();
