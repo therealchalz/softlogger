@@ -30,6 +30,7 @@ public class Device implements Runnable {
 	private ArrayList<DataRegister> dataRegs;
 	private ModbusChannel channel = null;
 	private PriorityQueue<ScanGroup> scanGroups;
+	private Object registerLock;
 	
 	private int scanRate = 0;
 	private int logInterval = 0;
@@ -41,6 +42,7 @@ public class Device implements Runnable {
 		configRegs = new ArrayList<ConfigRegister>();
 		dataRegs = new ArrayList<DataRegister>();
 		scanGroups = new PriorityQueue<ScanGroup>();
+		registerLock = new Object();
 	}
 	
 	private static synchronized int getNextDeviceId() {
@@ -424,12 +426,31 @@ public class Device implements Runnable {
 	}
 	
 	public ArrayList<DataRegister> getDataRegisters() {
-		ArrayList<DataRegister> ret = new ArrayList<DataRegister>();
-		for (DataRegister d : this.dataRegs) {
-			DataRegister n = new DataRegister(d);
-			ret.add(n);
+		synchronized (registerLock) {
+			ArrayList<DataRegister> ret = new ArrayList<DataRegister>();
+			for (DataRegister d : this.dataRegs) {
+				DataRegister n = new DataRegister(d);
+				ret.add(n);
+			}
+			return ret;
 		}
-		return ret;
+	}
+	
+	public ArrayList<DataRegister> getDataRegistersAndResetSamplings() {
+		synchronized (registerLock) {
+			ArrayList<DataRegister> ret = getDataRegisters();
+			resetRegisterSamplings();
+			return ret;
+		}
+		
+	}
+	
+	public void resetRegisterSamplings() {
+		synchronized (registerLock) {
+			for (DataRegister d : this.dataRegs) {
+				d.resetSampling();
+			}
+		}
 	}
 
 	@Override
@@ -449,7 +470,9 @@ public class Device implements Runnable {
 		}
 		
 		//log.info("Registers to process: "+registersToProcess);
-		updateRegisters(registersToProcess);
+		synchronized (registerLock) {
+			updateRegisters(registersToProcess);
+		}
 		
 	}
 	

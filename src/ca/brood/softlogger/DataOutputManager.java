@@ -59,7 +59,7 @@ public class DataOutputManager implements Runnable {
 	}
 	
 	private void printDeviceData(Device d) {
-		ArrayList<DataRegister> registers = d.getDataRegisters();
+		ArrayList<DataRegister> registers = d.getDataRegistersAndResetSamplings();
 		log.info("Printing "+d.getDescription());
 		for (DataRegister register : registers) {
 			try {

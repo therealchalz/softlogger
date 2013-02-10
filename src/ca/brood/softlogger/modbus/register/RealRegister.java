@@ -68,7 +68,7 @@ public class RealRegister extends Register implements Comparable<RealRegister>{
 			//Only for registers
 			samplingValue += temp.getFloat();
 			samplingCount ++;
-			this.setData((int)samplingValue);
+			this.setData((float)samplingValue);
 			break;
 		case MEAN:
 			samplingCount ++;
