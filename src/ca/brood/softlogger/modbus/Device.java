@@ -94,7 +94,7 @@ public class Device implements Runnable {
 			if (scanGroup == null) {
 				scanRate = reg.getScanRate();
 				if (scanRate == 0) {
-					log.warn("Got 0 scanrate: " +regs);
+					log.warn("Got 0 scanrate: " +reg);
 				}
 				scanGroup = new ScanGroup(scanRate);
 				scanGroup.addRegister(reg);
@@ -281,6 +281,7 @@ public class Device implements Runnable {
 		return 0;
 	}
 	private void setRegisterData(RealRegister reg, ModbusResponse response, int offset) {
+		log.trace("Setting register: "+reg);
 		if (response instanceof ReadCoilsResponse) {
 			if (offset > getDataLength(response)) {
 				log.error("Invalid offset for ReadCoilsResponse - Offset: "+offset+" DataLength: "+getDataLength(response)+" "+reg);
@@ -336,7 +337,6 @@ public class Device implements Runnable {
 			} else { //not 1 or 2 words
 				log.error("Invalid offset for ReadInputRegisterResponse - Offset: "+offset+" DataLength: "+getDataLength(response)+" Size: "+reg.getSize()+" "+reg);
 				reg.setNull();
-				return;
 			}
 		}
 		if (response instanceof ReadMultipleRegistersResponse) {
@@ -374,9 +374,9 @@ public class Device implements Runnable {
 			} else { //not 1 or 2 words
 				log.error("Invalid offset for ReadMultipleRegistersResponse - Offset: "+offset+" DataLength: "+getDataLength(response)+" Size: "+reg.getSize()+" "+reg);
 				reg.setNull();
-				return;
 			}
 		}
+		log.trace("Setting register (NEW): "+reg);
 	}
 
 	private void updateRegisters(SortedSet<RealRegister> regs) {
@@ -425,7 +425,6 @@ public class Device implements Runnable {
 						log.info("Set config register: "+regToUpdate);
 					}
 				}
-				//c.setData(resp);
 			} catch (ModbusException e) {
 				log.trace("Got modbus exception: ",e);
 			} catch (Exception e) {
@@ -479,7 +478,7 @@ public class Device implements Runnable {
 			registersToProcess.addAll(next.getRegisters());
 		}
 		
-		//log.info("Registers to process: "+registersToProcess);
+		log.info("Registers to process: "+registersToProcess);
 		synchronized (registerLock) {
 			updateRegisters(registersToProcess);
 		}
