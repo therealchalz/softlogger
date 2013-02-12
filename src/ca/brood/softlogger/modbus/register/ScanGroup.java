@@ -20,6 +20,10 @@ public class ScanGroup implements Comparable<ScanGroup>{
 		cannotKeepUp = false;
 	}
 	
+	public int getScanRate() {
+		return scanRate;
+	}
+	
 	public void addRegister(RealRegister add) {
 		registers.add(add);
 	}

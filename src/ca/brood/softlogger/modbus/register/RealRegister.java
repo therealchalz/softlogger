@@ -101,6 +101,7 @@ public class RealRegister extends Register implements Comparable<RealRegister>{
 		if (scanRate == 0) {
 			scanRate = rate;
 			sampling = ScanRateSampling.MEAN;
+			log.debug("Updating scan rate to "+scanRate);
 		}
 	}
 	public RegisterType getRegisterType() {

@@ -75,7 +75,7 @@ public class ConfigRegister extends RealRegister {
 	}
 	@Override
 	public String toString() {
-		return "ConfigRegister: fieldname="+this.fieldName+"; address="+this.address+"; type="+this.regType+"; size="+this.size+"; scanRate="+this.scanRate+"; properValue="+this.value+"; actualData: "+registerData.toString();
+		return "ConfigRegister: fieldname="+this.fieldName+"; address="+this.address+"; type="+this.regType+"; size="+this.size+"; scanRate="+this.scanRate+"; properValue="+this.value+"; actualData: "+registerData;
 	}
 	 
 }

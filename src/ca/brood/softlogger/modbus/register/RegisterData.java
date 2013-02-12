@@ -141,12 +141,18 @@ public class RegisterData implements net.wimpi.modbus.procimg.Register{
 		String ret = "";
 		if (dataInt != null) {
 			ret+="Int: "+dataInt+", ";
+		} else {
+			ret+="Int: null, ";
 		}
 		if (dataFloat != null) {
 			ret+="Float: "+dataFloat+", ";
+		} else {
+			ret+="Float: null, ";
 		}
 		if (dataBool != null) {
-			ret+="Bool: "+dataBool+", ";
+			ret+="Bool: "+dataBool;
+		} else {
+			ret+="Bool: null";
 		}
 		return ret;
 	}

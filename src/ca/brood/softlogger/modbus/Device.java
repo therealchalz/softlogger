@@ -86,50 +86,34 @@ public class Device implements Runnable {
 		scanGroups = new PriorityQueue<ScanGroup>();
 		//Get all registers ordered by scan rate, then type, then address
 		SortedSet<RealRegister> regs = getAllRegistersByScanRate();
+		log.debug("All registers by scan rate: "+regs);
 		
 		//Combine all the registers with the same scan rate into scan groups
 		ScanGroup scanGroup = null;
-		int scanRate = Integer.MAX_VALUE;
 		for (RealRegister reg : regs) {
-			if (scanGroup == null) {
-				scanRate = reg.getScanRate();
-				if (scanRate == 0) {
-					log.warn("Got 0 scanrate: " +regs);
-				}
-				scanGroup = new ScanGroup(scanRate);
-				scanGroup.addRegister(reg);
-			} else {
-				if (reg.getScanRate() == scanRate) {
+			if (scanGroup != null) {
+				if (reg.getScanRate() == scanGroup.getScanRate()) {
 					scanGroup.addRegister(reg);
 				} else {
 					log.debug("Adding ScanGroup: "+scanGroup);
+					log.debug(scanGroup.getRegisters());
 					scanGroups.add(scanGroup);
 					scanGroup = null;
 				}
 			}
-		}
-		/*
-		while(!regs.isEmpty()) {
+			
 			if (scanGroup == null) {
-				scanRate = regs.peek().getScanRate();
-				if (scanRate == 0) {
-					log.warn("Got 0 scanrate: " +regs);
+				int sRate = reg.getScanRate();
+				if (sRate == 0) {
+					log.warn("Got 0 scanrate: " +reg);
 				}
-				scanGroup = new ScanGroup(scanRate);
-				scanGroup.addRegister(regs.poll());
-			} else {
-				if (regs.peek().getScanRate() == scanRate) {
-					scanGroup.addRegister(regs.poll());
-				} else {
-					log.debug("Adding Scangroup: "+scanGroup);
-					scanGroups.add(scanGroup);
-					scanGroup = null;
-				}
-			}
+				scanGroup = new ScanGroup(sRate);
+				scanGroup.addRegister(reg);
+			} 
 		}
-		*/
 		if (scanGroup != null) {
 			log.debug("Adding Scangroup: "+scanGroup);
+			log.debug(scanGroup.getRegisters());
 			scanGroups.add(scanGroup);
 		}
 	}
@@ -378,27 +362,24 @@ public class Device implements Runnable {
 			}
 		}
 	}
-
-	private void updateRegisters(SortedSet<RealRegister> regs) {
+	
+	private ArrayList<ModbusRequest> getRequests(SortedSet<RealRegister> regs) {
+		ArrayList<ModbusRequest> requests = new ArrayList<ModbusRequest>();
 		
-		//First build a list of modbus requests
-		Iterator<RealRegister> registerIterator = regs.iterator();
 		RealRegister firstOfRequest = null;
 		RealRegister lastOfRequest = null;
-		ArrayList<ModbusRequest> requests = new ArrayList<ModbusRequest>();
-		while (registerIterator.hasNext()) {
+		for (RealRegister r : regs) {
 			if (firstOfRequest == null) {
-				firstOfRequest = registerIterator.next();
+				firstOfRequest = r;
 				lastOfRequest = firstOfRequest;
 			} else {
-				RealRegister nextRegister = registerIterator.next();
 				int nextAddress = lastOfRequest.getAddress() + lastOfRequest.getSize();
-				if (firstOfRequest.getRegisterType().equals(nextRegister.getRegisterType()) && nextRegister.getAddress()==nextAddress) {
-					lastOfRequest = nextRegister;
+				if (firstOfRequest.getRegisterType().equals(r.getRegisterType()) && r.getAddress()==nextAddress) {
+					lastOfRequest = r;
 				} else {
 					ModbusRequest request = getModbusRequest(firstOfRequest, lastOfRequest);
 					requests.add(request);
-					firstOfRequest = nextRegister;
+					firstOfRequest = r;
 					lastOfRequest = firstOfRequest;
 				}
 			}
@@ -407,6 +388,13 @@ public class Device implements Runnable {
 			ModbusRequest request = getModbusRequest(firstOfRequest, lastOfRequest);
 			requests.add(request);
 		}
+		
+		return requests;
+	}
+
+	private void updateRegisters(SortedSet<RealRegister> regs) {
+		//First build a list of modbus requests
+		ArrayList<ModbusRequest> requests = getRequests(regs);
 		
 		//Execute each request.  Update our registers that have addresses that
 		// match addresses in the response
