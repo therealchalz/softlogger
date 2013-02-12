@@ -38,6 +38,9 @@ public class Softlogger {
 	 * -If the same register address is defined multiple times in the config
 	 * and they're not all the same size, the wrong size may be requested.
 	 * 
+	 * CAVEATS:
+	 * -What to do about DST?  (log UTC timestamps? log a human readable timestamp as well?)
+	 * 
 	 * TODO:
 	 * -dataFunction element (and type attribute)
 	 * -logging to CSV file using device log interval
