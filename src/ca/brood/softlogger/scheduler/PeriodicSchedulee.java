@@ -15,6 +15,10 @@ public class PeriodicSchedulee implements Schedulee, Comparable<Schedulee> {
 		this(period);
 		this.action = action;
 	}
+	
+	public int getPeriod() {
+		return period;
+	}
 
 	@Override
 	public void execute() {

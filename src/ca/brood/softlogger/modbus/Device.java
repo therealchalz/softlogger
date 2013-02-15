@@ -1,6 +1,8 @@
 package ca.brood.softlogger.modbus;
 import ca.brood.softlogger.modbus.channel.ModbusChannel;
 import ca.brood.softlogger.modbus.register.*;
+import ca.brood.softlogger.scheduler.Schedulee;
+import ca.brood.softlogger.scheduler.ScheduleeQueue;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -21,7 +23,7 @@ import org.apache.log4j.Logger;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-public class Device implements Runnable {
+public class Device implements Schedulee {
 	private Logger log;
 	private final int id;
 	private int unitId = Integer.MAX_VALUE;
@@ -29,7 +31,7 @@ public class Device implements Runnable {
 	private ArrayList<ConfigRegister> configRegs;
 	private ArrayList<DataRegister> dataRegs;
 	private ModbusChannel channel = null;
-	private PriorityQueue<ScanGroup> scanGroups;
+	private ScheduleeQueue scanGroups;
 	private Object registerLock;
 	
 	private int scanRate = 0;
@@ -41,7 +43,7 @@ public class Device implements Runnable {
 		log = Logger.getLogger(Device.class+": "+id+" on Channel: "+channelId);
 		configRegs = new ArrayList<ConfigRegister>();
 		dataRegs = new ArrayList<DataRegister>();
-		scanGroups = new PriorityQueue<ScanGroup>();
+		scanGroups = new ScheduleeQueue();
 		registerLock = new Object();
 	}
 	
@@ -63,27 +65,8 @@ public class Device implements Runnable {
 		return ret;
 	}
 	
-	public void elapsed(long elapsedMillis) {
-		for (ScanGroup s : scanGroups) {
-			s.elapsed(elapsedMillis);
-		}
-	}
-	
-	//return -1 if no scan groups
-	//otherwise return number of milliseconds until next scan
-	public int getTtl() {
-		ScanGroup top = scanGroups.peek();
-		if (top == null) {
-			return -1;
-		}
-		int ttl = top.getTtl();
-		if (ttl < 0)
-			return 0;
-		return ttl;
-	}
-	
 	private void buildScanGroupQueue() {
-		scanGroups = new PriorityQueue<ScanGroup>();
+		scanGroups = new ScheduleeQueue();
 		//Get all registers ordered by scan rate, then type, then address
 		SortedSet<RealRegister> regs = getAllRegistersByScanRate();
 		log.debug("All registers by scan rate: "+regs);
@@ -450,17 +433,16 @@ public class Device implements Runnable {
 		}
 	}
 
-	@Override
-	public void run() {
+	private void run() {
 		//TODO device run function
 		if (this.channel == null) {
 			return;
 		}
 		
 		SortedSet<RealRegister> registersToProcess = new TreeSet<RealRegister>();
-		while (getTtl() < 10 && getTtl() >= 0) {
-			ScanGroup next = scanGroups.poll();
-			next.reset();
+		while (getNextRun() < System.currentTimeMillis()) {
+			ScanGroup next = (ScanGroup) scanGroups.poll();
+			next.execute();
 			scanGroups.add(next);
 			
 			registersToProcess.addAll(next.getRegisters());
@@ -504,5 +486,15 @@ public class Device implements Runnable {
 		for (DataRegister d : this.dataRegs) {
 			log.info(d);
 		}
+	}
+
+	@Override
+	public long getNextRun() {
+		return scanGroups.peek().getNextRun();
+	}
+
+	@Override
+	public void execute() {
+		this.run();
 	}
 }

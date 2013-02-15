@@ -29,14 +29,15 @@ public class Scheduler {
 	}
 	
 	private class SchedulerRunner extends Thread {
-		private PriorityQueue<Schedulee> schedulees;
+		private ScheduleeQueue scheduleeQueue;
 		private Boolean shouldRun;
 		
 		public SchedulerRunner() {
-			schedulees = new PriorityQueue<Schedulee>();
+			scheduleeQueue = new ScheduleeQueue();
+			shouldRun = new Boolean(false);
 		}
 		public void addSchedulee(Schedulee sch) {
-			schedulees.add(sch);
+			scheduleeQueue.add(sch);
 		}
 		public void beginRunner() {
 			setShouldRun(true);
@@ -74,7 +75,7 @@ public class Scheduler {
 				//TODO: look for improvements
 				currentTime = System.currentTimeMillis();
 				
-				for (Schedulee s : schedulees) {
+				for (Schedulee s : scheduleeQueue) {
 					if (s.getNextRun() <= currentTime) {
 						s.execute();
 					}
@@ -82,7 +83,7 @@ public class Scheduler {
 				
 				long wakeTime = Long.MAX_VALUE;
 				
-				for (Schedulee s: schedulees) {
+				for (Schedulee s: scheduleeQueue) {
 					if (s.getNextRun() < wakeTime) {
 						wakeTime = s.getNextRun();
 					}

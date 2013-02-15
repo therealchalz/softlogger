@@ -6,25 +6,26 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import ca.brood.softlogger.modbus.Device;
-import ca.brood.softlogger.modbus.DeviceUpdater;
 import ca.brood.softlogger.modbus.channel.*;
+import ca.brood.softlogger.scheduler.Scheduler;
 
 
 public class SoftloggerChannel implements Runnable {
 	private Logger log;
 	
 	private ArrayList<Device> devices = null;
-	private DeviceUpdater deviceUpdater;
 	private final int id;
 	private ModbusChannel channel = null;
 	private int scanRate = 0;
 	private int logInterval = 0;
 	private static int nextId = 1;
+	private Scheduler deviceScheduler;
 	
 	public SoftloggerChannel() {
 		this.id = getNextId();
 		log = Logger.getLogger(SoftloggerChannel.class+" ID: "+id);
 		devices = new ArrayList<Device>();
+		deviceScheduler = new Scheduler();
 	}
 	public ArrayList<Device> getDevices() {
 		return devices;
@@ -38,8 +39,9 @@ public class SoftloggerChannel implements Runnable {
 	public void setDefaultScanRate(int scanRate) {
 		if (this.scanRate == 0)
 			this.scanRate = scanRate;
-		for (int i=0; i<devices.size(); i++) {
-			devices.get(i).setDefaultScanRate(getScanRate());
+		for (Device d : devices) {
+			d.setDefaultScanRate(getScanRate());
+			
 		}
 	}
 	public void setDefaultLogInterval(int lo) {
@@ -108,18 +110,21 @@ public class SoftloggerChannel implements Runnable {
 			return;
 		channel.open();
 		
-		deviceUpdater = new DeviceUpdater(devices, this.id);
+		deviceScheduler = new Scheduler();
+		deviceScheduler.setThreadName("Scheduler - Channel "+this.id);
 		
-		deviceUpdater.setName("Channel-"+this.id);
+		for (Device d : devices) {
+			deviceScheduler.addSchedulee(d);
+		}
 		
-		deviceUpdater.beginUpdating();
+		deviceScheduler.start();
 		
 	}
 	
 	public void stop() {
 		
-		if (deviceUpdater != null) {
-			deviceUpdater.stopUpdating();
+		if (deviceScheduler != null) {
+			deviceScheduler.stop();
 		}
 		
 		log.debug("Done issuing stop commands.");

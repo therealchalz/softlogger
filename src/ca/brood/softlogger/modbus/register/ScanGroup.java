@@ -1,27 +1,19 @@
 package ca.brood.softlogger.modbus.register;
 
-import java.util.Comparator;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import ca.brood.softlogger.scheduler.PeriodicSchedulee;
 
-import org.apache.log4j.Logger;
-
-import ca.brood.softlogger.modbus.Device;
-
-public class ScanGroup implements Comparable<ScanGroup>{
-	private int ttl = 0;			//number of milliseconds until next scan
-	private final int scanRate;		//Intervals between scans.  Aka ttl reset value.
+public class ScanGroup extends PeriodicSchedulee {
 	private SortedSet<RealRegister> registers;
-	private boolean cannotKeepUp;
 	
 	public ScanGroup(int scanRate) {
-		this.scanRate = scanRate;
+		super(scanRate);
 		registers = new TreeSet<RealRegister>();
-		cannotKeepUp = false;
 	}
 	
 	public int getScanRate() {
-		return scanRate;
+		return this.getPeriod();
 	}
 	
 	public void addRegister(RealRegister add) {
@@ -32,41 +24,8 @@ public class ScanGroup implements Comparable<ScanGroup>{
 		return registers;
 	}
 	
-	public void elapsed(long elapsedMillis) {
-		//allowing negative values ensures ordering remains constant when several groups
-		//reach EOL at the same time.
-		//It is also used for performance monitoring - a negative TTL means we're running slow
-		ttl -= elapsedMillis;
-	}
-	
-	public boolean ready() {
-		return ttl <=5;
-	}
-	
-	public int getTtl() {
-		return ttl;
-	}
-	
-	public void reset() {
-		reset(0);
-	}
-	
-	public void reset(int timeSinceLastScan) {
-		ttl = scanRate - timeSinceLastScan;
-		
-		if (scanRate < timeSinceLastScan && !cannotKeepUp) {
-			Logger.getRootLogger().warn("Scangroup with rate of "+scanRate+" ms cannot keep up.");
-			cannotKeepUp = true;
-		}
-	}
-	
-	@Override
-	public int compareTo(ScanGroup o) {
-		return ttl - o.ttl;
-	}
-	
 	public String toString() {
-		return "ScanGroup: TTL: "+ttl+" scanRate: "+scanRate;
+		return "ScanGroup: TTL: "+(System.currentTimeMillis()-this.getNextRun())+" scanRate: "+this.getScanRate();
 	}
 	
 }
