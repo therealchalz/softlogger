@@ -1,4 +1,4 @@
-package ca.brood.softlogger;
+package ca.brood.softlogger.dataoutput;
 
 import org.apache.log4j.Logger;
 import org.w3c.dom.Node;

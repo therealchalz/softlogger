@@ -2,9 +2,9 @@ package ca.brood.softlogger.modbus.register;
 
 import java.util.SortedSet;
 import java.util.TreeSet;
-import ca.brood.softlogger.scheduler.PeriodicSchedulee;
+import ca.brood.softlogger.scheduler.PeriodicSchedulable;
 
-public class ScanGroup extends PeriodicSchedulee {
+public class ScanGroup extends PeriodicSchedulable {
 	private SortedSet<RealRegister> registers;
 	
 	public ScanGroup(int scanRate) {

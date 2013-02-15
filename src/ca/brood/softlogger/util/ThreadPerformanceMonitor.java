@@ -20,39 +20,49 @@ public class ThreadPerformanceMonitor {
 		private long lastStop = 0;
 		private long onTime = 0;
 		private long offTime = 0;
+		private boolean running = false;
 		
 		public ThreadPerformanceData() {
 			
 		}
 		
 		public void starting() {
-			long theTime = System.currentTimeMillis();
-			if (lastStop > 0) {
-				long elapsed = theTime - lastStop;
-				
-				offTime += elapsed;
+			if (!running) {
+				long theTime = System.nanoTime();
+				if (lastStop > 0) {
+					long elapsed = theTime - lastStop;
+					
+					offTime += elapsed;
+				}
+				lastStart = theTime;
+				running = true;
 			}
-			lastStart = theTime;
 		}
 		
 		public void stopping() {
-			long theTime = System.currentTimeMillis();
-			if (lastStart > 0) {
-				long elapsed = theTime - lastStart;
-				
-				onTime += elapsed;
+			if (running) {
+				long theTime = System.nanoTime();
+				if (lastStart > 0) {
+					long elapsed = theTime - lastStart;
+					
+					onTime += elapsed;
+				}
+				lastStop = theTime;
+				running = false;
 			}
-			lastStop = theTime;
 		}
 		
 		public double getDutyCycle() {
-			return (double)(onTime)/(double)(onTime+offTime)*100.0;
-		}
-		public long getOnTime() {
-			return onTime;
-		}
-		public long getOffTime() {
-			return offTime;
+			long extraOn = 0;
+			long extraOff = 0;
+			if (running) {
+				extraOn = System.nanoTime() - lastStart;
+			} else {
+				extraOff = System.nanoTime() - lastStop;
+			}
+			if (onTime+offTime+extraOn+extraOff > 0)
+				return (double)(onTime+extraOn)/(double)(onTime+offTime+extraOn+extraOff)*100.0;
+			return 0;
 		}
 	}
 	

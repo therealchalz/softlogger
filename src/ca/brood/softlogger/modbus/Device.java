@@ -1,8 +1,8 @@
 package ca.brood.softlogger.modbus;
 import ca.brood.softlogger.modbus.channel.ModbusChannel;
 import ca.brood.softlogger.modbus.register.*;
-import ca.brood.softlogger.scheduler.Schedulee;
-import ca.brood.softlogger.scheduler.ScheduleeQueue;
+import ca.brood.softlogger.scheduler.Schedulable;
+import ca.brood.softlogger.scheduler.SchedulerQueue;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -23,7 +23,7 @@ import org.apache.log4j.Logger;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-public class Device implements Schedulee {
+public class Device implements Schedulable {
 	private Logger log;
 	private final int id;
 	private int unitId = Integer.MAX_VALUE;
@@ -31,7 +31,7 @@ public class Device implements Schedulee {
 	private ArrayList<ConfigRegister> configRegs;
 	private ArrayList<DataRegister> dataRegs;
 	private ModbusChannel channel = null;
-	private ScheduleeQueue scanGroups;
+	private SchedulerQueue scanGroups;
 	private Object registerLock;
 	
 	private int scanRate = 0;
@@ -43,7 +43,7 @@ public class Device implements Schedulee {
 		log = Logger.getLogger(Device.class+": "+id+" on Channel: "+channelId);
 		configRegs = new ArrayList<ConfigRegister>();
 		dataRegs = new ArrayList<DataRegister>();
-		scanGroups = new ScheduleeQueue();
+		scanGroups = new SchedulerQueue();
 		registerLock = new Object();
 	}
 	
@@ -66,7 +66,7 @@ public class Device implements Schedulee {
 	}
 	
 	private void buildScanGroupQueue() {
-		scanGroups = new ScheduleeQueue();
+		scanGroups = new SchedulerQueue();
 		//Get all registers ordered by scan rate, then type, then address
 		SortedSet<RealRegister> regs = getAllRegistersByScanRate();
 		log.debug("All registers by scan rate: "+regs);
@@ -162,6 +162,9 @@ public class Device implements Schedulee {
 	}
 	public int getScanRate() {
 		return scanRate;
+	}
+	public int getLogInterval() {
+		return this.logInterval;
 	}
 	public void setDefaultScanRate(int rate) {
 		if (scanRate == 0)

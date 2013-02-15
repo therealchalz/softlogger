@@ -1,17 +1,17 @@
 package ca.brood.softlogger.scheduler;
 
-public class PeriodicSchedulee implements Schedulee, Comparable<Schedulee> {
+public class PeriodicSchedulable implements Schedulable, Comparable<Schedulable> {
 
 	private long nextRun;
 	private int period;
 	private Runnable action;
 	
-	public PeriodicSchedulee(int period) {
+	public PeriodicSchedulable(int period) {
 		this.period = period;
-		nextRun = System.currentTimeMillis() + period;
+		nextRun = System.currentTimeMillis();
 		
 	}
-	public PeriodicSchedulee(int period, Runnable action) {
+	public PeriodicSchedulable(int period, Runnable action) {
 		this(period);
 		this.action = action;
 	}
@@ -33,7 +33,7 @@ public class PeriodicSchedulee implements Schedulee, Comparable<Schedulee> {
 	}
 
 	@Override
-	public int compareTo(Schedulee other) {
+	public int compareTo(Schedulable other) {
 		return (int)(this.getNextRun() - other.getNextRun());
 	}
 	@Override

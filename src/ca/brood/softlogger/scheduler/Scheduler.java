@@ -2,6 +2,8 @@ package ca.brood.softlogger.scheduler;
 
 import java.util.PriorityQueue;
 
+import org.apache.log4j.Logger;
+
 import ca.brood.softlogger.modbus.Device;
 import ca.brood.softlogger.util.ThreadPerformanceMonitor;
 
@@ -12,7 +14,7 @@ public class Scheduler {
 		runner = new SchedulerRunner();
 	}
 	
-	public void addSchedulee(Schedulee sch) {
+	public void addSchedulee(Schedulable sch) {
 		runner.addSchedulee(sch);
 	}
 	
@@ -29,15 +31,17 @@ public class Scheduler {
 	}
 	
 	private class SchedulerRunner extends Thread {
-		private ScheduleeQueue scheduleeQueue;
+		private SchedulerQueue schedulerQueue;
 		private Boolean shouldRun;
+		private Logger log;
 		
 		public SchedulerRunner() {
-			scheduleeQueue = new ScheduleeQueue();
+			schedulerQueue = new SchedulerQueue();
 			shouldRun = new Boolean(false);
+			log = Logger.getLogger(SchedulerRunner.class);
 		}
-		public void addSchedulee(Schedulee sch) {
-			scheduleeQueue.add(sch);
+		public void addSchedulee(Schedulable sch) {
+			schedulerQueue.add(sch);
 		}
 		public void beginRunner() {
 			setShouldRun(true);
@@ -66,29 +70,28 @@ public class Scheduler {
 		}
 		@Override
 		public void run() {
+			
+			if (schedulerQueue.peek() == null) {
+				log.error("No devices configured.  Exiting thread.");
+				this.setShouldRun(false);
+				return;
+			}
+			
 			ThreadPerformanceMonitor.threadStarting();
 			//log.info("Running");
 
 			long currentTime;
 			
 			while (getShouldRun()) {
-				//TODO: look for improvements
 				currentTime = System.currentTimeMillis();
 				
-				for (Schedulee s : scheduleeQueue) {
-					if (s.getNextRun() <= currentTime) {
-						s.execute();
-					}
+				while (schedulerQueue.peek().getNextRun() <= currentTime) {
+					 Schedulable s = schedulerQueue.poll();
+					 s.execute();
+					 schedulerQueue.add(s);
 				}
 				
-				long wakeTime = Long.MAX_VALUE;
-				
-				for (Schedulee s: scheduleeQueue) {
-					if (s.getNextRun() < wakeTime) {
-						wakeTime = s.getNextRun();
-					}
-				}
-				
+				long wakeTime = schedulerQueue.peek().getNextRun();
 				long sleepTime = wakeTime - System.currentTimeMillis();
 				if (sleepTime > 10) {
 					try {
