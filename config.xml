@@ -13,6 +13,8 @@
 		<configPoll>3600</configPoll>
 		<homeFolder>/home/logger1/data</homeFolder>
 	</server>
+	<outputModule class="ca.brood.softlogger.dataoutput.DebugOutputModule">
+	</outputModule>
 	<channel>
 		<defaultScanRate>333</defaultScanRate> <!-- default scan rate for this channel, overrides Softlogger scan rate -->
 		<tcp>

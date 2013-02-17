@@ -1,8 +1,10 @@
 package ca.brood.softlogger.modbus;
+import ca.brood.softlogger.dataoutput.OutputModule;
 import ca.brood.softlogger.modbus.channel.ModbusChannel;
 import ca.brood.softlogger.modbus.register.*;
 import ca.brood.softlogger.scheduler.Schedulable;
 import ca.brood.softlogger.scheduler.SchedulerQueue;
+import ca.brood.softlogger.util.XmlConfigurable;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -23,7 +25,7 @@ import org.apache.log4j.Logger;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-public class Device implements Schedulable {
+public class Device implements Schedulable, XmlConfigurable {
 	private Logger log;
 	private final int id;
 	private int unitId = Integer.MAX_VALUE;
@@ -33,6 +35,7 @@ public class Device implements Schedulable {
 	private ModbusChannel channel = null;
 	private SchedulerQueue scanGroups;
 	private Object registerLock;
+	private ArrayList<OutputModule> outputModules;
 	
 	private int scanRate = 0;
 	private static volatile int nextId = 1;
@@ -44,6 +47,7 @@ public class Device implements Schedulable {
 		dataRegs = new ArrayList<DataRegister>();
 		scanGroups = new SchedulerQueue();
 		registerLock = new Object();
+		outputModules = new ArrayList<OutputModule>();
 	}
 	
 	private static synchronized int getNextDeviceId() {
@@ -55,6 +59,10 @@ public class Device implements Schedulable {
 	
 	public void setChannel(ModbusChannel chan) {
 		this.channel = chan;
+	}
+	
+	public void addOutputModule(OutputModule m) {
+		outputModules.add(m);
 	}
 	
 	private SortedSet<RealRegister> getAllRegistersByScanRate() {
@@ -99,7 +107,7 @@ public class Device implements Schedulable {
 			scanGroups.add(scanGroup);
 		}
 	}
-	
+	@Override
 	public boolean configure(Node deviceNode) {
 		NodeList configNodes = deviceNode.getChildNodes();
 		//TODO: check for duplicate GUIDs on the modbus variables
@@ -179,7 +187,7 @@ public class Device implements Schedulable {
 		//log.info("Created Request: "+ret);
 		return ret;
 	}
-	private ArrayList<RealRegister> getRegisters(int baseAddress, ModbusResponse response) {
+	private ArrayList<RealRegister> getRegistersToUpdate(ModbusResponse response) {
 		ArrayList<RealRegister> ret = new ArrayList<RealRegister>();
 		int numWords = getDataLength(response);
 		RegisterType type = RegisterType.fromResponse(response);
@@ -188,7 +196,7 @@ public class Device implements Schedulable {
 		registerList.addAll(configRegs);
 		Collections.sort(registerList);
 		addressLoop:
-		for (int address = baseAddress; address < baseAddress+numWords; address++) {
+		for (int address = response.getReference(); address < response.getReference()+numWords; address++) {
 			//naive implementation
 			//TODO optimize
 			Iterator<RealRegister> registerIterator = registerList.iterator();
@@ -237,7 +245,8 @@ public class Device implements Schedulable {
 		}
 		return 0;
 	}
-	private void setRegisterData(RealRegister reg, ModbusResponse response, int offset) {
+	private void setRegisterData(RealRegister reg, ModbusResponse response) {
+		int offset = reg.getAddress() - response.getReference();
 		log.trace("Setting register: "+reg);
 		if (response instanceof ReadCoilsResponse) {
 			if (offset > getDataLength(response)) {
@@ -371,26 +380,28 @@ public class Device implements Schedulable {
 		
 		//Execute each request.  Update our registers that have addresses that
 		// match addresses in the response
-		for (ModbusRequest r : requests) {
+		ArrayList<ModbusResponse> responses = new ArrayList<ModbusResponse>();
+		for (ModbusRequest request : requests) {
 			try {
-				log.trace("Executing request: "+r);
-				ModbusResponse resp = channel.executeRequest(r);
-				int baseAddress = r.getReference();
-				log.trace("Got response (baseAddress: "+baseAddress+"): "+resp);
-				ArrayList<RealRegister> regsToUpdate = getRegisters(baseAddress, resp);
-				for (RealRegister regToUpdate : regsToUpdate) {
-					int addy = regToUpdate.getAddress() - baseAddress;
-					//log.trace("Got Register To Update (offset: "+addy+"): "+regToUpdate);
-					this.setRegisterData(regToUpdate, resp, addy);
-					if (regToUpdate instanceof ConfigRegister) {
-						log.info("Set config register: "+regToUpdate);
-					}
-				}
+				log.trace("Executing request: "+request);
+				ModbusResponse resp = channel.executeRequest(request);
+				responses.add(resp);
 			} catch (ModbusException e) {
 				log.trace("Got modbus exception: ",e);
 			} catch (Exception e) {
 				log.trace("Got no response....", e);
 				return; //Couldn't do a modbus request
+			}
+		}
+		
+		for (ModbusResponse response : responses) {
+			ArrayList<RealRegister> regsToUpdate = getRegistersToUpdate(response);
+			for (RealRegister regToUpdate : regsToUpdate) {
+				//log.trace("Got Register To Update: "+regToUpdate);
+				this.setRegisterData(regToUpdate, response);
+				if (regToUpdate instanceof ConfigRegister) {
+					log.info("Set config register: "+regToUpdate);
+				}
 			}
 		}
 	}

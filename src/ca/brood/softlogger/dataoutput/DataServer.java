@@ -4,7 +4,9 @@ import org.apache.log4j.Logger;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-public class DataServer {
+import ca.brood.softlogger.util.XmlConfigurable;
+
+public class DataServer implements XmlConfigurable{
 	private Logger log;
 	
 	private String username = "";
@@ -17,6 +19,7 @@ public class DataServer {
 	public DataServer() {
 		log = Logger.getLogger(DataServer.class);
 	}
+	@Override
 	public boolean configure(Node serverNode) {
 		NodeList configNodes = serverNode.getChildNodes();
 		for (int i=0; i<configNodes.getLength(); i++) {

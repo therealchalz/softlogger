@@ -17,7 +17,7 @@ public class DataOutputManager {
 	public DataOutputManager(ArrayList<Device> devs) {
 		deviceScheduler = new Scheduler();
 		for (Device d : devs) {
-			deviceScheduler.addSchedulee(new DataOutputSchedulable(d));
+			deviceScheduler.addSchedulee(new DebugOutputModule(d));
 		}
 		deviceScheduler.setThreadName("DataOutputManager");
 		log = Logger.getLogger(DataOutputManager.class);

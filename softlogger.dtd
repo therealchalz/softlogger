@@ -1,4 +1,4 @@
-<!ELEMENT softlogger (name,defaultScanRate,server,channel*)>
+<!ELEMENT softlogger (name,defaultScanRate,server,outputModule*,channel*)>
 <!ELEMENT name (#PCDATA)>
 <!ELEMENT defaultScanRate (#PCDATA)>
 
@@ -10,6 +10,12 @@
 <!ELEMENT keyfile (#PCDATA)>
 <!ELEMENT configPoll (#PCDATA)>
 <!ELEMENT homeFolder (#PCDATA)>
+
+<!ELEMENT outputModule (customConfig|customElement)*>
+<!ATTLIST outputModule class CDATA #REQUIRED>
+<!ELEMENT customConfig (#PCDATA)>
+<!ATTLIST customConfig name CDATA #REQUIRED>
+<!ELEMENT customElement (customConfig|customElement)*>
 
 <!ELEMENT channel (defaultScanRate?,(tcp|serial),device*)>
 <!ELEMENT tcp (host,port?)>

@@ -4,10 +4,12 @@ import org.apache.log4j.Logger;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import ca.brood.softlogger.util.XmlConfigurable;
+
 import net.wimpi.modbus.msg.*;
 
 
-public abstract class ModbusChannel {
+public abstract class ModbusChannel implements XmlConfigurable {
 	protected Logger log;
 	protected final int id;
 	protected final int channelId;
@@ -21,7 +23,7 @@ public abstract class ModbusChannel {
 	public static synchronized int getNextId() {
 		return nextId++;
 	}
-	
+	@Override
 	public boolean configure(Node channelNode) {
 		NodeList configNodes = channelNode.getChildNodes();
 		for (int i=0; i<configNodes.getLength(); i++) {

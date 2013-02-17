@@ -6,7 +6,9 @@ import org.apache.log4j.Logger;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-public abstract class Register {
+import ca.brood.softlogger.util.XmlConfigurable;
+
+public abstract class Register implements XmlConfigurable {
 	protected Logger log = Logger.getLogger(Register.class);;
 	protected String fieldName;
 	protected RegisterData registerData;
@@ -52,7 +54,7 @@ public abstract class Register {
 	public void setData(Boolean b) {
 		registerData.setData(b);
 	}
-	
+	@Override
 	public boolean configure(Node registerNode) {
 		NodeList configNodes = registerNode.getChildNodes();
 		for (int i=0; i<configNodes.getLength(); i++) {

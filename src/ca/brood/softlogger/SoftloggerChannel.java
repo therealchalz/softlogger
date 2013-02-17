@@ -8,9 +8,10 @@ import org.w3c.dom.NodeList;
 import ca.brood.softlogger.modbus.Device;
 import ca.brood.softlogger.modbus.channel.*;
 import ca.brood.softlogger.scheduler.Scheduler;
+import ca.brood.softlogger.util.XmlConfigurable;
 
 
-public class SoftloggerChannel implements Runnable {
+public class SoftloggerChannel implements Runnable, XmlConfigurable {
 	private Logger log;
 	
 	private ArrayList<Device> devices = null;
@@ -24,7 +25,6 @@ public class SoftloggerChannel implements Runnable {
 		this.id = getNextId();
 		log = Logger.getLogger(SoftloggerChannel.class+" ID: "+id);
 		devices = new ArrayList<Device>();
-		deviceScheduler = new Scheduler();
 	}
 	public ArrayList<Device> getDevices() {
 		return devices;
@@ -43,6 +43,7 @@ public class SoftloggerChannel implements Runnable {
 			
 		}
 	}
+	@Override
 	public boolean configure(Node serverNode) {
 		NodeList configNodes = serverNode.getChildNodes();
 		for (int i=0; i<configNodes.getLength(); i++) {
