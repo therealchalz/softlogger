@@ -40,6 +40,10 @@ public class Device implements Schedulable, XmlConfigurable {
 	private int scanRate = 0;
 	private static volatile int nextId = 1;
 	
+	private static synchronized int getNextDeviceId() {
+		return nextId++;
+	}
+	
 	public Device(int channelId) {
 		this.id = getNextDeviceId();
 		log = Logger.getLogger(Device.class+": "+id+" on Channel: "+channelId);
@@ -49,64 +53,10 @@ public class Device implements Schedulable, XmlConfigurable {
 		registerLock = new Object();
 		outputModules = new ArrayList<OutputModule>();
 	}
-	
-	private static synchronized int getNextDeviceId() {
-		return nextId++;
-	}
-	public String getDescription() {
-		return this.description;
-	}
-	
-	public void setChannel(ModbusChannel chan) {
-		this.channel = chan;
-	}
-	
 	public void addOutputModule(OutputModule m) {
 		outputModules.add(m);
 	}
 	
-	private SortedSet<RealRegister> getAllRegistersByScanRate() {
-		SortedSet<RealRegister> ret = new TreeSet<RealRegister>(new RealRegister.ScanRateComparator());
-		ret.addAll(configRegs);
-		ret.addAll(dataRegs);
-		return ret;
-	}
-	
-	private void buildScanGroupQueue() {
-		scanGroups = new SchedulerQueue();
-		//Get all registers ordered by scan rate, then type, then address
-		SortedSet<RealRegister> regs = getAllRegistersByScanRate();
-		log.debug("All registers by scan rate: "+regs);
-		
-		//Combine all the registers with the same scan rate into scan groups
-		ScanGroup scanGroup = null;
-		for (RealRegister reg : regs) {
-			if (scanGroup != null) {
-				if (reg.getScanRate() == scanGroup.getScanRate()) {
-					scanGroup.addRegister(reg);
-				} else {
-					log.debug("Adding ScanGroup: "+scanGroup);
-					log.debug(scanGroup.getRegisters());
-					scanGroups.add(scanGroup);
-					scanGroup = null;
-				}
-			}
-			
-			if (scanGroup == null) {
-				int sRate = reg.getScanRate();
-				if (sRate == 0) {
-					log.warn("Got 0 scanrate: " +reg);
-				}
-				scanGroup = new ScanGroup(sRate);
-				scanGroup.addRegister(reg);
-			} 
-		}
-		if (scanGroup != null) {
-			log.debug("Adding Scangroup: "+scanGroup);
-			log.debug(scanGroup.getRegisters());
-			scanGroups.add(scanGroup);
-		}
-	}
 	@Override
 	public boolean configure(Node deviceNode) {
 		NodeList configNodes = deviceNode.getChildNodes();
@@ -160,11 +110,54 @@ public class Device implements Schedulable, XmlConfigurable {
 		
 		return true;
 	}
-	public int getScanRate() {
-		return scanRate;
+	
+	@Override
+	public void execute() {
+		this.run();
+	}
+	
+	public ArrayList<RealRegister> getAllRegisters() {
+		synchronized (registerLock) {
+			ArrayList<RealRegister> ret = new ArrayList<RealRegister>();
+			for (DataRegister d : this.dataRegs) {
+				DataRegister n = new DataRegister(d);
+				ret.add(n);
+			}
+			for (ConfigRegister c : this.configRegs) {
+				ConfigRegister n = new ConfigRegister(c);
+				ret.add(n);
+			}
+			return ret;
+		}
+	}
+	
+	public String getDescription() {
+		return this.description;
 	}
 	public int getLogInterval() {
 		return 1;
+	}
+	@Override
+	public long getNextRun() {
+		return scanGroups.peek().getNextRun();
+	}
+	public int getScanRate() {
+		return scanRate;
+	}
+	public void printAll() {
+		log.info("Unit ID: "+this.unitId);
+		log.info("Description: "+this.description);
+		log.info("Scan rate: "+this.scanRate);
+		for (ConfigRegister c : this.configRegs) {
+			log.info(c);
+		}
+		for (DataRegister d : this.dataRegs) {
+			log.info(d);
+		}
+	}
+	
+	public void setChannel(ModbusChannel chan) {
+		this.channel = chan;
 	}
 	public void setDefaultScanRate(int rate) {
 		if (scanRate == 0)
@@ -178,6 +171,100 @@ public class Device implements Schedulable, XmlConfigurable {
 
 		buildScanGroupQueue();
 	}
+	private void buildScanGroupQueue() {
+		scanGroups = new SchedulerQueue();
+		//Get all registers ordered by scan rate, then type, then address
+		SortedSet<RealRegister> regs = getAllRegistersByScanRate();
+		log.debug("All registers by scan rate: "+regs);
+		
+		//Combine all the registers with the same scan rate into scan groups
+		ScanGroup scanGroup = null;
+		for (RealRegister reg : regs) {
+			if (scanGroup != null) {
+				if (reg.getScanRate() == scanGroup.getScanRate()) {
+					scanGroup.addRegister(reg);
+				} else {
+					log.debug("Adding ScanGroup: "+scanGroup);
+					log.debug(scanGroup.getRegisters());
+					scanGroups.add(scanGroup);
+					scanGroup = null;
+				}
+			}
+			
+			if (scanGroup == null) {
+				int sRate = reg.getScanRate();
+				if (sRate == 0) {
+					log.warn("Got 0 scanrate: " +reg);
+				}
+				scanGroup = new ScanGroup(sRate);
+				scanGroup.addRegister(reg);
+			} 
+		}
+		if (scanGroup != null) {
+			log.debug("Adding Scangroup: "+scanGroup);
+			log.debug(scanGroup.getRegisters());
+			scanGroups.add(scanGroup);
+		}
+	}
+	private void checkConfigRegisters() {
+		for (ConfigRegister c : configRegs) {
+			if (!c.dataIsGood()) {
+				log.debug("Config register has wrong value: "+c);
+				ModbusRequest req = c.getWriteRequest();
+				req.setUnitID(this.unitId);
+				try {
+					log.trace("Executing request: "+req);
+					ModbusResponse resp = channel.executeRequest(req);
+					log.trace("Got response: "+resp);
+					c.setData(resp);
+				} catch (ModbusException e) {
+					log.error("Got modbus exception (writing config register): ", e);
+				} catch (Exception e) {
+					log.error("Got exception (writing config register): ", e);
+				}
+			}
+		}
+	}
+	
+	private ArrayList<ModbusResponse> executeRequests(ArrayList<ModbusRequest> requests) {
+		ArrayList<ModbusResponse> responses = new ArrayList<ModbusResponse>();
+		for (ModbusRequest request : requests) {
+			try {
+				log.debug("Executing request: "+request);
+				ModbusResponse resp = channel.executeRequest(request);
+				responses.add(resp);
+			} catch (ModbusException e) {
+				log.error("Got modbus exception while executing request: "+request,e);
+			} catch (Exception e) {
+				log.error("Got no response while executing request: "+request, e);
+			}
+		}
+		
+		return responses;
+	}
+
+	private SortedSet<RealRegister> getAllRegistersByScanRate() {
+		SortedSet<RealRegister> ret = new TreeSet<RealRegister>(new RealRegister.ScanRateComparator());
+		ret.addAll(configRegs);
+		ret.addAll(dataRegs);
+		return ret;
+	}
+	
+	private int getDataLength(ModbusResponse response) {
+		if (response instanceof ReadCoilsResponse) {
+			return ((ReadCoilsResponse)response).getBitCount();
+		}
+		if (response instanceof ReadInputDiscretesResponse) {
+			return ((ReadInputDiscretesResponse)response).getBitCount();
+		}
+		if (response instanceof ReadInputRegistersResponse) {
+			return ((ReadInputRegistersResponse)response).getWordCount();
+		}
+		if (response instanceof ReadMultipleRegistersResponse) {
+			return ((ReadMultipleRegistersResponse)response).getWordCount();
+		}
+		return 0;
+	}
 	
 	private ModbusRequest getModbusRequest(RealRegister from, RealRegister to) {
 		log.info("Creating modbus request from: "+from+" to: "+to);
@@ -187,6 +274,7 @@ public class Device implements Schedulable, XmlConfigurable {
 		//log.info("Created Request: "+ret);
 		return ret;
 	}
+	
 	private ArrayList<RealRegister> getRegistersToUpdate(ArrayList<RealRegister> registerList, ModbusResponse response) {
 		ArrayList<RealRegister> ret = new ArrayList<RealRegister>();
 		int numWords = getDataLength(response);
@@ -227,26 +315,97 @@ public class Device implements Schedulable, XmlConfigurable {
 		}
 		return ret;
 	}
-	private int getDataLength(ModbusResponse response) {
-		if (response instanceof ReadCoilsResponse) {
-			return ((ReadCoilsResponse)response).getBitCount();
+	
+	private ArrayList<ModbusRequest> getRequests(SortedSet<RealRegister> regs) {
+		ArrayList<ModbusRequest> requests = new ArrayList<ModbusRequest>();
+		
+		RealRegister firstOfRequest = null;
+		RealRegister lastOfRequest = null;
+		for (RealRegister r : regs) {
+			if (firstOfRequest == null) {
+				firstOfRequest = r;
+				lastOfRequest = firstOfRequest;
+			} else {
+				int nextAddress = lastOfRequest.getAddress() + lastOfRequest.getSize();
+				if (firstOfRequest.getRegisterType().equals(r.getRegisterType()) && r.getAddress()==nextAddress) {
+					lastOfRequest = r;
+				} else {
+					ModbusRequest request = getModbusRequest(firstOfRequest, lastOfRequest);
+					requests.add(request);
+					firstOfRequest = r;
+					lastOfRequest = firstOfRequest;
+				}
+			}
 		}
-		if (response instanceof ReadInputDiscretesResponse) {
-			return ((ReadInputDiscretesResponse)response).getBitCount();
+		if (firstOfRequest != null & lastOfRequest != null) {
+			ModbusRequest request = getModbusRequest(firstOfRequest, lastOfRequest);
+			requests.add(request);
 		}
-		if (response instanceof ReadInputRegistersResponse) {
-			return ((ReadInputRegistersResponse)response).getWordCount();
-		}
-		if (response instanceof ReadMultipleRegistersResponse) {
-			return ((ReadMultipleRegistersResponse)response).getWordCount();
-		}
-		return 0;
+		
+		return requests;
 	}
+
+	private void resetRegisterSamplings() {
+		synchronized (registerLock) {
+			ArrayList<RealRegister> regs = new ArrayList<RealRegister>();
+			regs.addAll(dataRegs);
+			regs.addAll(configRegs);
+			resetRegisterSamplings(regs);
+		}
+	}
+	
+	private void resetRegisterSamplings(ArrayList<RealRegister> regs) {
+		for (RealRegister r : regs) {
+			r.resetSampling();
+		}
+	}
+	
+	private void run() {
+		//TODO device run function
+		if (this.channel == null) {
+			return;
+		}
+		
+		SortedSet<RealRegister> registersToProcess = new TreeSet<RealRegister>();
+		while (getNextRun() < System.currentTimeMillis()) {
+			ScanGroup next = (ScanGroup) scanGroups.poll();
+			next.execute();
+			scanGroups.add(next);
+			
+			registersToProcess.addAll(next.getRegisters());
+		}
+		
+		log.trace("Registers to process: "+registersToProcess);
+		synchronized (registerLock) {
+			
+			ArrayList<ModbusRequest> requests = getRequests(registersToProcess);
+			
+			ArrayList<ModbusResponse> responses = executeRequests(requests);
+			
+			ArrayList<RealRegister> registerList = new ArrayList<RealRegister>();
+			registerList.addAll(dataRegs);
+			registerList.addAll(configRegs);
+			
+			updateRegisters(registerList, responses);
+			
+			for (OutputModule outputModule : outputModules) {
+				updateRegisters(outputModule.getRegisters(), responses);
+			}
+		}
+
+		//If a config register's value is invalid, write the correct one
+		checkConfigRegisters();
+		
+	}
+
 	private void setRegisterData(RealRegister reg, ModbusResponse response) {
 		int offset = reg.getAddress() - response.getReference();
 		log.trace("Setting register: "+reg);
 		if (response instanceof ReadCoilsResponse) {
-			if (offset > getDataLength(response)) {
+			if (reg.getRegisterType() != RegisterType.OUTPUT_COIL) {
+				log.error("Register type mismatch for ReadCoilsResponse: "+reg);
+				reg.setNull();
+			} else if (offset > getDataLength(response)) {
 				log.error("Invalid offset for ReadCoilsResponse - Offset: "+offset+" DataLength: "+getDataLength(response)+" "+reg);
 				reg.setNull();
 			} else {
@@ -256,7 +415,10 @@ public class Device implements Schedulable, XmlConfigurable {
 			}
 		}
 		if (response instanceof ReadInputDiscretesResponse) {
-			if (offset > getDataLength(response)) {
+			if (reg.getRegisterType() != RegisterType.INPUT_COIL) {
+				log.error("Register type mismatch for ReadInputDiscretesResponse: "+reg);
+				reg.setNull();
+			} else if (offset > getDataLength(response)) {
 				log.error("Invalid offset for ReadInputDiscretesResponse - Offset: "+offset+" DataLength: "+getDataLength(response)+" "+reg);
 				reg.setNull();
 			} else {
@@ -266,7 +428,10 @@ public class Device implements Schedulable, XmlConfigurable {
 			}
 		}
 		if (response instanceof ReadInputRegistersResponse) {
-			if (getDataLength(response) >= offset+reg.getSize() && reg.getSize() == 1) {
+			if (reg.getRegisterType() != RegisterType.INPUT_REGISTER) {
+				log.error("Register type mismatch for ReadInputRegisterResponse: "+reg);
+				reg.setNull();
+			} else if (getDataLength(response) >= offset+reg.getSize() && reg.getSize() == 1) {
 				RegisterSizeType sizeType = reg.getSizeType();
 				int val;
 				if (sizeType == RegisterSizeType.SIGNED) {
@@ -303,7 +468,10 @@ public class Device implements Schedulable, XmlConfigurable {
 			}
 		}
 		if (response instanceof ReadMultipleRegistersResponse) {
-			if (getDataLength(response) >= offset+reg.getSize() && reg.getSize() == 1) {
+			if (reg.getRegisterType() != RegisterType.OUTPUT_REGISTER) {
+				log.error("Register type mismatch for ReadMultipleRegistersResponse: "+reg);
+				reg.setNull();
+			} else if (getDataLength(response) >= offset+reg.getSize() && reg.getSize() == 1) {
 				RegisterSizeType sizeType = reg.getSizeType();
 				int val;
 				if (sizeType == RegisterSizeType.SIGNED) {
@@ -341,53 +509,7 @@ public class Device implements Schedulable, XmlConfigurable {
 		}
 		log.trace("Setting register (NEW): "+reg);
 	}
-	
-	private ArrayList<ModbusRequest> getRequests(SortedSet<RealRegister> regs) {
-		ArrayList<ModbusRequest> requests = new ArrayList<ModbusRequest>();
-		
-		RealRegister firstOfRequest = null;
-		RealRegister lastOfRequest = null;
-		for (RealRegister r : regs) {
-			if (firstOfRequest == null) {
-				firstOfRequest = r;
-				lastOfRequest = firstOfRequest;
-			} else {
-				int nextAddress = lastOfRequest.getAddress() + lastOfRequest.getSize();
-				if (firstOfRequest.getRegisterType().equals(r.getRegisterType()) && r.getAddress()==nextAddress) {
-					lastOfRequest = r;
-				} else {
-					ModbusRequest request = getModbusRequest(firstOfRequest, lastOfRequest);
-					requests.add(request);
-					firstOfRequest = r;
-					lastOfRequest = firstOfRequest;
-				}
-			}
-		}
-		if (firstOfRequest != null & lastOfRequest != null) {
-			ModbusRequest request = getModbusRequest(firstOfRequest, lastOfRequest);
-			requests.add(request);
-		}
-		
-		return requests;
-	}
 
-	private ArrayList<ModbusResponse> executeRequests(ArrayList<ModbusRequest> requests) {
-		ArrayList<ModbusResponse> responses = new ArrayList<ModbusResponse>();
-		for (ModbusRequest request : requests) {
-			try {
-				log.debug("Executing request: "+request);
-				ModbusResponse resp = channel.executeRequest(request);
-				responses.add(resp);
-			} catch (ModbusException e) {
-				log.error("Got modbus exception: ",e);
-			} catch (Exception e) {
-				log.error("Got no response....", e);
-			}
-		}
-		
-		return responses;
-	}
-	
 	private void updateRegisters(ArrayList<RealRegister> registerList, ArrayList<ModbusResponse> responses) {
 		for (ModbusResponse response : responses) {
 			ArrayList<RealRegister> regsToUpdate = getRegistersToUpdate(registerList, response);
@@ -399,110 +521,5 @@ public class Device implements Schedulable, XmlConfigurable {
 				}
 			}
 		}
-	}
-	
-	public ArrayList<DataRegister> getDataRegisters() {
-		synchronized (registerLock) {
-			ArrayList<DataRegister> ret = new ArrayList<DataRegister>();
-			for (DataRegister d : this.dataRegs) {
-				DataRegister n = new DataRegister(d);
-				ret.add(n);
-			}
-			return ret;
-		}
-	}
-	
-	public ArrayList<DataRegister> getDataRegistersAndResetSamplings() {
-		synchronized (registerLock) {
-			ArrayList<DataRegister> ret = getDataRegisters();
-			resetRegisterSamplings();
-			return ret;
-		}
-		
-	}
-	
-	public void resetRegisterSamplings() {
-		synchronized (registerLock) {
-			for (DataRegister d : this.dataRegs) {
-				d.resetSampling();
-			}
-		}
-	}
-
-	private void run() {
-		//TODO device run function
-		if (this.channel == null) {
-			return;
-		}
-		
-		SortedSet<RealRegister> registersToProcess = new TreeSet<RealRegister>();
-		while (getNextRun() < System.currentTimeMillis()) {
-			ScanGroup next = (ScanGroup) scanGroups.poll();
-			next.execute();
-			scanGroups.add(next);
-			
-			registersToProcess.addAll(next.getRegisters());
-		}
-		
-		log.info("Registers to process: "+registersToProcess);
-		synchronized (registerLock) {
-			
-			ArrayList<ModbusRequest> requests = getRequests(registersToProcess);
-			
-			ArrayList<ModbusResponse> responses = executeRequests(requests);
-			
-			ArrayList<RealRegister> registerList = new ArrayList<RealRegister>();
-			registerList.addAll(dataRegs);
-			registerList.addAll(configRegs);
-			
-			updateRegisters(registerList, responses);
-			
-			for (OutputModule outputModule : outputModules) {
-				updateRegisters(outputModule.getRegisters(), responses);
-			}
-		}
-
-		//If a config register's value is invalid, write the correct one
-		log.trace("Writing config registers");
-		for (ConfigRegister c : configRegs) {
-			if (!c.dataIsGood()) {
-				log.debug("Config register has wrong value: "+c.toString());
-				ModbusRequest req = c.getWriteRequest();
-				req.setUnitID(this.unitId);
-				try {
-					log.trace("Executing request: "+req);
-					ModbusResponse resp = channel.executeRequest(req);
-					log.trace("Got response: "+resp);
-					c.setData(resp);
-				} catch (ModbusException e) {
-					log.trace("Got modbus exception: ", e);
-				} catch (Exception e) {
-					log.trace("Got exception: ", e);
-				}
-			}
-		}
-		
-	}
-	
-	public void printAll() {
-		log.info("Unit ID: "+this.unitId);
-		log.info("Description: "+this.description);
-		log.info("Scan rate: "+this.scanRate);
-		for (ConfigRegister c : this.configRegs) {
-			log.info(c);
-		}
-		for (DataRegister d : this.dataRegs) {
-			log.info(d);
-		}
-	}
-
-	@Override
-	public long getNextRun() {
-		return scanGroups.peek().getNextRun();
-	}
-
-	@Override
-	public void execute() {
-		this.run();
 	}
 }

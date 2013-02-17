@@ -12,6 +12,10 @@ public class ConfigRegister extends RealRegister {
 		super(device);
 		log = Logger.getLogger(ConfigRegister.class+": D: "+device);
 	}
+	public ConfigRegister(ConfigRegister c) {
+		super(c);
+		this.value = new RegisterData(c.value);
+	}
 	private void setupLog(int device, int address) {
 		log = Logger.getLogger(ConfigRegister.class+": D: "+device+" A: "+address);
 	}

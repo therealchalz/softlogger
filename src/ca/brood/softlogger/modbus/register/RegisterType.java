@@ -8,9 +8,9 @@ import net.wimpi.modbus.msg.ReadInputRegistersResponse;
 import org.apache.log4j.Logger;
 
 public enum RegisterType {
-	OUTPUT_COIL (0),		//Leading 0 in addresses, rw
-	INPUT_COIL (1),			//Leading 1, ro
-	INPUT_REGISTER (3),		//Leading 3, ro
+	OUTPUT_COIL (0),		//Leading 0 in addresses, aka Coils, rw
+	INPUT_COIL (1),			//Leading 1, aka Discretes, ro
+	INPUT_REGISTER (3),		//Leading 3, aka Input Registers, ro
 	OUTPUT_REGISTER (4);	//Leading 4, aka Holding Registers, rw
 	
 	private final int leadingDigit;
