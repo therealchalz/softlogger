@@ -8,14 +8,13 @@ import org.w3c.dom.Node;
 import ca.brood.softlogger.modbus.Device;
 import ca.brood.softlogger.modbus.register.RealRegister;
 
-public class DebugOutputModule extends AbstractOutputModule implements Runnable {
+public class DebugOutputModule extends AbstractOutputModule {
 	private Logger log;
 	private String description;
 	
 	public DebugOutputModule() {
 		super();
 		log = Logger.getLogger(DebugOutputModule.class);
-		this.setAction(this);
 		description = "DebugOutputModule";
 	}
 	
@@ -23,14 +22,11 @@ public class DebugOutputModule extends AbstractOutputModule implements Runnable 
 		super(o);
 		log = Logger.getLogger(DebugOutputModule.class);
 		description = o.description;
-		this.setAction(this);
 	}
 	
 	@Override
 	public DebugOutputModule clone() {
-		DebugOutputModule ret = new DebugOutputModule(this);
-		
-		return ret;
+		return new DebugOutputModule(this);
 	}
 
 	@Override

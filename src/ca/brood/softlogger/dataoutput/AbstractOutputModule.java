@@ -14,6 +14,7 @@ public abstract class AbstractOutputModule
 	public AbstractOutputModule() {
 		super();
 		m_Registers = new ArrayList<RealRegister>();
+		this.setAction(this);
 	}
 	
 	public AbstractOutputModule(AbstractOutputModule other) {
@@ -22,6 +23,7 @@ public abstract class AbstractOutputModule
 		for(RealRegister r:other.m_Registers) {
 			m_Registers.add(r.clone());
 		}
+		this.setAction(this);
 	}
 	
 	@Override

@@ -6,10 +6,9 @@ import ca.brood.softlogger.modbus.register.RealRegister;
 import ca.brood.softlogger.scheduler.Schedulable;
 import ca.brood.softlogger.util.XmlConfigurable;
 
-public interface OutputModule extends XmlConfigurable, Schedulable{
+public interface OutputModule extends XmlConfigurable, Schedulable, Runnable {
 	public ArrayList<RealRegister> getRegisters();
 	public void setRegisters(ArrayList<? extends RealRegister> regs);
-	public void resetRegisterSamplings();
 	public String getDescription();
 	public OutputModule clone();
 }
