@@ -19,6 +19,7 @@ import net.wimpi.modbus.msg.ReadCoilsResponse;
 import net.wimpi.modbus.msg.ReadInputDiscretesResponse;
 import net.wimpi.modbus.msg.ReadInputRegistersResponse;
 import net.wimpi.modbus.msg.ReadMultipleRegistersResponse;
+import net.wimpi.modbus.msg.WriteMultipleRegistersRequest;
 
 import org.apache.log4j.Logger;
 import org.w3c.dom.Node;
@@ -218,7 +219,10 @@ public class Device implements Schedulable, XmlConfigurable {
 					log.trace("Executing request: "+req);
 					ModbusResponse resp = channel.executeRequest(req);
 					log.trace("Got response: "+resp);
-					c.setData(resp);
+					if (!(req instanceof WriteMultipleRegistersRequest))
+						c.setData(resp);
+					else //optimistically assume the write was successful
+						c.setData(c.getValue());
 				} catch (ModbusException e) {
 					log.error("Got modbus exception (writing config register): ", e);
 				} catch (Exception e) {
@@ -523,9 +527,9 @@ public class Device implements Schedulable, XmlConfigurable {
 			for (RealRegister regToUpdate : regsToUpdate) {
 				//log.trace("Got Register To Update: "+regToUpdate);
 				this.setRegisterData(regToUpdate, response);
-				if (regToUpdate instanceof ConfigRegister) {
-					log.info("Set config register: "+regToUpdate);
-				}
+				//if (regToUpdate instanceof ConfigRegister) {
+					//log.trace("Set config register: "+regToUpdate);
+				//}
 			}
 		}
 	}

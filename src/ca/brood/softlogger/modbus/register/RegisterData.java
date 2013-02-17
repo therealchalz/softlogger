@@ -98,16 +98,16 @@ public class RegisterData implements net.wimpi.modbus.procimg.Register{
 				return;
 			}
 			setData(((ReadCoilsResponse)resp).getCoilStatus(0));
-		}
-		if (resp.getClass() == ReadInputDiscretesResponse.class) {
+		} else if (resp.getClass() == WriteCoilResponse.class) {
+			setData(((WriteCoilResponse)resp).getCoil());
+		} else if (resp.getClass() == ReadInputDiscretesResponse.class) {
 			if (((ReadInputDiscretesResponse)resp).getBitCount() != 1) {
 				log.error("Cannot parse ReadInputDiscretesResponse because received unexpected number of coils: "+((ReadInputDiscretesResponse)resp).getBitCount());
 				this.nullData();
 				return;
 			}
 			setData(((ReadInputDiscretesResponse)resp).getDiscreteStatus(0));
-		}
-		if (resp.getClass() == ReadInputRegistersResponse.class) {
+		} else if (resp.getClass() == ReadInputRegistersResponse.class) {
 			if (((ReadInputRegistersResponse)resp).getWordCount() == 1) {
 				//16 bit register reading.  read it as int, set the float value equal to the int value, and set the bool following C-style evaluation rules
 				setData(new Integer(((ReadInputRegistersResponse)resp).getRegister(0).getValue()));
@@ -120,8 +120,7 @@ public class RegisterData implements net.wimpi.modbus.procimg.Register{
 				this.nullData();
 				return;
 			}
-		}
-		if (resp.getClass() == ReadMultipleRegistersResponse.class) {
+		} else if (resp.getClass() == ReadMultipleRegistersResponse.class) {
 			if (((ReadMultipleRegistersResponse)resp).getWordCount() == 1) {
 				//16 bit register reading.  read it as int, set the float value equal to the int value, and set the bool following C-style evaluation rules
 				setData(((ReadMultipleRegistersResponse)resp).getRegister(0).getValue());
@@ -134,6 +133,10 @@ public class RegisterData implements net.wimpi.modbus.procimg.Register{
 				this.nullData();
 				return;
 			}
+		} else if (resp.getClass() == WriteSingleRegisterResponse.class) {
+			setData(((WriteSingleRegisterResponse)resp).getRegisterValue());
+		} else {
+			log.error("Got UNKNOWN RESPONSE");
 		}
 	}
 	@Override
