@@ -1,10 +1,7 @@
 package ca.brood.softlogger.scheduler;
 
-import java.util.PriorityQueue;
 
 import org.apache.log4j.Logger;
-
-import ca.brood.softlogger.modbus.Device;
 import ca.brood.softlogger.util.ThreadPerformanceMonitor;
 
 public class Scheduler {

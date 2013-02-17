@@ -9,7 +9,6 @@ import ca.brood.softlogger.util.XmlConfigurable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
-import java.util.PriorityQueue;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -345,6 +344,7 @@ public class Device implements Schedulable, XmlConfigurable {
 		return requests;
 	}
 
+	@SuppressWarnings("unused")
 	private void resetRegisterSamplings() {
 		synchronized (registerLock) {
 			ArrayList<RealRegister> regs = new ArrayList<RealRegister>();

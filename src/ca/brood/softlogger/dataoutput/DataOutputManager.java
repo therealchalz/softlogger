@@ -5,10 +5,7 @@ import java.util.ArrayList;
 import org.apache.log4j.Logger;
 
 import ca.brood.softlogger.modbus.Device;
-import ca.brood.softlogger.modbus.register.DataRegister;
 import ca.brood.softlogger.scheduler.Scheduler;
-import ca.brood.softlogger.scheduler.SchedulerQueue;
-import ca.brood.softlogger.util.ThreadPerformanceMonitor;
 
 public class DataOutputManager {
 	private Scheduler deviceScheduler;

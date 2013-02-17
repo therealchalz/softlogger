@@ -6,9 +6,7 @@ import org.apache.log4j.Logger;
 import org.w3c.dom.Node;
 
 import ca.brood.softlogger.modbus.Device;
-import ca.brood.softlogger.modbus.register.DataRegister;
 import ca.brood.softlogger.modbus.register.RealRegister;
-import ca.brood.softlogger.scheduler.PeriodicSchedulable;
 
 public class DebugOutputModule extends AbstractOutputModule implements Runnable {
 	private Logger log;

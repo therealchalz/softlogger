@@ -1,7 +1,6 @@
 package ca.brood.softlogger.scheduler;
 
 import java.util.AbstractQueue;
-import java.util.Collection;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.PriorityQueue;
