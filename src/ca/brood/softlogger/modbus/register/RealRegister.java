@@ -42,6 +42,9 @@ public class RealRegister extends Register implements Comparable<RealRegister>{
 		samplingCount = r.samplingCount;
 		sizeType = r.sizeType;
 	}
+	public RealRegister clone() {
+		return new RealRegister(this);
+	}
 	public RegisterSizeType getSizeType() {
 		return this.sizeType;
 	}

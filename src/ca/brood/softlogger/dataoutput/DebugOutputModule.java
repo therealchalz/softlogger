@@ -12,17 +12,25 @@ public class DebugOutputModule extends AbstractOutputModule implements Runnable 
 	private Logger log;
 	private String description;
 	
-	public DebugOutputModule(Device d) {
+	public DebugOutputModule() {
 		super();
-		this.setPeriod(d.getLogInterval()*1000);
-		d.addOutputModule(this);
-		
-		description = d.getDescription();
-		
 		log = Logger.getLogger(DebugOutputModule.class);
-		
 		this.setAction(this);
-		this.setRegisters(d.getAllRegisters());
+		description = "DebugOutputModule";
+	}
+	
+	public DebugOutputModule(DebugOutputModule o) {
+		super(o);
+		log = Logger.getLogger(DebugOutputModule.class);
+		description = o.description;
+		this.setAction(this);
+	}
+	
+	@Override
+	public DebugOutputModule clone() {
+		DebugOutputModule ret = new DebugOutputModule(this);
+		
+		return ret;
 	}
 
 	@Override
@@ -50,6 +58,15 @@ public class DebugOutputModule extends AbstractOutputModule implements Runnable 
 	public boolean configure(Node rootNode) {
 		// TODO Auto-generated method stub
 		return true;
+	}
+
+	@Override
+	public String getDescription() {
+		return description;
+	}
+	
+	public String toString() {
+		return "DebugOutputModule - description: "+this.description +" period: "+ this.getPeriod();
 	}
 
 }

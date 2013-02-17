@@ -16,6 +16,10 @@ public class ConfigRegister extends RealRegister {
 		super(c);
 		this.value = new RegisterData(c.value);
 	}
+	@Override
+	public ConfigRegister clone() {
+		return new ConfigRegister(this);
+	}
 	private void setupLog(int device, int address) {
 		log = Logger.getLogger(ConfigRegister.class+": D: "+device+" A: "+address);
 	}

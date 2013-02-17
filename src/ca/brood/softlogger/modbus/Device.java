@@ -55,6 +55,9 @@ public class Device implements Schedulable, XmlConfigurable {
 	public void addOutputModule(OutputModule m) {
 		outputModules.add(m);
 	}
+	public void deleteAllOutputModules() {
+		outputModules = new ArrayList<OutputModule>();
+	}
 	
 	@Override
 	public boolean configure(Node deviceNode) {
@@ -266,11 +269,11 @@ public class Device implements Schedulable, XmlConfigurable {
 	}
 	
 	private ModbusRequest getModbusRequest(RealRegister from, RealRegister to) {
-		log.info("Creating modbus request from: "+from+" to: "+to);
+		//log.trace("Creating modbus request from: "+from+" to: "+to);
 		int size = to.getAddress() - from.getAddress() + to.getSize();
 		ModbusRequest ret = from.getRequest(size);
 		ret.setUnitID(this.unitId);
-		//log.info("Created Request: "+ret);
+		//log.trace("Created Request: "+ret);
 		return ret;
 	}
 	
@@ -367,7 +370,7 @@ public class Device implements Schedulable, XmlConfigurable {
 		}
 		
 		SortedSet<RealRegister> registersToProcess = new TreeSet<RealRegister>();
-		while (getNextRun() < System.currentTimeMillis()) {
+		while (getNextRun() < System.currentTimeMillis()+10) {
 			ScanGroup next = (ScanGroup) scanGroups.poll();
 			next.execute();
 			scanGroups.add(next);
@@ -375,7 +378,8 @@ public class Device implements Schedulable, XmlConfigurable {
 			registersToProcess.addAll(next.getRegisters());
 		}
 		
-		log.trace("Registers to process: "+registersToProcess);
+		if (registersToProcess.size() == 0)
+			log.warn("Registers to process: "+registersToProcess);
 		synchronized (registerLock) {
 			
 			ArrayList<ModbusRequest> requests = getRequests(registersToProcess);
@@ -389,6 +393,9 @@ public class Device implements Schedulable, XmlConfigurable {
 			updateRegisters(registerList, responses);
 			
 			for (OutputModule outputModule : outputModules) {
+				log.trace("Processing output module: "+outputModule.getDescription());
+				if (outputModule.getRegisters().size() == 0)
+					log.warn("Got output module with no registers: "+outputModule);
 				updateRegisters(outputModule.getRegisters(), responses);
 			}
 		}
@@ -400,7 +407,7 @@ public class Device implements Schedulable, XmlConfigurable {
 
 	private void setRegisterData(RealRegister reg, ModbusResponse response) {
 		int offset = reg.getAddress() - response.getReference();
-		log.trace("Setting register: "+reg);
+		//log.trace("Setting register: "+reg);
 		if (response instanceof ReadCoilsResponse) {
 			if (reg.getRegisterType() != RegisterType.OUTPUT_COIL) {
 				log.error("Register type mismatch for ReadCoilsResponse: "+reg);
@@ -507,7 +514,7 @@ public class Device implements Schedulable, XmlConfigurable {
 				reg.setNull();
 			}
 		}
-		log.trace("Setting register (NEW): "+reg);
+		//log.trace("Setting register (NEW): "+reg);
 	}
 
 	private void updateRegisters(ArrayList<RealRegister> registerList, ArrayList<ModbusResponse> responses) {

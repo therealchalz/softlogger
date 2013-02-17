@@ -41,6 +41,7 @@ public class Scheduler {
 			schedulerQueue.add(sch);
 		}
 		public void beginRunner() {
+			log.info("Starting");
 			setShouldRun(true);
 			if (!this.isAlive()) {
 				this.start();
@@ -75,7 +76,7 @@ public class Scheduler {
 			}
 			
 			ThreadPerformanceMonitor.threadStarting();
-			//log.info("Running");
+			log.info("Running");
 
 			long currentTime;
 			
@@ -92,7 +93,7 @@ public class Scheduler {
 				long sleepTime = wakeTime - System.currentTimeMillis();
 				if (sleepTime > 10) {
 					try {
-						//log.trace("Sleeping for "+sleepTime+" milliseconds.");
+						log.trace("Sleeping for "+sleepTime+" milliseconds.");
 						ThreadPerformanceMonitor.threadStopping();
 						Thread.sleep(sleepTime);
 					} catch (InterruptedException e) {

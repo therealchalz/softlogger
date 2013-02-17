@@ -17,6 +17,10 @@ public class DataRegister extends RealRegister {
 		super(d);
 		guid = d.guid;
 	}
+	@Override
+	public DataRegister clone() {
+		return new DataRegister(this);
+	}
 	private void setupLog() {
 		log = Logger.getLogger(DataRegister.class+" GUID: "+this.guid);
 	}

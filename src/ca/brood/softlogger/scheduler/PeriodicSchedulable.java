@@ -11,6 +11,12 @@ public class PeriodicSchedulable implements Schedulable, Comparable<Schedulable>
 		nextRun = Long.MAX_VALUE;
 	}
 	
+	public PeriodicSchedulable(PeriodicSchedulable o) {
+		nextRun = o.nextRun;
+		period = o.period;
+		action = o.action;
+	}
+	
 	public PeriodicSchedulable(int period) {
 		this.period = period;
 		nextRun = System.currentTimeMillis();

@@ -12,9 +12,21 @@ public abstract class AbstractOutputModule
 	protected ArrayList<RealRegister> m_Registers;
 	
 	public AbstractOutputModule() {
+		super();
 		m_Registers = new ArrayList<RealRegister>();
 	}
 	
+	public AbstractOutputModule(AbstractOutputModule other) {
+		super(other);
+		m_Registers = new ArrayList<RealRegister>();
+		for(RealRegister r:other.m_Registers) {
+			m_Registers.add(r.clone());
+		}
+	}
+	
+	@Override
+	abstract public AbstractOutputModule clone();
+
 	public ArrayList<RealRegister> getRegisters() {
 		synchronized (m_Registers) {
 			return m_Registers;

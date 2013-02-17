@@ -60,6 +60,7 @@ public class Softlogger {
 		log = Logger.getLogger(Softlogger.class);
 		PropertyConfigurator.configure("logger.config");
 		softloggerChannels = new ArrayList<SoftloggerChannel>();
+		dataOutputManager = new DataOutputManager();
 	}
 	public void configure(String configFile) {
 		log.info("");
@@ -78,7 +79,7 @@ public class Softlogger {
 		s.configure("config.xml");
 		s.run();
 		try {
-			Thread.sleep(10000);
+			Thread.sleep(2000);
 		} catch (InterruptedException e) {
 		}
 		s.stop();
@@ -106,8 +107,7 @@ public class Softlogger {
 		for (SoftloggerChannel channel : softloggerChannels) {
 			devices.addAll(channel.getDevices());
 		}
-		dataOutputManager = new DataOutputManager(devices);
-		
+		dataOutputManager.refresh(devices);
 		dataOutputManager.start();
 	}
 

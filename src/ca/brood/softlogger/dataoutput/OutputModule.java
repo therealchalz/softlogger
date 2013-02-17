@@ -10,4 +10,6 @@ public interface OutputModule extends XmlConfigurable, Schedulable{
 	public ArrayList<RealRegister> getRegisters();
 	public void setRegisters(ArrayList<? extends RealRegister> regs);
 	public void resetRegisterSamplings();
+	public String getDescription();
+	public OutputModule clone();
 }
