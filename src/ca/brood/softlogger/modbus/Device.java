@@ -187,13 +187,10 @@ public class Device implements Schedulable, XmlConfigurable {
 		//log.info("Created Request: "+ret);
 		return ret;
 	}
-	private ArrayList<RealRegister> getRegistersToUpdate(ModbusResponse response) {
+	private ArrayList<RealRegister> getRegistersToUpdate(ArrayList<RealRegister> registerList, ModbusResponse response) {
 		ArrayList<RealRegister> ret = new ArrayList<RealRegister>();
 		int numWords = getDataLength(response);
 		RegisterType type = RegisterType.fromResponse(response);
-		ArrayList<RealRegister> registerList = new ArrayList<RealRegister>();
-		registerList.addAll(dataRegs);
-		registerList.addAll(configRegs);
 		Collections.sort(registerList);
 		addressLoop:
 		for (int address = response.getReference(); address < response.getReference()+numWords; address++) {
@@ -374,28 +371,26 @@ public class Device implements Schedulable, XmlConfigurable {
 		return requests;
 	}
 
-	private void updateRegisters(SortedSet<RealRegister> regs) {
-		//First build a list of modbus requests
-		ArrayList<ModbusRequest> requests = getRequests(regs);
-		
-		//Execute each request.  Update our registers that have addresses that
-		// match addresses in the response
+	private ArrayList<ModbusResponse> executeRequests(ArrayList<ModbusRequest> requests) {
 		ArrayList<ModbusResponse> responses = new ArrayList<ModbusResponse>();
 		for (ModbusRequest request : requests) {
 			try {
-				log.trace("Executing request: "+request);
+				log.debug("Executing request: "+request);
 				ModbusResponse resp = channel.executeRequest(request);
 				responses.add(resp);
 			} catch (ModbusException e) {
-				log.trace("Got modbus exception: ",e);
+				log.error("Got modbus exception: ",e);
 			} catch (Exception e) {
-				log.trace("Got no response....", e);
-				return; //Couldn't do a modbus request
+				log.error("Got no response....", e);
 			}
 		}
 		
+		return responses;
+	}
+	
+	private void updateRegisters(ArrayList<RealRegister> registerList, ArrayList<ModbusResponse> responses) {
 		for (ModbusResponse response : responses) {
-			ArrayList<RealRegister> regsToUpdate = getRegistersToUpdate(response);
+			ArrayList<RealRegister> regsToUpdate = getRegistersToUpdate(registerList, response);
 			for (RealRegister regToUpdate : regsToUpdate) {
 				//log.trace("Got Register To Update: "+regToUpdate);
 				this.setRegisterData(regToUpdate, response);
@@ -451,7 +446,20 @@ public class Device implements Schedulable, XmlConfigurable {
 		
 		log.info("Registers to process: "+registersToProcess);
 		synchronized (registerLock) {
-			updateRegisters(registersToProcess);
+			
+			ArrayList<ModbusRequest> requests = getRequests(registersToProcess);
+			
+			ArrayList<ModbusResponse> responses = executeRequests(requests);
+			
+			ArrayList<RealRegister> registerList = new ArrayList<RealRegister>();
+			registerList.addAll(dataRegs);
+			registerList.addAll(configRegs);
+			
+			updateRegisters(registerList, responses);
+			
+			for (OutputModule outputModule : outputModules) {
+				updateRegisters(outputModule.getRegisters(), responses);
+			}
 		}
 
 		//If a config register's value is invalid, write the correct one

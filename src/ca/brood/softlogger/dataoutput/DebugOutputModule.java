@@ -7,6 +7,7 @@ import org.w3c.dom.Node;
 
 import ca.brood.softlogger.modbus.Device;
 import ca.brood.softlogger.modbus.register.DataRegister;
+import ca.brood.softlogger.modbus.register.RealRegister;
 import ca.brood.softlogger.scheduler.PeriodicSchedulable;
 
 public class DebugOutputModule extends AbstractOutputModule implements Runnable {
@@ -16,10 +17,12 @@ public class DebugOutputModule extends AbstractOutputModule implements Runnable 
 	public DebugOutputModule(Device d) {
 		super();
 		this.setPeriod(d.getLogInterval()*1000);
+		d.addOutputModule(this);
 		
 		log = Logger.getLogger(DebugOutputModule.class);
 		
 		this.setAction(this);
+		this.setRegisters(d.getDataRegisters());
 		device = d;
 	}
 
@@ -29,9 +32,10 @@ public class DebugOutputModule extends AbstractOutputModule implements Runnable 
 	}
 	
 	private void printDeviceData(Device d) {
-		ArrayList<DataRegister> registers = d.getDataRegistersAndResetSamplings();
+		//ArrayList<DataRegister> registers = d.getDataRegistersAndResetSamplings();
+		ArrayList<RealRegister> registers = this.getRegisters();
 		log.info("Printing "+d.getDescription());
-		for (DataRegister register : registers) {
+		for (RealRegister register : registers) {
 			try {
 				if (!register.isNull())
 					log.info(register.getFieldName()+"("+register.getAddress()+"): "+register.getFloat());
@@ -41,24 +45,13 @@ public class DebugOutputModule extends AbstractOutputModule implements Runnable 
 				log.info("Exception on print: ", e);
 			}
 		}
+		this.resetRegisterSamplings();
 	}
 
 	@Override
 	public boolean configure(Node rootNode) {
 		// TODO Auto-generated method stub
 		return true;
-	}
-
-	@Override
-	public ArrayList<DataRegister> getRegisters() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public void setRegisters(ArrayList<DataRegister> regs) {
-		// TODO Auto-generated method stub
-		
 	}
 
 }
