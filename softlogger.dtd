@@ -1,9 +1,6 @@
-<!ELEMENT softlogger (name,defaultScanRate,logInterval,lookupTableFilePath,outputFilePath,server,channel*)>
+<!ELEMENT softlogger (name,defaultScanRate,server,channel*)>
 <!ELEMENT name (#PCDATA)>
 <!ELEMENT defaultScanRate (#PCDATA)>
-<!ELEMENT logInterval (#PCDATA)>
-<!ELEMENT lookupTableFilePath (#PCDATA)>
-<!ELEMENT outputFilePath (#PCDATA)>
 
 <!ELEMENT server (user,host,port?,(password|keyfile),configPoll,homeFolder)>
 <!ELEMENT user (#PCDATA)>
@@ -14,14 +11,14 @@
 <!ELEMENT configPoll (#PCDATA)>
 <!ELEMENT homeFolder (#PCDATA)>
 
-<!ELEMENT channel (defaultScanRate?,logInterval?,(tcp|serial),device*)>
+<!ELEMENT channel (defaultScanRate?,(tcp|serial),device*)>
 <!ELEMENT tcp (host,port?)>
 
 <!ELEMENT serial (comport,baud)>
 <!ELEMENT comport (#PCDATA)>
 <!ELEMENT baud (#PCDATA)>
 
-<!ELEMENT device (unitId,description?,defaultScanRate?,logInterval?,(configRegister|dataRegister)*)>
+<!ELEMENT device (unitId,description?,defaultScanRate?,(configRegister|dataRegister)*)>
 <!ELEMENT unitId (#PCDATA)>
 <!ELEMENT description (#PCDATA)>
 

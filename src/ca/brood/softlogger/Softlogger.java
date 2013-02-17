@@ -25,9 +25,6 @@ public class Softlogger {
 	
 	private String loggerName = "Unnamed Logger";
 	private int defaultScanRate = 0;
-	private int logInterval = 0;
-	private String tableFilePath = "lut/";
-	private String outputFilePath = "data/";
 	private String configFilePath = "";
 	
 	private DataServer server;
@@ -44,6 +41,8 @@ public class Softlogger {
 	 * -What to do about DST?  (log UTC timestamps? log a human readable timestamp as well?)
 	 * 
 	 * TODO:
+	 * -default value config trickle down construct for the xml
+	 * -configurable data output modules (eg csv)
 	 * -dataFunction element (and type attribute)
 	 * -logging to CSV file using device log interval
 	 * 
@@ -148,20 +147,6 @@ public class Softlogger {
 					log.error("Invalid scan rate: "+configNode.getFirstChild().getNodeValue());
 					this.defaultScanRate = 0;
 				}
-			} else if ("logInterval".compareToIgnoreCase(configNode.getNodeName())==0){
-				//log.debug("Default logging interval: "+configNode.getFirstChild().getNodeValue());
-				try {
-					this.logInterval = Integer.parseInt(configNode.getFirstChild().getNodeValue());
-				} catch (NumberFormatException e) {
-					log.error("Invalid log interval: "+configNode.getFirstChild().getNodeValue());
-					this.logInterval = 0;
-				}
-			} else if ("lookupTableFilePath".compareToIgnoreCase(configNode.getNodeName())==0){
-				//log.debug("Lookup table path: "+configNode.getFirstChild().getNodeValue());
-				this.tableFilePath = configNode.getFirstChild().getNodeValue();
-			} else if ("outputFilePath".compareToIgnoreCase(configNode.getNodeName())==0){
-				//log.debug("Output file path: "+configNode.getFirstChild().getNodeValue());
-				this.outputFilePath = configNode.getFirstChild().getNodeValue();
 			} else if (("server".compareToIgnoreCase(configNode.getNodeName())==0) || 
 			("channel".compareToIgnoreCase(configNode.getNodeName())==0)||
 			("#comment".compareToIgnoreCase(configNode.getNodeName())==0)||
@@ -177,18 +162,6 @@ public class Softlogger {
 		if (defaultScanRate <= 0) {
 			log.warn("Softlogger default scan rate is invalid.  Using default of 5000.");
 			defaultScanRate = 5000;
-		}
-		if (logInterval <= 0) {
-			log.warn("Softlogger default logging interval is invalid.  Using default of 600.");
-			logInterval = 600;
-		}
-		if (tableFilePath.equals("")) {
-			log.warn("Softlogger lookup table file path is invalid.  Using default of lut/");
-			tableFilePath = "lut/";
-		}
-		if (outputFilePath.equals("")) {
-			log.warn("Softlogger data file path is invalid.  Using default of data/");
-			outputFilePath = "data/";
 		}
 		
 		//Load the data server
@@ -226,7 +199,6 @@ public class Softlogger {
 		
 		for (int i=0; i<softloggerChannels.size(); i++) {
 			softloggerChannels.get(i).setDefaultScanRate(this.defaultScanRate);
-			softloggerChannels.get(i).setDefaultLogInterval(this.logInterval);
 		}
 		
 		this.printAll();
@@ -238,10 +210,6 @@ public class Softlogger {
 		log.info("Name: "+this.loggerName);
 		if (defaultScanRate > 0)
 			log.info("Default scan rate: "+this.defaultScanRate);
-		if (logInterval > 0)
-			log.info("Default log interval: "+this.logInterval);
-		log.info("Lookup table file path: "+this.tableFilePath);
-		log.info("Output file path: "+this.outputFilePath);
 		
 		this.server.printAll();
 		for (SoftloggerChannel c : this.softloggerChannels) {

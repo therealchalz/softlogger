@@ -2,9 +2,6 @@
 <softlogger>
 	<name>Test Logger</name>
 	<defaultScanRate>11111</defaultScanRate> <!-- default scan rate in milliseconds -->
-	<logInterval>222</logInterval> <!-- default interval to write to output file in seconds -->
-	<lookupTableFilePath>lut</lookupTableFilePath>
-	<outputFilePath>data</outputFilePath>
 	<server>
 		<user>logger1</user>
 		<host>127.0.0.1</host>
@@ -18,7 +15,6 @@
 	</server>
 	<channel>
 		<defaultScanRate>333</defaultScanRate> <!-- default scan rate for this channel, overrides Softlogger scan rate -->
-		<logInterval>44</logInterval> <!-- overrides softlogger -->
 		<tcp>
 			<host>127.0.0.1</host>
 			<port>5020</port>
@@ -31,11 +27,10 @@
 		-->
 		<device>
 			<!-- devices can each have a scan rate as well, which overrides their channel
-			and softlogger default scan rates.  Same thing for logInterval -->
+			and softlogger default scan rates. -->
 			<unitId>15</unitId>
 			<description>DSI #1</description>
 			<defaultScanRate>1000</defaultScanRate>
-			<logInterval>66</logInterval>
 			
 			<configRegister>
 				<fieldName>Config coil 1 true</fieldName>

@@ -17,7 +17,6 @@ public class SoftloggerChannel implements Runnable {
 	private final int id;
 	private ModbusChannel channel = null;
 	private int scanRate = 0;
-	private int logInterval = 0;
 	private static int nextId = 1;
 	private Scheduler deviceScheduler;
 	
@@ -44,13 +43,6 @@ public class SoftloggerChannel implements Runnable {
 			
 		}
 	}
-	public void setDefaultLogInterval(int lo) {
-		if (this.logInterval == 0)
-			this.logInterval = lo;
-		for (int i=0; i<devices.size(); i++) {
-			devices.get(i).setDefaultLogInterval(logInterval);
-		}
-	}
 	public boolean configure(Node serverNode) {
 		NodeList configNodes = serverNode.getChildNodes();
 		for (int i=0; i<configNodes.getLength(); i++) {
@@ -72,15 +64,7 @@ public class SoftloggerChannel implements Runnable {
 				if (!this.channel.configure(configNode)) {
 					return false;
 				}
-			} else if ("logInterval".compareToIgnoreCase(configNode.getNodeName())==0){
-				//log.debug("Default logging interval: "+configNode.getFirstChild().getNodeValue());
-				try {
-					this.logInterval = Integer.parseInt(configNode.getFirstChild().getNodeValue());
-				} catch (NumberFormatException e) {
-					log.error("Invalid log interval: "+configNode.getFirstChild().getNodeValue());
-					this.logInterval = 0;
-				}
-			}  else if ("defaultScanRate".compareToIgnoreCase(configNode.getNodeName())==0){
+			}else if ("defaultScanRate".compareToIgnoreCase(configNode.getNodeName())==0){
 				//log.debug("Default scan rate: "+configNode.getFirstChild().getNodeValue());
 				try {
 					this.scanRate = Integer.parseInt(configNode.getFirstChild().getNodeValue());
@@ -136,8 +120,6 @@ public class SoftloggerChannel implements Runnable {
 	public void printAll() {
 		if (this.scanRate > 0)
 			log.info("Scan rate: "+scanRate);
-		if (this.logInterval > 0)
-			log.info("Log interval: "+logInterval);
 		
 		this.channel.printAll();
 		

@@ -35,7 +35,6 @@ public class Device implements Schedulable {
 	private Object registerLock;
 	
 	private int scanRate = 0;
-	private int logInterval = 0;
 	private static volatile int nextId = 1;
 	
 	public Device(int channelId) {
@@ -137,13 +136,6 @@ public class Device implements Schedulable {
 					log.error("Invalid device scan rate: "+configNode.getFirstChild().getNodeValue());
 					this.scanRate = 0;
 				}
-			} else if (("logInterval".compareToIgnoreCase(configNode.getNodeName())==0)) {
-				try {
-					this.logInterval = Integer.parseInt(configNode.getFirstChild().getNodeValue());
-				} catch (NumberFormatException e) {
-					log.error("Invalid device log interval: "+configNode.getFirstChild().getNodeValue());
-					this.logInterval = 0;
-				}
 			} else {
 				log.warn("Got unknown node in config: "+configNode.getNodeName());
 			}
@@ -164,7 +156,7 @@ public class Device implements Schedulable {
 		return scanRate;
 	}
 	public int getLogInterval() {
-		return this.logInterval;
+		return 1;
 	}
 	public void setDefaultScanRate(int rate) {
 		if (scanRate == 0)
@@ -177,11 +169,6 @@ public class Device implements Schedulable {
 		}
 
 		buildScanGroupQueue();
-	}
-	
-	public void setDefaultLogInterval(int lo) {
-		if (logInterval == 0)
-			logInterval = lo;
 	}
 	
 	private ModbusRequest getModbusRequest(RealRegister from, RealRegister to) {
@@ -482,7 +469,6 @@ public class Device implements Schedulable {
 		log.info("Unit ID: "+this.unitId);
 		log.info("Description: "+this.description);
 		log.info("Scan rate: "+this.scanRate);
-		log.info("Log interval: "+this.logInterval);
 		for (ConfigRegister c : this.configRegs) {
 			log.info(c);
 		}
