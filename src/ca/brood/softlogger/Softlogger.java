@@ -37,14 +37,8 @@ public class Softlogger {
 	 * -If the same register address is defined multiple times in the config
 	 * and they're not all the same size, the wrong size may be requested.
 	 * 
-	 * CAVEATS:
-	 * -What to do about DST?  (log UTC timestamps? log a human readable timestamp as well?)
-	 * 
 	 * TODO:
-	 * -default value config trickle down construct for the xml
-	 * -configurable data output modules (eg csv)
 	 * -dataFunction element (and type attribute)
-	 * -logging to CSV file using device log interval
 	 * 
 	 * Longer term TODO:
 	 * -logging to local database so other things can use the data (web realtime frontend etc)
@@ -79,7 +73,7 @@ public class Softlogger {
 		s.configure("config.xml");
 		s.run();
 		try {
-			Thread.sleep(2000);
+			Thread.sleep(10000);
 		} catch (InterruptedException e) {
 		}
 		s.stop();

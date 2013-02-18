@@ -44,7 +44,7 @@ public class PeriodicSchedulable implements Schedulable, Comparable<Schedulable>
 		if (this.action != null) {
 			this.action.run();
 		}
-		setNextRun(System.currentTimeMillis() + getPeriod());
+		setNextRun(getNextRun() + getPeriod());
 	}
 	
 	public void setAction(Runnable action) {

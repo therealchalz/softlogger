@@ -22,6 +22,10 @@ public class DataOutputManager {
 		d.setPeriod(500);
 		this.addOutputModule(d);
 		
+		CsvOutputModule c = new CsvOutputModule();
+		c.setPeriod(1000);
+		this.addOutputModule(c);
+		
 		log = Logger.getLogger(DataOutputManager.class);
 	}
 	
@@ -36,10 +40,11 @@ public class DataOutputManager {
 			device.deleteAllOutputModules();
 		}
 		
+		Map<OutputModule,Scheduler> newSchedulers = new HashMap<OutputModule, Scheduler>();
+		
 		for (Entry<OutputModule, Scheduler> entry : schedulers.entrySet()) {
-			schedulers.remove(entry.getKey());
 			Scheduler sched = new Scheduler();
-			sched.setThreadName("TTEESSTT");
+			sched.setThreadName(entry.getKey().getDescription());
 			for (Device device : devices) {
 				OutputModule newModule = entry.getKey().clone();
 				log.trace("Original: "+entry.getKey()+ " New: " + newModule);
@@ -51,9 +56,9 @@ public class DataOutputManager {
 				sched.addSchedulee(newModule);
 				device.addOutputModule(newModule);
 			}
-			schedulers.put(entry.getKey(), sched);
-			log.info("Schedulers: "+schedulers);
+			newSchedulers.put(entry.getKey(), sched);
 		}
+		schedulers = newSchedulers;
 	}
 	
 	public void start() {
