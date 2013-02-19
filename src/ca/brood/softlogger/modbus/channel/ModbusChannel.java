@@ -42,5 +42,12 @@ public abstract class ModbusChannel implements XmlConfigurable {
 	public abstract boolean close();
 	public abstract boolean isOpen();
 	public abstract boolean open();
+	public boolean isReady() {
+		if (isOpen()) {
+			return true;
+		} else {
+			return open();
+		}
+	}
 	public abstract ModbusResponse executeRequest(ModbusRequest req) throws Exception;
 }

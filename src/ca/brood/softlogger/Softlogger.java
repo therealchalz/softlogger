@@ -73,7 +73,7 @@ public class Softlogger {
 		s.configure("config.xml");
 		s.run();
 		try {
-			Thread.sleep(10000);
+			Thread.sleep(2000);
 		} catch (InterruptedException e) {
 		}
 		s.stop();
@@ -94,7 +94,7 @@ public class Softlogger {
 	public void run() {
 		//Start all the softloggerChannels, which will in turn start all the devices
 		for (int i=0; i<softloggerChannels.size(); i++) {
-			softloggerChannels.get(i).run();
+			softloggerChannels.get(i).start();
 		}
 		
 		ArrayList<Device> devices = new ArrayList<Device>();

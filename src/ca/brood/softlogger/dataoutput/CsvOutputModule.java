@@ -52,10 +52,18 @@ public class CsvOutputModule extends AbstractOutputModule {
 		values.add(String.format("%1$tY%1$tm%1$td-%1$tT", cal));
 		values.add(""+(System.currentTimeMillis()));
 		
+		boolean atLeastOneGoodValue = false;
+		
 		for (RealRegister r : re) {
-			values.add(""+r.getInteger());
+			if (r.isNull())
+				values.add("NULL");
+			else {
+				values.add(""+r.getInteger());
+				atLeastOneGoodValue = true;
+			}
 		}
-		writer.writeData(values);
+		if (atLeastOneGoodValue)
+			writer.writeData(values);
 		this.resetRegisterSamplings();
 	}
 

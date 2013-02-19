@@ -47,10 +47,10 @@ public class DataOutputManager {
 			sched.setThreadName(entry.getKey().getDescription());
 			for (Device device : devices) {
 				OutputModule newModule = entry.getKey().clone();
-				log.trace("Original: "+entry.getKey()+ " New: " + newModule);
+				//log.trace("Original: "+entry.getKey()+ " New: " + newModule);
 				ArrayList<RealRegister> regg = device.getAllRegisters();
 				for (RealRegister regd : regg) {
-					log.info(regd);
+					//log.info(regd);
 				}
 				newModule.setRegisters(device.getAllRegisters());
 				sched.addSchedulee(newModule);

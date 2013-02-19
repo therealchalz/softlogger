@@ -44,7 +44,24 @@ public class PeriodicSchedulable implements Schedulable, Comparable<Schedulable>
 		if (this.action != null) {
 			this.action.run();
 		}
-		setNextRun(getNextRun() + getPeriod());
+		
+		
+		//The strategy for getting the next run time:
+		//If the scheduler was paused for a long while, it could be
+		//our next run is far in the past.  If we add the period to
+		//it then that could still be in the past.  In this case we
+		//add the period to the current time.  Otherwise, we add the
+		//period to the previous next run time - the effect of this
+		//is that the periods between the run times are constant,
+		//regardless of how long a schedulee's action takes to run.
+		long oldNextRun = getNextRun();
+		long period = getPeriod();
+		long curTime = System.currentTimeMillis();
+		if ((curTime - oldNextRun) < 2 * period) {
+			setNextRun(oldNextRun + period);
+		} else {
+			setNextRun(curTime + period);
+		}
 	}
 	
 	public void setAction(Runnable action) {

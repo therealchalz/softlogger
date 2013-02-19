@@ -31,26 +31,31 @@ public class Scheduler {
 		private SchedulerQueue schedulerQueue;
 		private Boolean shouldRun;
 		private Logger log;
+		private String description;
 		
 		public SchedulerRunner() {
 			schedulerQueue = new SchedulerQueue();
 			shouldRun = new Boolean(false);
 			log = Logger.getLogger(SchedulerRunner.class);
+			description = "Unnamed";
 		}
 		public void addSchedulee(Schedulable sch) {
 			schedulerQueue.add(sch);
 		}
 		public void beginRunner() {
-			log.info("Starting");
+			log.info(description+"- Starting");
+			boolean start = !getShouldRun();
 			setShouldRun(true);
-			if (!this.isAlive()) {
+			if (start) {
 				this.start();
 			}
 		}
 		
 		public void stopRunner() {
+			log.info(description+"- Stopping");
+			boolean interrupt = getShouldRun() | this.isAlive();
 			setShouldRun(false);
-			if (this.isAlive()) {
+			if (interrupt) {
 				this.interrupt();
 			}
 		}
@@ -75,6 +80,8 @@ public class Scheduler {
 				return;
 			}
 			
+			description = Thread.currentThread().getName();
+			
 			ThreadPerformanceMonitor.threadStarting();
 			log.info("Running");
 
@@ -89,6 +96,13 @@ public class Scheduler {
 					 schedulerQueue.add(s);
 				}
 				
+				//The schedulable's action could take a while, so it's possible
+				//that we get stopped during the action.  If so, we want to bail
+				//as soon as the action is finished:
+				if (!getShouldRun()) {
+					break;
+				}
+				
 				long wakeTime = schedulerQueue.peek().getNextRun();
 				long sleepTime = wakeTime - System.currentTimeMillis();
 				if (sleepTime > 10) {
@@ -101,6 +115,8 @@ public class Scheduler {
 				}
 				ThreadPerformanceMonitor.threadStarting();
 			}
+			log.info("Thread exiting");
+			ThreadPerformanceMonitor.threadStopping();
 		}
 		
 	}

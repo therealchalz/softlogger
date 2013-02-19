@@ -225,8 +225,10 @@ public class Device implements Schedulable, XmlConfigurable {
 						c.setData(c.getValue());
 				} catch (ModbusException e) {
 					log.error("Got modbus exception (writing config register): ", e);
+					return;	//don't try the rest of the config variables
 				} catch (Exception e) {
 					log.error("Got exception (writing config register): ", e);
+					return;
 				}
 			}
 		}
@@ -241,8 +243,10 @@ public class Device implements Schedulable, XmlConfigurable {
 				responses.add(resp);
 			} catch (ModbusException e) {
 				log.error("Got modbus exception while executing request: "+request,e);
+				break;
 			} catch (Exception e) {
 				log.error("Got no response while executing request: "+request, e);
+				break;
 			}
 		}
 		
@@ -368,7 +372,7 @@ public class Device implements Schedulable, XmlConfigurable {
 	}
 	
 	private void run() {
-		//TODO device run function
+		
 		if (this.channel == null) {
 			return;
 		}
@@ -380,6 +384,11 @@ public class Device implements Schedulable, XmlConfigurable {
 			scanGroups.add(next);
 			
 			registersToProcess.addAll(next.getRegisters());
+		}
+		
+		//wait until after we execute the scangroups
+		if (!this.channel.isReady()) {
+			return;
 		}
 		
 		if (registersToProcess.size() == 0)

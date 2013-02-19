@@ -7,11 +7,15 @@ import org.w3c.dom.NodeList;
 
 import ca.brood.softlogger.modbus.Device;
 import ca.brood.softlogger.modbus.channel.*;
+import ca.brood.softlogger.scheduler.PeriodicSchedulable;
+import ca.brood.softlogger.scheduler.Schedulable;
 import ca.brood.softlogger.scheduler.Scheduler;
+import ca.brood.softlogger.util.ThreadPerformanceMonitor;
 import ca.brood.softlogger.util.XmlConfigurable;
 
 
 public class SoftloggerChannel implements Runnable, XmlConfigurable {
+	private static final int HEARTBEAT_INTERVAL = 1000;
 	private Logger log;
 	
 	private ArrayList<Device> devices = null;
@@ -20,11 +24,17 @@ public class SoftloggerChannel implements Runnable, XmlConfigurable {
 	private int scanRate = 0;
 	private static int nextId = 1;
 	private Scheduler deviceScheduler;
+	private PeriodicSchedulable mySchedulable;
+	private Boolean shouldRun;
+	private Object shouldRunLock;
 	
 	public SoftloggerChannel() {
 		this.id = getNextId();
 		log = Logger.getLogger(SoftloggerChannel.class+" ID: "+id);
 		devices = new ArrayList<Device>();
+		mySchedulable = new PeriodicSchedulable(HEARTBEAT_INTERVAL, this);
+		shouldRun = false;
+		shouldRunLock = new Object();
 	}
 	public ArrayList<Device> getDevices() {
 		return devices;
@@ -89,14 +99,65 @@ public class SoftloggerChannel implements Runnable, XmlConfigurable {
 		
 		return true;
 	}
+	
+	private boolean getShouldRun() {
+		synchronized (shouldRunLock) {
+			return shouldRun;
+		}
+	}
+	
+	private void setShouldRun(boolean b) {
+		synchronized(shouldRunLock) {
+			shouldRun = b;
+		}
+	}
+	
 	@Override
 	public void run() {
+		//The softlogger channel is setup so that this run method gets
+		//scheduled every 1000ms by the same scheduler that handles the
+		//devices.  The idea is that the channel can check if the devices
+		//should run - if not then the channel can stop the scheduler
+		//temporarily then restart it when the comm link comes back.
+		
+		boolean stopped = false;
+		
+		while (getShouldRun()) {
+			if (!channel.isReady()) {
+				if (!stopped) {
+					log.info("Channel is down!");
+					deviceScheduler.stop();
+					stopped = true;
+				}
+			} else {
+				if (stopped)
+					deviceScheduler.start();
+				break;
+			}
+			
+			try {
+				//Since we're running in the thread context of the channel's
+				//scheduler, we don't want to pollute our stats so we keep 
+				//them updated:
+				ThreadPerformanceMonitor.threadStopping();
+				Thread.sleep(HEARTBEAT_INTERVAL);
+				ThreadPerformanceMonitor.threadStarting();
+			} catch (InterruptedException e) {
+			}
+		}
+	}
+	
+	public void start() {
 		if (channel == null)	//Not configured yet
 			return;
 		channel.open();
 		
+		setShouldRun(true);
+		
 		deviceScheduler = new Scheduler();
 		deviceScheduler.setThreadName("Scheduler - Channel "+this.id);
+		
+		deviceScheduler.addSchedulee(mySchedulable);
 		
 		for (Device d : devices) {
 			deviceScheduler.addSchedulee(d);
@@ -107,6 +168,8 @@ public class SoftloggerChannel implements Runnable, XmlConfigurable {
 	}
 	
 	public void stop() {
+		
+		setShouldRun(false);
 		
 		if (deviceScheduler != null) {
 			deviceScheduler.stop();
