@@ -13,6 +13,7 @@ import org.w3c.dom.Node;
 
 import ca.brood.softlogger.dataoutput.DataOutputManager;
 import ca.brood.softlogger.dataoutput.DataServer;
+import ca.brood.softlogger.dataoutput.OutputModule;
 import ca.brood.softlogger.modbus.Device;
 import ca.brood.softlogger.util.*;
 
@@ -193,6 +194,24 @@ public class Softlogger {
 		}
 		
 		//Load the global output modules
+		loggerConfigNodes = doc.getElementsByTagName("outputModule");
+		for (int i=0; i<loggerConfigNodes.getLength(); i++) {
+			currentConfigNode = loggerConfigNodes.item(i);
+			try {
+				@SuppressWarnings("unchecked")
+				Class<? extends OutputModule> outputClass = (Class<? extends OutputModule>) Class.forName(currentConfigNode.getAttributes().getNamedItem("class").getNodeValue());
+				OutputModule outputModule = outputClass.newInstance();
+				if (outputModule.configure(currentConfigNode)) {
+					dataOutputManager.addOutputModule(outputModule);
+				}
+			} catch (Exception e) {
+				log.error("Got exception while loading output module: ",e);
+			}
+			//if (mc.configure(currentConfigNode)) {
+			//	workingChannel = true;
+			//	softloggerChannels.add(mc);
+			//}
+		}
 		
 		for (int i=0; i<softloggerChannels.size(); i++) {
 			softloggerChannels.get(i).setDefaultScanRate(this.defaultScanRate);

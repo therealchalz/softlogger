@@ -19,14 +19,6 @@ public class DataOutputManager {
 	public DataOutputManager() {
 		schedulers = new HashMap<OutputModule, Scheduler>();
 		
-		DebugOutputModule d = new DebugOutputModule();
-		d.setPeriod(500);
-		this.addOutputModule(d);
-		
-		CsvOutputModule c = new CsvOutputModule();
-		c.setPeriod(1000);
-		this.addOutputModule(c);
-		
 		log = Logger.getLogger(DataOutputManager.class);
 	}
 	

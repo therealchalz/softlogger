@@ -14,6 +14,10 @@
 		<homeFolder>/home/logger1/data</homeFolder>
 	</server>
 	<outputModule class="ca.brood.softlogger.dataoutput.DebugOutputModule">
+		<configValue name="logInterval">500</configValue>
+	</outputModule>
+	<outputModule class="ca.brood.softlogger.dataoutput.CsvOutputModule">
+		<configValue name="logInterval">1000</configValue>
 	</outputModule>
 	<channel>
 		<defaultScanRate>333</defaultScanRate> <!-- default scan rate for this channel, overrides Softlogger scan rate -->
