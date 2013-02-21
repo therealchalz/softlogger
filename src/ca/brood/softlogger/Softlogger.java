@@ -143,6 +143,7 @@ public class Softlogger {
 				}
 			} else if (("server".compareToIgnoreCase(configNode.getNodeName())==0) || 
 			("channel".compareToIgnoreCase(configNode.getNodeName())==0)||
+			("outputModule".compareToIgnoreCase(configNode.getNodeName())==0)||
 			("#comment".compareToIgnoreCase(configNode.getNodeName())==0)||
 			("#text".compareToIgnoreCase(configNode.getNodeName())==0))	{
 				continue;
@@ -190,6 +191,8 @@ public class Softlogger {
 			log.fatal("No usable softloggerChannels configured");
 			return false;
 		}
+		
+		//Load the global output modules
 		
 		for (int i=0; i<softloggerChannels.size(); i++) {
 			softloggerChannels.get(i).setDefaultScanRate(this.defaultScanRate);

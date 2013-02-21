@@ -39,6 +39,9 @@ public abstract class Register implements XmlConfigurable {
 	public float getFloat() {
 		return registerData.getFloat();
 	}
+	public RegisterData getData() {
+		return new RegisterData(this.registerData);
+	}
 	public void setData(RegisterData data) {
 		this.registerData.setData(data);
 	}

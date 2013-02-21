@@ -42,7 +42,7 @@ public class CsvOutputModule extends AbstractOutputModule {
 		ArrayList<String> heads = new ArrayList<String>();
 		heads.add("datetime");
 		heads.add("timestamp");
-		ArrayList<RealRegister> re = this.getRegisters();
+		ArrayList<RealRegister> re = this.m_Registers.readRegisters();
 		for (RealRegister r : re) {
 			heads.add(r.getFieldName());
 		}

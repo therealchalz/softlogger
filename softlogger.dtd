@@ -11,11 +11,11 @@
 <!ELEMENT configPoll (#PCDATA)>
 <!ELEMENT homeFolder (#PCDATA)>
 
-<!ELEMENT outputModule (customConfig|customElement)*>
+<!ELEMENT outputModule (configValue|configElement)*>
 <!ATTLIST outputModule class CDATA #REQUIRED>
-<!ELEMENT customConfig (#PCDATA)>
-<!ATTLIST customConfig name CDATA #REQUIRED>
-<!ELEMENT customElement (customConfig|customElement)*>
+<!ELEMENT configValue (#PCDATA)>
+<!ATTLIST configValue name CDATA #REQUIRED>
+<!ELEMENT configElement (configValue|configElement)*>
 
 <!ELEMENT channel (defaultScanRate?,(tcp|serial),device*)>
 <!ELEMENT tcp (host,port?)>

@@ -35,7 +35,7 @@ public class DebugOutputModule extends AbstractOutputModule {
 	}
 	
 	private void printDeviceData() {
-		ArrayList<RealRegister> registers = this.getRegisters();
+		ArrayList<RealRegister> registers = this.m_Registers.readRegisters();
 		log.info("Printing "+description);
 		for (RealRegister register : registers) {
 			try {

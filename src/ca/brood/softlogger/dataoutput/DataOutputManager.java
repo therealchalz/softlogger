@@ -8,6 +8,7 @@ import java.util.Map.Entry;
 import org.apache.log4j.Logger;
 
 import ca.brood.softlogger.modbus.Device;
+import ca.brood.softlogger.modbus.RegisterCollection;
 import ca.brood.softlogger.modbus.register.RealRegister;
 import ca.brood.softlogger.scheduler.Scheduler;
 
@@ -52,7 +53,7 @@ public class DataOutputManager {
 				for (RealRegister regd : regg) {
 					//log.info(regd);
 				}
-				newModule.setRegisters(device.getAllRegisters());
+				newModule.setRegisterCollection(new RegisterCollection(device.getAllRegisters()));
 				sched.addSchedulee(newModule);
 				device.addOutputModule(newModule);
 			}

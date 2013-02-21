@@ -32,7 +32,7 @@
 			and softlogger default scan rates. -->
 			<unitId>15</unitId>
 			<description>DSI #1</description>
-			<defaultScanRate>1000</defaultScanRate>
+			<defaultScanRate>100</defaultScanRate>
 			
 			<configRegister>
 				<fieldName>Config coil 1 true</fieldName>

@@ -1,5 +1,6 @@
 package ca.brood.softlogger.modbus;
 import ca.brood.softlogger.dataoutput.OutputModule;
+import ca.brood.softlogger.dataoutput.OutputableDevice;
 import ca.brood.softlogger.modbus.channel.ModbusChannel;
 import ca.brood.softlogger.modbus.register.*;
 import ca.brood.softlogger.scheduler.Schedulable;
@@ -25,7 +26,7 @@ import org.apache.log4j.Logger;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-public class Device implements Schedulable, XmlConfigurable {
+public class Device implements Schedulable, XmlConfigurable, OutputableDevice {
 	private Logger log;
 	private final int id;
 	private int unitId = Integer.MAX_VALUE;
@@ -407,9 +408,9 @@ public class Device implements Schedulable, XmlConfigurable {
 			
 			for (OutputModule outputModule : outputModules) {
 				log.trace("Processing output module: "+outputModule.getDescription());
-				if (outputModule.getRegisters().size() == 0)
-					log.warn("Got output module with no registers: "+outputModule);
-				updateRegisters(outputModule.getRegisters(), responses);
+				RegisterCollection collect = outputModule.getRegisterCollection();
+				updateRegisters(collect.beginUpdating(), responses);
+				collect.finishUpdating();
 			}
 		}
 
