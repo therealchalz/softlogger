@@ -1,9 +1,8 @@
-package ca.brood.softlogger.modbus;
+package ca.brood.softlogger.modbus.register;
 
 import java.util.ArrayList;
 import java.util.concurrent.locks.ReentrantLock;
 
-import ca.brood.softlogger.modbus.register.RealRegister;
 
 public class RegisterCollection {
 	private ArrayList<RealRegister> readRegisters;
@@ -73,18 +72,17 @@ public class RegisterCollection {
 		readRegisterLock.lock();
 		updateRegisterLock.lock();
 		
+		readRegisters.clear();
+		for (int i = 0; i < updateRegisters.size(); i++) {
+			readRegisters.add(updateRegisters.get(i).clone());
+		}
+		
 		if (whichRegisterSet == 0) {
-			whichRegisterSet = 1;
-			for (int i = 0; i < registerSetA.size(); i++) {
-				readRegisters.get(i).setData(updateRegisters.get(i).getData());
-			}
+			whichRegisterSet = 1;		
 			readRegisters = registerSetB;
 			updateRegisters = registerSetA;
 		} else {
 			whichRegisterSet = 0;
-			for (int i = 0; i < registerSetA.size(); i++) {
-				readRegisters.get(i).setData(updateRegisters.get(i).getData());
-			}
 			readRegisters = registerSetA;
 			updateRegisters = registerSetB;
 		}

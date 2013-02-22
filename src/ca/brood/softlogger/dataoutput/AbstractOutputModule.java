@@ -2,8 +2,8 @@ package ca.brood.softlogger.dataoutput;
 
 import java.util.ArrayList;
 
-import ca.brood.softlogger.modbus.RegisterCollection;
 import ca.brood.softlogger.modbus.register.RealRegister;
+import ca.brood.softlogger.modbus.register.RegisterCollection;
 import ca.brood.softlogger.scheduler.PeriodicSchedulable;
 
 public abstract class AbstractOutputModule 

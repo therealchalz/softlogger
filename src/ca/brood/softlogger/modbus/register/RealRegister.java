@@ -102,7 +102,6 @@ public class RealRegister extends Register implements Comparable<RealRegister>{
 	public void setDefaultScanRate(int rate) {
 		if (scanRate == 0) {
 			scanRate = rate;
-			sampling = ScanRateSampling.MEAN;
 			log.debug("Updating scan rate to "+scanRate);
 		}
 	}
@@ -154,7 +153,8 @@ public class RealRegister extends Register implements Comparable<RealRegister>{
 				}
 			} else if ("scanRate".compareToIgnoreCase(configNode.getNodeName())==0){
 				try {
-					this.scanRate = Integer.parseInt(configNode.getFirstChild().getNodeValue());
+					if (configNode.getFirstChild() != null)
+						this.scanRate = Integer.parseInt(configNode.getFirstChild().getNodeValue());
 					this.sampling = ScanRateSampling.fromString(configNode.getAttributes().item(0).getTextContent());
 					registerNode.removeChild(configNode);
 				} catch (NumberFormatException e) {

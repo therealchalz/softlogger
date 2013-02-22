@@ -8,8 +8,8 @@ import java.util.Map.Entry;
 import org.apache.log4j.Logger;
 
 import ca.brood.softlogger.modbus.Device;
-import ca.brood.softlogger.modbus.RegisterCollection;
 import ca.brood.softlogger.modbus.register.RealRegister;
+import ca.brood.softlogger.modbus.register.RegisterCollection;
 import ca.brood.softlogger.scheduler.Scheduler;
 
 public class DataOutputManager {
