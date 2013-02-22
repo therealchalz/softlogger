@@ -77,7 +77,7 @@ public class Softlogger {
 		softloggerChannels = new ArrayList<SoftloggerChannel>();
 		dataOutputManager = new DataOutputManager();
 	}
-	public void configure(String configFile) {
+	public boolean configure(String configFile) {
 		log.info("");
 		log.info("");
 		log.info("******************************");
@@ -87,18 +87,21 @@ public class Softlogger {
 		configFilePath = configFile;
 		if (!loadConfig(configFilePath)) {
 			log.fatal("Error loading config file.");
+			return false;
 		}
+		return true;
 	}
 	public static void main(String[] args) {
 		Softlogger s = new Softlogger();
-		s.configure("config.xml");
-		s.run();
-		try {
-			Thread.sleep(2000);
-		} catch (InterruptedException e) {
+		if (s.configure("config.xml")) {
+			s.run();
+			try {
+				Thread.sleep(125000);
+			} catch (InterruptedException e) {
+			}
+			s.stop();
+			ThreadPerformanceMonitor.printPerformanceData();
 		}
-		s.stop();
-		ThreadPerformanceMonitor.printPerformanceData();
 		s.log.info("All done");
 	}
 	public void kill() {

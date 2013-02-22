@@ -52,11 +52,20 @@ public class CsvFileWriter {
 		}
 	}
 	
+	public String getFilename() {
+		return filename;
+	}
+	
+	public synchronized void setFilename(String name) {
+		filename = name;
+		newFile();
+	}
+	
 	public synchronized void setHeaders(ArrayList<String> heads) {
 		headers = heads;
 	}
 	
-	private void initialize() {
+	private synchronized void initialize() {
 		String theFileName;
 		Calendar cal = Calendar.getInstance();
 		theFileName = String.format("%1$tY%1$tm%1$td-%1$tT", cal)+"-"+filename;
@@ -69,6 +78,10 @@ public class CsvFileWriter {
 			log.error("Error creating file", e);
 		}
 		writeHeaders = true;
+	}
+	
+	public void newFile() {
+		initialize();	
 	}
 	
 	public synchronized boolean writeData(ArrayList<String> values) {

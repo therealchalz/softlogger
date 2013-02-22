@@ -22,6 +22,7 @@ package ca.brood.softlogger.dataoutput;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 
 import org.apache.log4j.Logger;
 import org.w3c.dom.Node;
@@ -34,6 +35,8 @@ import ca.brood.softlogger.util.Util;
 public class CsvOutputModule extends AbstractOutputModule {
 	private Logger log;
 	private CsvFileWriter writer;
+	private long newFilePeriodMillis = 86400000; // 86400000 millis in a day
+	private long lastFileCreateTime = 0;
 	
 	public CsvOutputModule() {
 		super();
@@ -45,6 +48,7 @@ public class CsvOutputModule extends AbstractOutputModule {
 		super(o);
 		log = Logger.getLogger(CsvOutputModule.class);
 		writer = new CsvFileWriter(o.writer);
+		newFilePeriodMillis = o.newFilePeriodMillis;
 	}
 
 
@@ -54,8 +58,10 @@ public class CsvOutputModule extends AbstractOutputModule {
 	}
 	
 	private void setConfigValue(String name, String value) {
-		if ("logInterval".equalsIgnoreCase(name)) {
-			this.setPeriod(Util.parseInt(value));
+		if ("logInterval".equalsIgnoreCase(name)) { //seconds
+			this.setPeriod(Util.parseInt(value) * 1000);
+		} else if ("newFilePeriod".equalsIgnoreCase(name)) { //minutes
+			newFilePeriodMillis = Util.parseInt(value) * 60 * 1000;
 		} else {
 			log.warn("Got unexpected config value: "+name+" = "+value);
 		}
@@ -83,18 +89,47 @@ public class CsvOutputModule extends AbstractOutputModule {
 	@Override
 	public void run() {
 		log.info("Running");
+		
 		ArrayList<String> heads = new ArrayList<String>();
 		heads.add("datetime");
 		heads.add("timestamp");
 		ArrayList<RealRegister> re = this.m_Registers.readRegisters();
+		//Reset the samplings as soon as we get our copies of the registers to minimize
+		//the chance that we miss an update
+		this.resetRegisterSamplings();
 		for (RealRegister r : re) {
 			heads.add(r.getFieldName());
 		}
 		writer.setHeaders(heads);
+		
 		ArrayList<String> values = new ArrayList<String>();
 		Calendar cal = Calendar.getInstance();
+		long currentTime = System.currentTimeMillis();
+		cal.setTimeInMillis(currentTime);
 		values.add(String.format("%1$tY%1$tm%1$td-%1$tT", cal));
-		values.add(""+(System.currentTimeMillis()));
+		values.add(""+currentTime);
+		
+		//Should the file be recreated?
+		if (lastFileCreateTime == 0) {
+			//cal is set to the current date and time
+			cal.set(Calendar.HOUR, 0);
+			cal.set(Calendar.MINUTE, 0);
+			cal.set(Calendar.SECOND, 0);
+			cal.set(Calendar.MILLISECOND, 0);
+			
+			int createsToday = (int) ((currentTime - cal.getTimeInMillis()) / newFilePeriodMillis);
+			lastFileCreateTime = cal.getTimeInMillis() + (this.newFilePeriodMillis * createsToday);
+		}
+		
+		if (currentTime >= lastFileCreateTime + newFilePeriodMillis) {
+			log.trace("Creating new CSV file");
+			writer.newFile();
+			int timeDelta = (int) (currentTime - (lastFileCreateTime + newFilePeriodMillis));
+			if (timeDelta > 250) {
+				log.warn("Creating new file, but we're "+timeDelta+"ms late.");
+			}
+			lastFileCreateTime = 0;
+		}
 		
 		boolean atLeastOneGoodValue = false;
 		
@@ -108,7 +143,6 @@ public class CsvOutputModule extends AbstractOutputModule {
 		}
 		if (atLeastOneGoodValue)
 			writer.writeData(values);
-		this.resetRegisterSamplings();
 	}
 
 	@Override

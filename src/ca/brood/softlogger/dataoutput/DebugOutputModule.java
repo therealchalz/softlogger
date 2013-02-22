@@ -73,8 +73,8 @@ public class DebugOutputModule extends AbstractOutputModule {
 	}
 	
 	private void setConfigValue(String name, String value) {
-		if ("logInterval".equalsIgnoreCase(name)) {
-			this.setPeriod(Util.parseInt(value));
+		if ("logInterval".equalsIgnoreCase(name)) { //seconds
+			this.setPeriod(Util.parseInt(value) * 1000);
 		} else {
 			log.warn("Got unexpected config value: "+name+" = "+value);
 		}
