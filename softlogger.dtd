@@ -37,14 +37,14 @@
 <!ATTLIST configValue name CDATA #REQUIRED>
 <!ELEMENT configElement (configValue|configElement)*>
 
-<!ELEMENT channel (defaultScanRate?,(tcp|serial),device*)>
+<!ELEMENT channel (defaultScanRate?,(tcp|serial),outputModule*,device*)>
 <!ELEMENT tcp (host,port?)>
 
 <!ELEMENT serial (comport,baud)>
 <!ELEMENT comport (#PCDATA)>
 <!ELEMENT baud (#PCDATA)>
 
-<!ELEMENT device (unitId,description?,defaultScanRate?,(configRegister|dataRegister)*)>
+<!ELEMENT device (unitId,description?,defaultScanRate?,outputModule*,(configRegister|dataRegister)*)>
 <!ELEMENT unitId (#PCDATA)>
 <!ELEMENT description (#PCDATA)>
 

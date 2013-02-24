@@ -223,9 +223,13 @@ public class Softlogger {
 		}
 		
 		//Load the global output modules
-		loggerConfigNodes = doc.getElementsByTagName("outputModule");
+		currentConfigNode = doc.getDocumentElement();
+		loggerConfigNodes = currentConfigNode.getChildNodes();
 		for (int i=0; i<loggerConfigNodes.getLength(); i++) {
 			currentConfigNode = loggerConfigNodes.item(i);
+			if ("outputModule".compareToIgnoreCase(currentConfigNode.getNodeName())!=0) {
+				continue;
+			}
 			try {
 				@SuppressWarnings("unchecked")
 				Class<? extends OutputModule> outputClass = (Class<? extends OutputModule>) Class.forName(currentConfigNode.getAttributes().getNamedItem("class").getNodeValue());
@@ -238,10 +242,6 @@ public class Softlogger {
 			} catch (Exception e) {
 				log.error("Got exception while loading output module: ",e);
 			}
-			//if (mc.configure(currentConfigNode)) {
-			//	workingChannel = true;
-			//	softloggerChannels.add(mc);
-			//}
 		}
 		
 		for (int i=0; i<softloggerChannels.size(); i++) {

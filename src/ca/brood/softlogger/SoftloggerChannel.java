@@ -25,6 +25,8 @@ import org.apache.log4j.Logger;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import ca.brood.softlogger.dataoutput.OutputModule;
+import ca.brood.softlogger.dataoutput.OutputableDevice;
 import ca.brood.softlogger.modbus.Device;
 import ca.brood.softlogger.modbus.channel.*;
 import ca.brood.softlogger.scheduler.PeriodicSchedulable;
@@ -79,6 +81,7 @@ public class SoftloggerChannel implements Runnable, XmlConfigurable {
 		for (int i=0; i<configNodes.getLength(); i++) {
 			Node configNode = configNodes.item(i);
 			if (("#text".compareToIgnoreCase(configNode.getNodeName())==0)||
+					("outputModule".compareToIgnoreCase(configNode.getNodeName())==0)||
 					("#comment".compareToIgnoreCase(configNode.getNodeName())==0))	{
 				continue;
 			} else if (("device".compareToIgnoreCase(configNode.getNodeName())==0))	{
@@ -113,8 +116,33 @@ public class SoftloggerChannel implements Runnable, XmlConfigurable {
 			return false;
 		}
 		
-		for (int index=0; index < devices.size(); index++) {
-			devices.get(index).setChannel(this.channel);
+		for (Device d : devices) {
+			d.setChannel(this.channel);
+			d.deleteAllOutputModules();
+		}
+		
+		//Load the global output modules
+		NodeList loggerConfigNodes = serverNode.getChildNodes();
+		Node currentConfigNode;
+		for (int i=0; i<loggerConfigNodes.getLength(); i++) {
+			currentConfigNode = loggerConfigNodes.item(i);
+			if ("outputModule".compareToIgnoreCase(currentConfigNode.getNodeName())!=0) {
+				continue;
+			}
+			try {
+				@SuppressWarnings("unchecked")
+				Class<? extends OutputModule> outputClass = (Class<? extends OutputModule>) Class.forName(currentConfigNode.getAttributes().getNamedItem("class").getNodeValue());
+				OutputModule outputModule = outputClass.newInstance();
+				if (outputModule.configure(currentConfigNode)) {
+					for (OutputableDevice d : devices) {
+						d.addOutputModule(outputModule.clone());
+						log.trace("Adding output module to device: "+outputClass);
+						log.trace("Now it has "+d.getOutputModules().size()+" output modules");
+					}
+				}
+			} catch (Exception e) {
+				log.error("Got exception while loading output module: ",e);
+			}
 		}
 		
 		return true;

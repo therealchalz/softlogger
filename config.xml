@@ -33,13 +33,6 @@
 		<configPoll>3600</configPoll>
 		<homeFolder>/home/logger1/data</homeFolder>
 	</server>
-	<outputModule class="ca.brood.softlogger.dataoutput.DebugOutputModule">
-		<configValue name="logInterval">1</configValue>
-	</outputModule>
-	<outputModule class="ca.brood.softlogger.dataoutput.CsvOutputModule">
-		<configValue name="logInterval">1</configValue>
-		<configValue name="newFilePeriod">1</configValue>
-	</outputModule>
 	<channel>
 		<defaultScanRate>333</defaultScanRate> <!-- default scan rate for this channel, overrides Softlogger scan rate -->
 		<tcp>
@@ -52,6 +45,13 @@
 			<baud>19200</baud>
 		</serial>
 		-->
+		<outputModule class="ca.brood.softlogger.dataoutput.DebugOutputModule">
+			<configValue name="logInterval">1</configValue>
+		</outputModule>
+		<outputModule class="ca.brood.softlogger.dataoutput.CsvOutputModule">
+			<configValue name="logInterval">1</configValue>
+			<configValue name="newFilePeriod">1</configValue>
+		</outputModule>
 		<device>
 			<!-- devices can each have a scan rate as well, which overrides their channel
 			and softlogger default scan rates. -->

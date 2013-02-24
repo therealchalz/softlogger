@@ -46,8 +46,11 @@ public class DataOutputManager {
 		//Get all the output modules from all the devices
 		ArrayList<OutputModule> modules = new ArrayList<OutputModule>();
 		for (OutputableDevice d : allDevices) {
+			ArrayList<OutputModule> add = d.getOutputModules();
+			log.trace("Device "+d.getDescription()+" has "+add.size()+" output modules");
 			modules.addAll(d.getOutputModules());
 		}
+		log.trace("Initializing "+modules.size()+" output module instances");
 		//For now, we organize all the output modules of the same class together
 		//in the same scheduler.  This way we have an additional thread for each
 		//type of output module that is added.
