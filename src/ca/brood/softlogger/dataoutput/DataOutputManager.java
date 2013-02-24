@@ -33,47 +33,35 @@ import ca.brood.softlogger.modbus.register.RegisterCollection;
 import ca.brood.softlogger.scheduler.Scheduler;
 
 public class DataOutputManager {
-	private Map<OutputModule,Scheduler> schedulers;
+	private Map<Class<? extends OutputModule>, Scheduler> schedulers;
 	private Logger log;
 	
 	public DataOutputManager() {
-		schedulers = new HashMap<OutputModule, Scheduler>();
+		schedulers = new HashMap<Class<? extends OutputModule>, Scheduler>();
 		
 		log = Logger.getLogger(DataOutputManager.class);
 	}
 	
-	public void addOutputModule(OutputModule m) {
-		Scheduler sched = new Scheduler();
-		sched.setThreadName(m.getDescription());
-		schedulers.put(m, sched);
-	}
-	
-	public void refresh(ArrayList<Device> devices) {
-		for (Device device : devices) {
-			device.deleteAllOutputModules();
+	public void initializeSchedulers(ArrayList<OutputableDevice> allDevices) {
+		//Get all the output modules from all the devices
+		ArrayList<OutputModule> modules = new ArrayList<OutputModule>();
+		for (OutputableDevice d : allDevices) {
+			modules.addAll(d.getOutputModules());
 		}
-		
-		Map<OutputModule,Scheduler> newSchedulers = new HashMap<OutputModule, Scheduler>();
-		
-		for (Entry<OutputModule, Scheduler> entry : schedulers.entrySet()) {
-			Scheduler sched = new Scheduler();
-			sched.setThreadName(entry.getKey().getDescription());
-			for (Device device : devices) {
-				OutputModule newModule = entry.getKey().clone();
-				//log.trace("Original: "+entry.getKey()+ " New: " + newModule);
-				ArrayList<RealRegister> regg = device.getAllRegisters();
-				for (RealRegister regd : regg) {
-					//log.info(regd);
-				}
-				newModule.setRegisterCollection(new RegisterCollection(device.getAllRegisters()));
-				sched.addSchedulee(newModule);
-				device.addOutputModule(newModule);
+		//For now, we organize all the output modules of the same class together
+		//in the same scheduler.  This way we have an additional thread for each
+		//type of output module that is added.
+		for (OutputModule toAdd : modules) {
+			Class<? extends OutputModule> moduleClass = toAdd.getClass();	
+			if (!schedulers.containsKey(moduleClass)) {
+				Scheduler sched = new Scheduler();
+				sched.setThreadName(moduleClass.getName());
+				schedulers.put(moduleClass, sched);
 			}
-			newSchedulers.put(entry.getKey(), sched);
+			schedulers.get(moduleClass).addSchedulee(toAdd);
 		}
-		schedulers = newSchedulers;
 	}
-	
+
 	public void start() {
 		log.info("Starting");
 		for (Scheduler scheduler : schedulers.values()) {

@@ -34,6 +34,7 @@ import org.w3c.dom.Node;
 import ca.brood.softlogger.dataoutput.DataOutputManager;
 import ca.brood.softlogger.dataoutput.DataServer;
 import ca.brood.softlogger.dataoutput.OutputModule;
+import ca.brood.softlogger.dataoutput.OutputableDevice;
 import ca.brood.softlogger.modbus.Device;
 import ca.brood.softlogger.util.*;
 
@@ -96,7 +97,7 @@ public class Softlogger {
 		if (s.configure("config.xml")) {
 			s.run();
 			try {
-				Thread.sleep(125000);
+				Thread.sleep(5000);
 			} catch (InterruptedException e) {
 			}
 			s.stop();
@@ -121,11 +122,11 @@ public class Softlogger {
 			softloggerChannels.get(i).start();
 		}
 		
-		ArrayList<Device> devices = new ArrayList<Device>();
+		ArrayList<OutputableDevice> devices = new ArrayList<OutputableDevice>();
 		for (SoftloggerChannel channel : softloggerChannels) {
 			devices.addAll(channel.getDevices());
 		}
-		dataOutputManager.refresh(devices);
+		dataOutputManager.initializeSchedulers(devices);
 		dataOutputManager.start();
 	}
 
@@ -216,6 +217,11 @@ public class Softlogger {
 			return false;
 		}
 		
+		ArrayList<Device> devices = new ArrayList<Device>();
+		for (SoftloggerChannel channel : softloggerChannels) {
+			devices.addAll(channel.getDevices());
+		}
+		
 		//Load the global output modules
 		loggerConfigNodes = doc.getElementsByTagName("outputModule");
 		for (int i=0; i<loggerConfigNodes.getLength(); i++) {
@@ -225,7 +231,9 @@ public class Softlogger {
 				Class<? extends OutputModule> outputClass = (Class<? extends OutputModule>) Class.forName(currentConfigNode.getAttributes().getNamedItem("class").getNodeValue());
 				OutputModule outputModule = outputClass.newInstance();
 				if (outputModule.configure(currentConfigNode)) {
-					dataOutputManager.addOutputModule(outputModule);
+					for (OutputableDevice d : devices) {
+						d.addOutputModule(outputModule.clone());
+					}
 				}
 			} catch (Exception e) {
 				log.error("Got exception while loading output module: ",e);
