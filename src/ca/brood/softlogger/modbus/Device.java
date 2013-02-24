@@ -19,6 +19,8 @@
  *     Charles Hache - initial API and implementation
  ******************************************************************************/
 package ca.brood.softlogger.modbus;
+import ca.brood.softlogger.datafunction.DataFunction;
+import ca.brood.softlogger.datafunction.DataProcessingManager;
 import ca.brood.softlogger.dataoutput.OutputModule;
 import ca.brood.softlogger.dataoutput.OutputableDevice;
 import ca.brood.softlogger.modbus.channel.ModbusChannel;
@@ -89,6 +91,7 @@ public class Device implements Schedulable, XmlConfigurable, OutputableDevice {
 		for (int i=0; i<configNodes.getLength(); i++) {
 			Node configNode = configNodes.item(i);
 			if (("#text".compareToIgnoreCase(configNode.getNodeName())==0)||
+					("outputModule".compareToIgnoreCase(configNode.getNodeName())==0)||
 					("#comment".compareToIgnoreCase(configNode.getNodeName())==0))	{
 				continue;
 			} else if (("unitId".compareToIgnoreCase(configNode.getNodeName())==0)) {
@@ -504,6 +507,10 @@ public class Device implements Schedulable, XmlConfigurable, OutputableDevice {
 				}
 				RegisterData temp = new RegisterData();
 				temp.setData(new Integer(val));
+				if (reg.getFunctionClass() != null) {
+					DataFunction func = DataProcessingManager.getDataFunction(reg.getFunctionClass());
+					func.process(temp, reg.getDataFunctionArgument());
+				}
 				reg.setDataWithSampling(temp);
 			} else if (getDataLength(response) >= offset+reg.getSize() && reg.getSize() == 2) {
 				//32-bit register reading
@@ -523,6 +530,10 @@ public class Device implements Schedulable, XmlConfigurable, OutputableDevice {
 				//log.info("Registers 1: "+((ReadInputRegistersResponse)response).getRegister(offset).getValue()+" Register 2: "+((ReadInputRegistersResponse)response).getRegister(offset+1).getValue()+" new Value: "+val);
 				RegisterData temp = new RegisterData();
 				temp.setDataFloat(val);
+				if (reg.getFunctionClass() != null) {
+					DataFunction func = DataProcessingManager.getDataFunction(reg.getFunctionClass());
+					func.process(temp, reg.getDataFunctionArgument());
+				}
 				reg.setDataWithSampling(temp);
 			} else { //not 1 or 2 words
 				log.error("Invalid offset for ReadInputRegisterResponse - Offset: "+offset+" DataLength: "+getDataLength(response)+" Size: "+reg.getSize()+" "+reg);
@@ -544,6 +555,10 @@ public class Device implements Schedulable, XmlConfigurable, OutputableDevice {
 				}
 				RegisterData temp = new RegisterData();
 				temp.setData(new Integer(val));
+				if (reg.getFunctionClass() != null) {
+					DataFunction func = DataProcessingManager.getDataFunction(reg.getFunctionClass());
+					func.process(temp, reg.getDataFunctionArgument());
+				}
 				reg.setDataWithSampling(temp);
 			} else if (getDataLength(response) >= offset+reg.getSize() && reg.getSize() == 2) {
 				//32-bit register reading
@@ -563,6 +578,10 @@ public class Device implements Schedulable, XmlConfigurable, OutputableDevice {
 				//log.info("Registers 1: "+((ReadMultipleRegistersResponse)response).getRegister(offset).getValue()+" Register 2: "+((ReadMultipleRegistersResponse)response).getRegister(offset+1).getValue()+" new Value: "+val);
 				RegisterData temp = new RegisterData();
 				temp.setDataFloat(val);
+				if (reg.getFunctionClass() != null) {
+					DataFunction func = DataProcessingManager.getDataFunction(reg.getFunctionClass());
+					func.process(temp, reg.getDataFunctionArgument());
+				}
 				reg.setDataWithSampling(temp);
 			} else { //not 1 or 2 words
 				log.error("Invalid offset for ReadMultipleRegistersResponse - Offset: "+offset+" DataLength: "+getDataLength(response)+" Size: "+reg.getSize()+" "+reg);

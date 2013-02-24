@@ -78,7 +78,7 @@
 				<fieldName>Measurement 2</fieldName>
 				<registerAddress>300003</registerAddress>
 				<size>2</size>
-				<dataFunction type="lookupTable">LUT1.dat</dataFunction>
+				<dataFunction class="ca.brood.softlogger.datafunction.LookupTableDataFunction">LUT1.dat</dataFunction>
 				<guid>D3M02</guid>
 			</dataRegister>
 			<dataRegister>
@@ -92,7 +92,7 @@
 				<fieldName>Measurement 4</fieldName>
 				<registerAddress>400005</registerAddress>
 				<size type="float">2</size>
-				<dataFunction type="expression">PI*$*1000/sqrt(E)</dataFunction>
+				<dataFunction class="ca.brood.softlogger.datafunction.ExpressionParserDataFunction">PI*$*1000/sqrt(E)</dataFunction>
 				<guid>D3M04</guid>
 			</dataRegister>
 			<dataRegister>

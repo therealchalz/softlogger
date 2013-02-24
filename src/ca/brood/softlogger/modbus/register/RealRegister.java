@@ -20,6 +20,7 @@
  ******************************************************************************/
 package ca.brood.softlogger.modbus.register;
 
+import ca.brood.softlogger.datafunction.DataFunction;
 import ca.brood.softlogger.util.*;
 import net.wimpi.modbus.msg.ModbusRequest;
 import net.wimpi.modbus.msg.ReadCoilsRequest;
@@ -42,6 +43,8 @@ public class RealRegister extends Register implements Comparable<RealRegister>{
 	protected double samplingValue = 0;
 	protected int samplingCount = 0;
 	protected RegisterSizeType sizeType;
+	protected Class<? extends DataFunction> functionClass;
+	protected String dataFunctionArgument;
 	
 	protected RealRegister(int device) {
 		super();
@@ -49,6 +52,8 @@ public class RealRegister extends Register implements Comparable<RealRegister>{
 		log = Logger.getLogger(RealRegister.class + " device: "+device);
 		sampling = ScanRateSampling.MEAN;
 		sizeType = RegisterSizeType.UNSIGNED;
+		functionClass = null;
+		dataFunctionArgument = "";
 	}
 	protected RealRegister(RealRegister r) {
 		super(r);
@@ -61,9 +66,23 @@ public class RealRegister extends Register implements Comparable<RealRegister>{
 		samplingValue = r.samplingValue;
 		samplingCount = r.samplingCount;
 		sizeType = r.sizeType;
+		functionClass = r.functionClass;
+		dataFunctionArgument = r.dataFunctionArgument;
 	}
 	public RealRegister clone() {
 		return new RealRegister(this);
+	}
+	public String getDataFunctionArgument() {
+		return dataFunctionArgument;
+	}
+	public void setDataFunctionArgument(String arg) {
+		dataFunctionArgument = arg;
+	}
+	public Class<? extends DataFunction> getFunctionClass() {
+		return functionClass;
+	}
+	public void setFunctionClass(Class<? extends DataFunction> func) {
+		functionClass = func;
 	}
 	public RegisterSizeType getSizeType() {
 		return this.sizeType;
@@ -137,6 +156,7 @@ public class RealRegister extends Register implements Comparable<RealRegister>{
 	public int getScanRate() {
 		return this.scanRate;
 	}
+	
 	public boolean configure(Node registerNode) {
 		if (!super.configure(registerNode)) {
 			return false;
@@ -171,6 +191,17 @@ public class RealRegister extends Register implements Comparable<RealRegister>{
 				} catch (NumberFormatException e) {
 					log.error("Couldn't parse size to integer from: "+configNode.getFirstChild().getNodeValue());
 				}
+			} else if (("dataFunction".compareToIgnoreCase(configNode.getNodeName())==0))	{
+				String functionType = configNode.getAttributes().item(0).getTextContent();
+				String functionArg = configNode.getFirstChild().getNodeValue();
+				try {
+					this.setFunctionClass((Class<? extends DataFunction>) Class.forName(functionType));
+					this.setDataFunctionArgument(functionArg);
+					registerNode.removeChild(configNode);
+				} catch (ClassNotFoundException e) {
+					log.error("Couldn't load data function: "+functionType);
+				}
+				
 			} else if ("scanRate".compareToIgnoreCase(configNode.getNodeName())==0){
 				try {
 					if (configNode.getFirstChild() != null)
