@@ -128,6 +128,26 @@ public class Device implements Schedulable, XmlConfigurable, OutputableDevice {
 			return false;
 		}
 		
+		//Load the device output modules
+		NodeList loggerConfigNodes = deviceNode.getChildNodes();
+		Node currentConfigNode;
+		for (int i=0; i<loggerConfigNodes.getLength(); i++) {
+			currentConfigNode = loggerConfigNodes.item(i);
+			if ("outputModule".compareToIgnoreCase(currentConfigNode.getNodeName())!=0) {
+				continue;
+			}
+			try {
+				@SuppressWarnings("unchecked")
+				Class<? extends OutputModule> outputClass = (Class<? extends OutputModule>) Class.forName(currentConfigNode.getAttributes().getNamedItem("class").getNodeValue());
+				OutputModule outputModule = outputClass.newInstance();
+				if (outputModule.configure(currentConfigNode)) {
+					this.addOutputModule(outputModule);
+				}
+			} catch (Exception e) {
+				log.error("Got exception while loading output module: ",e);
+			}
+		}
+		
 		Collections.sort(configRegs);
 		Collections.sort(dataRegs);
 		

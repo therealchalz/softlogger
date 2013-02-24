@@ -45,20 +45,19 @@
 			<baud>19200</baud>
 		</serial>
 		-->
-		<outputModule class="ca.brood.softlogger.dataoutput.DebugOutputModule">
-			<configValue name="logInterval">1</configValue>
-		</outputModule>
-		<outputModule class="ca.brood.softlogger.dataoutput.CsvOutputModule">
-			<configValue name="logInterval">1</configValue>
-			<configValue name="newFilePeriod">1</configValue>
-		</outputModule>
 		<device>
 			<!-- devices can each have a scan rate as well, which overrides their channel
 			and softlogger default scan rates. -->
 			<unitId>15</unitId>
 			<description>DSI #1</description>
 			<defaultScanRate>100</defaultScanRate>
-			
+			<outputModule class="ca.brood.softlogger.dataoutput.DebugOutputModule">
+			<configValue name="logInterval">1</configValue>
+		</outputModule>
+		<outputModule class="ca.brood.softlogger.dataoutput.CsvOutputModule">
+			<configValue name="logInterval">1</configValue>
+			<configValue name="newFilePeriod">1</configValue>
+		</outputModule>
 			<configRegister>
 				<fieldName>Config coil 1 true</fieldName>
 				<registerAddress>000001</registerAddress>

@@ -118,10 +118,9 @@ public class SoftloggerChannel implements Runnable, XmlConfigurable {
 		
 		for (Device d : devices) {
 			d.setChannel(this.channel);
-			d.deleteAllOutputModules();
 		}
 		
-		//Load the global output modules
+		//Load the channel output modules
 		NodeList loggerConfigNodes = serverNode.getChildNodes();
 		Node currentConfigNode;
 		for (int i=0; i<loggerConfigNodes.getLength(); i++) {
@@ -136,8 +135,6 @@ public class SoftloggerChannel implements Runnable, XmlConfigurable {
 				if (outputModule.configure(currentConfigNode)) {
 					for (OutputableDevice d : devices) {
 						d.addOutputModule(outputModule.clone());
-						log.trace("Adding output module to device: "+outputClass);
-						log.trace("Now it has "+d.getOutputModules().size()+" output modules");
 					}
 				}
 			} catch (Exception e) {
