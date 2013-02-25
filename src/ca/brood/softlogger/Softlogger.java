@@ -37,6 +37,7 @@ import ca.brood.softlogger.dataoutput.OutputModule;
 import ca.brood.softlogger.dataoutput.OutputableDevice;
 import ca.brood.softlogger.lookuptable.LookupTable;
 import ca.brood.softlogger.lookuptable.LookupTableGenerator;
+import ca.brood.softlogger.lookuptable.LookupTableManager;
 import ca.brood.softlogger.lookuptable.TestGenerator;
 import ca.brood.softlogger.modbus.Device;
 import ca.brood.softlogger.util.*;
@@ -65,6 +66,7 @@ public class Softlogger {
 	 * 
 	 * TODO:
 	 * -dataFunction element (and type attribute)
+	 * -Cleanup of lookup table exceptions
 	 * 
 	 * Longer term TODO:
 	 * -logging to local database so other things can use the data (web realtime frontend etc)
@@ -118,13 +120,21 @@ public class Softlogger {
 		for (int i=0; i<softloggerChannels.size(); i++) {
 			softloggerChannels.get(i).stop();
 		}
+		
+		try {
+			LookupTableManager.closeAll();
+		} catch (Exception e) {
+			log.error("LUT closing error: ", e);
+		}
 	}
 	
 	public void run() {
-		/*
+		
 		try {
-			LookupTableGenerator.generate("lut/lut1.dat", new TestGenerator(), 8, "Test lookup table... 420 compliant", 1024);
-			LookupTable lut = new LookupTable("lut/lut1.dat");
+			File f = new File("lut/LUT1.dat");
+			if (!f.exists())
+				LookupTableGenerator.generate("lut/LUT1.dat", new TestGenerator(), 4, "Test lookup table... 420 compliant", 65536);
+			/*LookupTable lut = new LookupTable("lut/lut1.dat");
 			lut.open();
 			log.info("LUT description: "+lut.getDescription());
 			log.info("LUT Size: "+lut.getSize());
@@ -135,12 +145,12 @@ public class Softlogger {
 			log.info("LUT 100: "+lut.lookup(100));
 			log.info("LUT 200: "+lut.lookup(200));
 			log.info("LUT 1000: "+lut.lookup(1000));
-			lut.close();
+			lut.close();*/
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		*/
+		
 		//Start all the softloggerChannels, which will in turn start all the devices
 		for (int i=0; i<softloggerChannels.size(); i++) {
 			softloggerChannels.get(i).start();

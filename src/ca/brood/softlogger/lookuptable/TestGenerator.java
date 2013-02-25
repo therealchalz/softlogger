@@ -4,7 +4,7 @@ public class TestGenerator implements GenerationFunction {
 
 	@Override
 	public double process(int index) {
-		return 42*index;
+		return 2*index;
 	}
 
 }
