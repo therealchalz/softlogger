@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2013 Charles Hache. All rights reserved. 
+ * Copyright (c) 2013 Charles Hache <chache@brood.ca>. All rights reserved. 
  * 
  * This file is part of the softlogger project.
  * softlogger is free software: you can redistribute it and/or modify
@@ -16,7 +16,7 @@
  * along with softlogger.  If not, see <http://www.gnu.org/licenses/>.
  * 
  * Contributors:
- *     Charles Hache - initial API and implementation
+ *     Charles Hache <chache@brood.ca> - initial API and implementation
  ******************************************************************************/
 package ca.brood.softlogger;
 
@@ -35,16 +35,13 @@ import ca.brood.softlogger.dataoutput.DataOutputManager;
 import ca.brood.softlogger.dataoutput.DataServer;
 import ca.brood.softlogger.dataoutput.OutputModule;
 import ca.brood.softlogger.dataoutput.OutputableDevice;
-import ca.brood.softlogger.lookuptable.LookupTable;
 import ca.brood.softlogger.lookuptable.LookupTableGenerator;
 import ca.brood.softlogger.lookuptable.LookupTableManager;
 import ca.brood.softlogger.lookuptable.TestGenerator;
 import ca.brood.softlogger.modbus.Device;
 import ca.brood.softlogger.util.*;
 
-
 import java.io.File;
-import java.io.IOException;
 
 
 public class Softlogger {
@@ -65,8 +62,8 @@ public class Softlogger {
 	 * and they're not all the same size, the wrong size may be requested.
 	 * 
 	 * TODO:
-	 * -dataFunction element (and type attribute)
-	 * -Cleanup of lookup table exceptions
+	 * -dataFunction element (JEP, LUT is done)
+	 * -Cleanup of lookup table exceptions/error handling
 	 * 
 	 * Longer term TODO:
 	 * -logging to local database so other things can use the data (web realtime frontend etc)
@@ -74,7 +71,7 @@ public class Softlogger {
 	 * -email alerts
 	 * -reverse tunnel
 	 * -uptime tracking(cpu, internet, rtunnel)
-	 *
+	 * -convert to apache daemon runner 
 	 */
 	
 	

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2013 Charles Hache. All rights reserved. 
+ * Copyright (c) 2013 Charles Hache <chache@brood.ca>. All rights reserved. 
  * 
  * This file is part of the softlogger project.
  * softlogger is free software: you can redistribute it and/or modify
@@ -16,7 +16,7 @@
  * along with softlogger.  If not, see <http://www.gnu.org/licenses/>.
  * 
  * Contributors:
- *     Charles Hache - initial API and implementation
+ *     Charles Hache <chache@brood.ca> - initial API and implementation
  ******************************************************************************/
 package ca.brood.softlogger.modbus.register;
 
@@ -157,6 +157,7 @@ public class RealRegister extends Register implements Comparable<RealRegister>{
 		return this.scanRate;
 	}
 	
+	@SuppressWarnings("unchecked")
 	public boolean configure(Node registerNode) {
 		if (!super.configure(registerNode)) {
 			return false;

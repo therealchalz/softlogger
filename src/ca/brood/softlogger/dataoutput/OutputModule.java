@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2013 Charles Hache. All rights reserved. 
+ * Copyright (c) 2013 Charles Hache <chache@brood.ca>. All rights reserved. 
  * 
  * This file is part of the softlogger project.
  * softlogger is free software: you can redistribute it and/or modify
@@ -16,13 +16,10 @@
  * along with softlogger.  If not, see <http://www.gnu.org/licenses/>.
  * 
  * Contributors:
- *     Charles Hache - initial API and implementation
+ *     Charles Hache <chache@brood.ca> - initial API and implementation
  ******************************************************************************/
 package ca.brood.softlogger.dataoutput;
 
-import java.util.ArrayList;
-
-import ca.brood.softlogger.modbus.register.RealRegister;
 import ca.brood.softlogger.modbus.register.RegisterCollection;
 import ca.brood.softlogger.scheduler.Schedulable;
 import ca.brood.softlogger.util.XmlConfigurable;
