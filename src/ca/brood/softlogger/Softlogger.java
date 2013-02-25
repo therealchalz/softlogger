@@ -35,11 +35,15 @@ import ca.brood.softlogger.dataoutput.DataOutputManager;
 import ca.brood.softlogger.dataoutput.DataServer;
 import ca.brood.softlogger.dataoutput.OutputModule;
 import ca.brood.softlogger.dataoutput.OutputableDevice;
+import ca.brood.softlogger.lookuptable.LookupTable;
+import ca.brood.softlogger.lookuptable.LookupTableGenerator;
+import ca.brood.softlogger.lookuptable.TestGenerator;
 import ca.brood.softlogger.modbus.Device;
 import ca.brood.softlogger.util.*;
 
 
 import java.io.File;
+import java.io.IOException;
 
 
 public class Softlogger {
@@ -97,7 +101,7 @@ public class Softlogger {
 		if (s.configure("config.xml")) {
 			s.run();
 			try {
-				Thread.sleep(5000);
+				Thread.sleep(1000);
 			} catch (InterruptedException e) {
 			}
 			s.stop();
@@ -117,6 +121,26 @@ public class Softlogger {
 	}
 	
 	public void run() {
+		/*
+		try {
+			LookupTableGenerator.generate("lut/lut1.dat", new TestGenerator(), 8, "Test lookup table... 420 compliant", 1024);
+			LookupTable lut = new LookupTable("lut/lut1.dat");
+			lut.open();
+			log.info("LUT description: "+lut.getDescription());
+			log.info("LUT Size: "+lut.getSize());
+			log.info("LUT 0: "+lut.lookup(0));
+			log.info("LUT 1: "+lut.lookup(1));
+			log.info("LUT 10: "+lut.lookup(10));
+			log.info("LUT 20: "+lut.lookup(20));
+			log.info("LUT 100: "+lut.lookup(100));
+			log.info("LUT 200: "+lut.lookup(200));
+			log.info("LUT 1000: "+lut.lookup(1000));
+			lut.close();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		*/
 		//Start all the softloggerChannels, which will in turn start all the devices
 		for (int i=0; i<softloggerChannels.size(); i++) {
 			softloggerChannels.get(i).start();
