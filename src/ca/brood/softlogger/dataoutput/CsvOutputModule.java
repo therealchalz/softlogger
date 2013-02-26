@@ -136,7 +136,7 @@ public class CsvOutputModule extends AbstractOutputModule {
 			if (r.isNull())
 				values.add("NULL");
 			else {
-				values.add(""+r.getInteger());
+				values.add(""+r.getFloat());
 				atLeastOneGoodValue = true;
 			}
 		}
