@@ -27,22 +27,28 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import ca.brood.softlogger.modbus.register.RealRegister;
+import ca.brood.softlogger.scheduler.PeriodicSchedulable;
 import ca.brood.softlogger.util.Util;
 
 public class DebugOutputModule extends AbstractOutputModule {
 	private Logger log;
 	private String description;
+	private PeriodicSchedulable schedulable;
 	
 	public DebugOutputModule() {
 		super();
 		log = Logger.getLogger(DebugOutputModule.class);
 		description = "DebugOutputModule";
+		schedulable = new PeriodicSchedulable();
+		schedulable.setAction(this);
 	}
 	
 	public DebugOutputModule(DebugOutputModule o) {
 		super(o);
 		log = Logger.getLogger(DebugOutputModule.class);
 		description = o.description;
+		schedulable = new PeriodicSchedulable(o.schedulable);
+		schedulable.setAction(this);
 	}
 	
 	@Override
@@ -72,8 +78,8 @@ public class DebugOutputModule extends AbstractOutputModule {
 	}
 	
 	private void setConfigValue(String name, String value) {
-		if ("logInterval".equalsIgnoreCase(name)) { //seconds
-			this.setPeriod(Util.parseInt(value) * 1000);
+		if ("logIntervalSeconds".equalsIgnoreCase(name)) { //seconds
+			schedulable.setPeriod(Util.parseInt(value) * 1000);
 		} else {
 			log.warn("Got unexpected config value: "+name+" = "+value);
 		}
@@ -104,7 +110,17 @@ public class DebugOutputModule extends AbstractOutputModule {
 	}
 	
 	public String toString() {
-		return "DebugOutputModule - description: "+this.description +" period: "+ this.getPeriod();
+		return "DebugOutputModule - description: "+this.description +" period: "+ schedulable.getPeriod();
+	}
+
+	@Override
+	public long getNextRun() {
+		return schedulable.getNextRun();
+	}
+
+	@Override
+	public void execute() {
+		schedulable.execute();
 	}
 
 }

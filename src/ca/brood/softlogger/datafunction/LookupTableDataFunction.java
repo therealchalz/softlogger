@@ -35,8 +35,7 @@ public class LookupTableDataFunction implements DataFunction {
 	
 	@Override
 	public void process(RegisterData data, String funcArg) {
-		// TODO Auto-generated method stub
-		log.info("Processing: "+funcArg);
+		log.trace("Processing: "+funcArg);
 		try {
 			LookupTable lut = LookupTableManager.getLookupTable(funcArg);
 			data.setDataFloat(lut.lookup(data.getInt()).floatValue());

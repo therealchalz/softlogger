@@ -37,6 +37,10 @@ public class PeriodicSchedulable implements Schedulable, Comparable<Schedulable>
 		action = o.action;
 	}
 	
+	public PeriodicSchedulable clone() {
+		return new PeriodicSchedulable(this);
+	}
+	
 	public PeriodicSchedulable(int period) {
 		this.period = period;
 		nextRun = System.currentTimeMillis();
