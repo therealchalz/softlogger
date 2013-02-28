@@ -162,7 +162,8 @@ public class SoftloggerChannel implements Runnable, XmlConfigurable {
 		//scheduled every 1000ms by the same scheduler that handles the
 		//devices.  The idea is that the channel can check if the devices
 		//should run - if not then the channel can stop the scheduler
-		//temporarily then restart it when the comm link comes back.
+		//temporarily then restart it when the comm link comes back, for
+		//example.
 		
 		boolean stopped = false;
 		

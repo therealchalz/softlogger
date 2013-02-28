@@ -47,36 +47,45 @@ public class Scheduler {
 		runner.setName(name);
 	}
 	
-	private class SchedulerRunner extends Thread {
+	private class SchedulerRunner implements Runnable {
 		private SchedulerQueue schedulerQueue;
 		private Boolean shouldRun;
 		private Logger log;
-		private String description;
+		private String name;
+		private Thread myRunner;
 		
 		public SchedulerRunner() {
 			schedulerQueue = new SchedulerQueue();
 			shouldRun = new Boolean(false);
 			log = Logger.getLogger(SchedulerRunner.class);
-			description = "Unnamed";
+			name = "Unnamed Thread Scheduler";
 		}
 		public void addSchedulee(Schedulable sch) {
 			schedulerQueue.add(sch);
 		}
+		
+		public void setName(String name) {
+			this.name = name;
+		}
 		public void beginRunner() {
-			log.info(description+"- Starting");
+			log.info(name+"- Starting");
 			boolean start = !getShouldRun();
 			setShouldRun(true);
 			if (start) {
-				this.start();
+				myRunner = new Thread(this);
+				myRunner.setName(name);
+				myRunner.start();
 			}
 		}
 		
 		public void stopRunner() {
-			log.info(description+"- Stopping");
-			boolean interrupt = getShouldRun() | this.isAlive();
-			setShouldRun(false);
-			if (interrupt) {
-				this.interrupt();
+			log.info(name+"- Stopping");
+			if (myRunner != null) {
+				boolean interrupt = getShouldRun() | myRunner.isAlive();
+				setShouldRun(false);
+				if (interrupt) {
+					myRunner.interrupt();
+				}
 			}
 		}
 		
@@ -99,8 +108,6 @@ public class Scheduler {
 				this.setShouldRun(false);
 				return;
 			}
-			
-			description = Thread.currentThread().getName();
 			
 			ThreadPerformanceMonitor.threadStarting();
 			log.info("Running");

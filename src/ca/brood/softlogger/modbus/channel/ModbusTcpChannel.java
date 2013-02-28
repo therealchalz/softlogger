@@ -21,6 +21,7 @@
 package ca.brood.softlogger.modbus.channel;
 
 import net.wimpi.modbus.ModbusException;
+import net.wimpi.modbus.ModbusIOException;
 import net.wimpi.modbus.io.ModbusTCPTransaction;
 import net.wimpi.modbus.msg.*;
 import net.wimpi.modbus.net.*;
@@ -109,7 +110,13 @@ public class ModbusTcpChannel extends ModbusChannel {
 		ModbusTCPTransaction trans = new ModbusTCPTransaction(this.connection);
 		
 		trans.setRequest(req);
-		trans.execute();
+		try {
+			trans.execute();
+		} catch (ModbusIOException e) {
+			//channel closed?
+			this.close();
+			throw e;
+		}
 		return trans.getResponse();
 	}
 
