@@ -22,8 +22,8 @@ package ca.brood.softlogger.scheduler;
 
 public class PeriodicSchedulable implements Schedulable, Comparable<Schedulable> {
 
-	private Long nextRun;
-	private Integer period;
+	private long nextRun;
+	private int period;
 	private Runnable action;
 	
 	public PeriodicSchedulable() {
@@ -51,15 +51,11 @@ public class PeriodicSchedulable implements Schedulable, Comparable<Schedulable>
 		this.action = action;
 	}
 	
-	public int getPeriod() {
-		synchronized (period) {
-			return period;
-		}
+	public synchronized int getPeriod() {
+		return period;
 	}
-	public void setPeriod(int p) {
-		synchronized (period) {
-			period = p;
-		}
+	public synchronized void setPeriod(int p) {
+		period = p;
 		setNextRun(System.currentTimeMillis() + getPeriod());
 	}
 
@@ -97,15 +93,11 @@ public class PeriodicSchedulable implements Schedulable, Comparable<Schedulable>
 		return (int)(this.getNextRun() - other.getNextRun());
 	}
 	@Override
-	public long getNextRun() {
-		synchronized (nextRun) {
-			return nextRun;
-		}
+	public synchronized long getNextRun() {
+		return nextRun;
 	}
 	
-	private void setNextRun(long nr) {
-		synchronized (nextRun) {
-			nextRun = nr;
-		}
+	public synchronized void setNextRun(long nr) {
+		nextRun = nr;
 	}
 }

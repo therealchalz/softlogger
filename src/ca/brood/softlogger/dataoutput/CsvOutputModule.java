@@ -65,6 +65,7 @@ public class CsvOutputModule extends AbstractOutputModule {
 	private void setConfigValue(String name, String value) {
 		if ("logIntervalSeconds".equalsIgnoreCase(name)) { //seconds
 			schedulable.setPeriod(Util.parseInt(value) * 1000);
+			schedulable.setNextRun(this.getPrettyTimeForToday(System.currentTimeMillis(), schedulable.getPeriod()));
 		} else if ("newFilePeriodMinutes".equalsIgnoreCase(name)) { //minutes
 			newFilePeriodMillis = Util.parseInt(value) * 60 * 1000;
 		} else {
@@ -89,6 +90,21 @@ public class CsvOutputModule extends AbstractOutputModule {
 			}
 		}
 		return true;
+	}
+	
+	private long getPrettyTimeForToday(long currentTime, long period) {
+		long nextTime = 0;
+		
+		Calendar cal = Calendar.getInstance();
+		cal.setTimeInMillis(currentTime);
+		cal.set(Calendar.HOUR, 0);
+		cal.set(Calendar.MINUTE, 0);
+		cal.set(Calendar.SECOND, 0);
+		cal.set(Calendar.MILLISECOND, 0);
+		
+		int fullPeriodsToday = (int) ((currentTime - cal.getTimeInMillis()) / period);
+		nextTime = cal.getTimeInMillis() + (period * (fullPeriodsToday+1));
+		return nextTime;
 	}
 
 	@Override
@@ -116,14 +132,8 @@ public class CsvOutputModule extends AbstractOutputModule {
 		
 		//Should the file be recreated?
 		if (lastFileCreateTime == 0) {
-			//cal is set to the current date and time
-			cal.set(Calendar.HOUR, 0);
-			cal.set(Calendar.MINUTE, 0);
-			cal.set(Calendar.SECOND, 0);
-			cal.set(Calendar.MILLISECOND, 0);
-			
-			int createsToday = (int) ((currentTime - cal.getTimeInMillis()) / newFilePeriodMillis);
-			lastFileCreateTime = cal.getTimeInMillis() + (this.newFilePeriodMillis * createsToday);
+			lastFileCreateTime = getPrettyTimeForToday(currentTime, newFilePeriodMillis);
+			lastFileCreateTime -= newFilePeriodMillis;	//since getPrettyTimeForToday() returns the NEXT time
 		}
 		
 		if (currentTime >= lastFileCreateTime + newFilePeriodMillis) {

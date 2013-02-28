@@ -55,7 +55,7 @@
 				<configValue name="logIntervalSeconds">1</configValue>
 			</outputModule>
 			<outputModule class="ca.brood.softlogger.dataoutput.CsvOutputModule">
-				<configValue name="logIntervalSeconds">1</configValue>
+				<configValue name="logIntervalSeconds">5</configValue>
 				<configValue name="newFilePeriodMinutes">1</configValue>
 			</outputModule>
 			<configRegister>
