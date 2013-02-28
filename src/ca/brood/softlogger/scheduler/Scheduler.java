@@ -143,7 +143,7 @@ public class Scheduler {
 				ThreadPerformanceMonitor.threadStarting();
 			}
 			log.info("Thread exiting");
-			ThreadPerformanceMonitor.threadStopping();
+			ThreadPerformanceMonitor.threadExit();
 		}
 		
 	}

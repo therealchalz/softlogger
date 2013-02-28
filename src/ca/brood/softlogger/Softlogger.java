@@ -100,10 +100,15 @@ public class Softlogger {
 		if (s.configure("config.xml")) {
 			s.run();
 			try {
-				Thread.sleep(30000);
+				Thread.sleep(10000);
 			} catch (InterruptedException e) {
 			}
 			s.stop();
+			//Wait a second for the threads to quit before printing performance data
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+			}
 			ThreadPerformanceMonitor.printPerformanceData();
 		}
 		s.log.info("All done");

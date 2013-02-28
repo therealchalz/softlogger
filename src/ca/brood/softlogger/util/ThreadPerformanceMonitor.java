@@ -27,6 +27,10 @@ import java.util.Set;
 import org.apache.log4j.Logger;
 
 public class ThreadPerformanceMonitor {
+	//TODO:
+	//Set maximum number of threads to store data for
+	//If we run out of space, then delete from the list of exited
+	//threads, starting with the ones with the lightest duty cycle.
 	private static Map<Thread,ThreadPerformanceData> performanceData;
 	private static Logger log;
 	
@@ -41,6 +45,7 @@ public class ThreadPerformanceMonitor {
 		private long onTime = 0;
 		private long offTime = 0;
 		private boolean running = false;
+		private boolean didExit = false;
 		
 		public ThreadPerformanceData() {
 			
@@ -84,6 +89,14 @@ public class ThreadPerformanceMonitor {
 				return (double)(onTime+extraOn)/(double)(onTime+offTime+extraOn+extraOff)*100.0;
 			return 0;
 		}
+		
+		public void threadExited() {
+			didExit = true;
+		}
+		
+		public boolean exited() {
+			return didExit;
+		}
 	}
 	
 	public static synchronized void threadStarting() {
@@ -112,7 +125,19 @@ public class ThreadPerformanceMonitor {
 		Set<Thread> keys = performanceData.keySet();
 		for (Thread t : keys) {
 			ThreadPerformanceData pd = performanceData.get(t);
-			log.info(t.getName()+": "+pd.getDutyCycle()+"%");
+			log.info(t.getName()+"(exited: "+pd.exited()+"): "+pd.getDutyCycle()+"%");
 		}
+	}
+	
+	public static synchronized void threadExit() {
+		Thread t = Thread.currentThread();
+		if (!performanceData.containsKey(t)) {
+			ThreadPerformanceData n = new ThreadPerformanceData();
+			performanceData.put(t, n);
+		}
+		
+		ThreadPerformanceData pd = performanceData.get(t);
+		pd.stopping();
+		pd.threadExited();
 	}
 }
