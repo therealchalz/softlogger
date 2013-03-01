@@ -21,7 +21,6 @@
 package ca.brood.softlogger.dataoutput;
 
 import ca.brood.softlogger.modbus.register.RegisterCollection;
-import ca.brood.softlogger.scheduler.PeriodicSchedulable;
 import ca.brood.softlogger.scheduler.Schedulable;
 
 public abstract class AbstractOutputModule 
