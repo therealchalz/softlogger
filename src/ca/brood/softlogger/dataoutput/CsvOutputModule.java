@@ -37,6 +37,7 @@ public class CsvOutputModule extends AbstractOutputModule {
 	private CsvFileWriter writer;
 	private PrettyPeriodicSchedulable logSchedulable;
 	private PrettyPeriodicSchedulable fileCreateSchedulable;
+	private boolean firstLineOutputted;
 	
 	public CsvOutputModule() {
 		super();
@@ -45,6 +46,7 @@ public class CsvOutputModule extends AbstractOutputModule {
 		logSchedulable = new PrettyPeriodicSchedulable();
 		logSchedulable.setAction(this);
 		fileCreateSchedulable = new PrettyPeriodicSchedulable();
+		firstLineOutputted = false;
 	}
 	
 	public CsvOutputModule(CsvOutputModule o) {
@@ -54,6 +56,7 @@ public class CsvOutputModule extends AbstractOutputModule {
 		logSchedulable = new PrettyPeriodicSchedulable(o.logSchedulable);
 		logSchedulable.setAction(this);
 		fileCreateSchedulable = new PrettyPeriodicSchedulable();
+		firstLineOutputted = o.firstLineOutputted;
 	}
 
 
@@ -94,6 +97,18 @@ public class CsvOutputModule extends AbstractOutputModule {
 	@Override
 	public void run() {
 		log.info("Running");
+		
+		/* Always skip the first line of data, aka the first call
+		 * to run().  We always want to make sure that the first
+		 * line of data in the output is from one full, complete
+		 * polling cycle, otherwise registers configured as
+		 * accumulate, for example, would have smaller values than 
+		 * expected.
+		 */
+		if (!firstLineOutputted) {
+			firstLineOutputted = true;
+			return;
+		}
 		
 		ArrayList<String> heads = new ArrayList<String>();
 		heads.add("datetime");
