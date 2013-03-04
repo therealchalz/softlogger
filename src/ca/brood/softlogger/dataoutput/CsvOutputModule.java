@@ -24,8 +24,6 @@ import java.util.ArrayList;
 import java.util.Calendar;
 
 import org.apache.log4j.Logger;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
 import ca.brood.softlogger.modbus.register.RealRegister;
 import ca.brood.softlogger.scheduler.PrettyPeriodicSchedulable;
@@ -65,7 +63,7 @@ public class CsvOutputModule extends AbstractOutputModule {
 		return "CsvOutputModule";
 	}
 	
-	private void setConfigValue(String name, String value) {
+	protected void setConfigValue(String name, String value) {
 		if ("logIntervalSeconds".equalsIgnoreCase(name)) { //seconds
 			logSchedulable.setPeriod(Util.parseInt(value) * 1000);
 		} else if ("newFilePeriodMinutes".equalsIgnoreCase(name)) { //minutes
@@ -73,25 +71,6 @@ public class CsvOutputModule extends AbstractOutputModule {
 		} else {
 			log.warn("Got unexpected config value: "+name+" = "+value);
 		}
-	}
-
-	@Override
-	public boolean configure(Node rootNode) {
-		NodeList configNodes = rootNode.getChildNodes();
-		for (int i=0; i<configNodes.getLength(); i++) {
-			Node configNode = configNodes.item(i);
-			if (("#text".compareToIgnoreCase(configNode.getNodeName())==0) || 
-					("#comment".compareToIgnoreCase(configNode.getNodeName())==0))	{
-				continue;
-			} else if (("configValue".compareToIgnoreCase(configNode.getNodeName())==0)) {
-				String name = configNode.getAttributes().getNamedItem("name").getNodeValue();
-				String value = configNode.getFirstChild().getNodeValue();
-				setConfigValue(name, value);
-			} else {
-				log.warn("Got unknown node in config: "+configNode.getNodeName());
-			}
-		}
-		return true;
 	}
 
 	@Override
@@ -107,6 +86,7 @@ public class CsvOutputModule extends AbstractOutputModule {
 		 */
 		if (!firstLineOutputted) {
 			firstLineOutputted = true;
+			this.resetRegisterSamplings();
 			return;
 		}
 		

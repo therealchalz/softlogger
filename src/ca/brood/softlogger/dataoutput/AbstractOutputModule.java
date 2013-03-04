@@ -20,11 +20,13 @@
  ******************************************************************************/
 package ca.brood.softlogger.dataoutput;
 
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
 import ca.brood.softlogger.modbus.register.RegisterCollection;
-import ca.brood.softlogger.scheduler.Schedulable;
 
 public abstract class AbstractOutputModule 
-		implements OutputModule, Schedulable {
+		implements OutputModule {
 	
 	protected OutputableDevice m_outputDevice;
 	protected RegisterCollection m_Registers;
@@ -37,6 +39,25 @@ public abstract class AbstractOutputModule
 	public AbstractOutputModule(AbstractOutputModule other) {
 		m_Registers = new RegisterCollection(other.m_Registers);
 		m_outputDevice = other.m_outputDevice;
+	}
+	
+	protected abstract void setConfigValue(String name, String value);
+	
+	@Override
+	public boolean configure(Node rootNode) {
+		NodeList configNodes = rootNode.getChildNodes();
+		for (int i=0; i<configNodes.getLength(); i++) {
+			Node configNode = configNodes.item(i);
+			if (("#text".compareToIgnoreCase(configNode.getNodeName())==0) || 
+					("#comment".compareToIgnoreCase(configNode.getNodeName())==0))	{
+				continue;
+			} else if (("configValue".compareToIgnoreCase(configNode.getNodeName())==0)) {
+				String name = configNode.getAttributes().getNamedItem("name").getNodeValue();
+				String value = configNode.getFirstChild().getNodeValue();
+				setConfigValue(name, value);
+			}
+		}
+		return true;
 	}
 	
 	@Override

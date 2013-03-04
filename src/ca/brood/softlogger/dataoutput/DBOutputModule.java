@@ -20,44 +20,73 @@
  ******************************************************************************/
 package ca.brood.softlogger.dataoutput;
 
-import org.w3c.dom.Node;
+import org.apache.log4j.Logger;
+
+import ca.brood.softlogger.scheduler.PrettyPeriodicSchedulable;
+import ca.brood.softlogger.util.Util;
 
 public class DBOutputModule extends AbstractOutputModule {
-
+	private Logger log;
+	private PrettyPeriodicSchedulable logSchedulable;
+	private boolean firstLineOutputted;
+	
+	public DBOutputModule() {
+		super();
+		log = Logger.getLogger(DBOutputModule.class);
+		logSchedulable = new PrettyPeriodicSchedulable();
+		logSchedulable.setAction(this);
+		firstLineOutputted = false;
+	}
+	
+	public DBOutputModule(DBOutputModule o) {
+		super(o);
+		log = Logger.getLogger(DBOutputModule.class);
+		logSchedulable = new PrettyPeriodicSchedulable(o.logSchedulable);
+		logSchedulable.setAction(this);
+		firstLineOutputted = o.firstLineOutputted;
+	}
+	
 	@Override
-	public String getDescription() {
-		// TODO Auto-generated method stub
-		return null;
+	public DBOutputModule clone() {
+		return new DBOutputModule(this);
 	}
 
 	@Override
-	public boolean configure(Node rootNode) {
-		// TODO Auto-generated method stub
-		return false;
+	public String getDescription() {
+		return "DBOutputModule";
+	}
+	
+	@Override
+	protected void setConfigValue(String name, String value) {
+		if ("logIntervalSeconds".equalsIgnoreCase(name)) {
+			logSchedulable.setPeriod(Util.parseInt(value) * 1000);
+		} else {
+			log.warn("Got unexpected config value: "+name+" = "+value);
+		}
 	}
 
 	@Override
 	public long getNextRun() {
-		// TODO Auto-generated method stub
-		return 0;
+		return logSchedulable.getNextRun();
 	}
 
 	@Override
 	public void execute() {
-		// TODO Auto-generated method stub
-		
+		logSchedulable.execute();
 	}
 
 	@Override
 	public void run() {
-		// TODO Auto-generated method stub
+		log.info("Running"); 
 		
-	}
-
-	@Override
-	public AbstractOutputModule clone() {
-		// TODO Auto-generated method stub
-		return null;
+		//Skip first line of data
+		if (!firstLineOutputted) {
+			firstLineOutputted = true;
+			this.resetRegisterSamplings();
+			return;
+		}
+		
+		//TODO: Write values to DB
 	}
 
 }
