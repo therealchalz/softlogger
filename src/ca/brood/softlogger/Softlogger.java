@@ -100,7 +100,7 @@ public class Softlogger {
 		if (s.configure("config.xml")) {
 			s.run();
 			try {
-				Thread.sleep(10000);
+				Thread.sleep(300000);
 			} catch (InterruptedException e) {
 			}
 			s.stop();

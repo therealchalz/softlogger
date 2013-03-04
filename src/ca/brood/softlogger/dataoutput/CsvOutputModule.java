@@ -28,32 +28,32 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import ca.brood.softlogger.modbus.register.RealRegister;
-import ca.brood.softlogger.scheduler.PeriodicSchedulable;
+import ca.brood.softlogger.scheduler.PrettyPeriodicSchedulable;
 import ca.brood.softlogger.util.CsvFileWriter;
 import ca.brood.softlogger.util.Util;
 
 public class CsvOutputModule extends AbstractOutputModule {
 	private Logger log;
 	private CsvFileWriter writer;
-	private long newFilePeriodMillis = 86400000; // 86400000 millis in a day
-	private long lastFileCreateTime = 0;
-	private PeriodicSchedulable schedulable;
+	private PrettyPeriodicSchedulable logSchedulable;
+	private PrettyPeriodicSchedulable fileCreateSchedulable;
 	
 	public CsvOutputModule() {
 		super();
 		log = Logger.getLogger(CsvOutputModule.class);
 		writer = new CsvFileWriter("testOut.csv");
-		schedulable = new PeriodicSchedulable();
-		schedulable.setAction(this);
+		logSchedulable = new PrettyPeriodicSchedulable();
+		logSchedulable.setAction(this);
+		fileCreateSchedulable = new PrettyPeriodicSchedulable();
 	}
 	
 	public CsvOutputModule(CsvOutputModule o) {
 		super(o);
 		log = Logger.getLogger(CsvOutputModule.class);
 		writer = new CsvFileWriter(o.writer);
-		newFilePeriodMillis = o.newFilePeriodMillis;
-		schedulable = new PeriodicSchedulable(o.schedulable);
-		schedulable.setAction(this);
+		logSchedulable = new PrettyPeriodicSchedulable(o.logSchedulable);
+		logSchedulable.setAction(this);
+		fileCreateSchedulable = new PrettyPeriodicSchedulable();
 	}
 
 
@@ -64,10 +64,9 @@ public class CsvOutputModule extends AbstractOutputModule {
 	
 	private void setConfigValue(String name, String value) {
 		if ("logIntervalSeconds".equalsIgnoreCase(name)) { //seconds
-			schedulable.setPeriod(Util.parseInt(value) * 1000);
-			schedulable.setNextRun(this.getPrettyTimeForToday(System.currentTimeMillis(), schedulable.getPeriod()));
+			logSchedulable.setPeriod(Util.parseInt(value) * 1000);
 		} else if ("newFilePeriodMinutes".equalsIgnoreCase(name)) { //minutes
-			newFilePeriodMillis = Util.parseInt(value) * 60 * 1000;
+			fileCreateSchedulable.setPeriod(Util.parseInt(value) * 60 * 1000);
 		} else {
 			log.warn("Got unexpected config value: "+name+" = "+value);
 		}
@@ -90,21 +89,6 @@ public class CsvOutputModule extends AbstractOutputModule {
 			}
 		}
 		return true;
-	}
-	
-	private long getPrettyTimeForToday(long currentTime, long period) {
-		long nextTime = 0;
-		
-		Calendar cal = Calendar.getInstance();
-		cal.setTimeInMillis(currentTime);
-		cal.set(Calendar.HOUR, 0);
-		cal.set(Calendar.MINUTE, 0);
-		cal.set(Calendar.SECOND, 0);
-		cal.set(Calendar.MILLISECOND, 0);
-		
-		int fullPeriodsToday = (int) ((currentTime - cal.getTimeInMillis()) / period);
-		nextTime = cal.getTimeInMillis() + (period * (fullPeriodsToday+1));
-		return nextTime;
 	}
 
 	@Override
@@ -131,19 +115,10 @@ public class CsvOutputModule extends AbstractOutputModule {
 		values.add(""+currentTime);
 		
 		//Should the file be recreated?
-		if (lastFileCreateTime == 0) {
-			lastFileCreateTime = getPrettyTimeForToday(currentTime, newFilePeriodMillis);
-			lastFileCreateTime -= newFilePeriodMillis;	//since getPrettyTimeForToday() returns the NEXT time
-		}
-		
-		if (currentTime >= lastFileCreateTime + newFilePeriodMillis) {
+		if (fileCreateSchedulable.getNextRun() <= currentTime) {
+			fileCreateSchedulable.execute();	//Updates the time
 			log.trace("Creating new CSV file");
 			writer.newFile();
-			int timeDelta = (int) (currentTime - (lastFileCreateTime + newFilePeriodMillis));
-			if (timeDelta > 250) {
-				log.warn("Creating new file, but we're "+timeDelta+"ms late.");
-			}
-			lastFileCreateTime = 0;
 		}
 		
 		boolean atLeastOneGoodValue = false;
@@ -167,12 +142,12 @@ public class CsvOutputModule extends AbstractOutputModule {
 
 	@Override
 	public long getNextRun() {
-		return schedulable.getNextRun();
+		return logSchedulable.getNextRun();
 	}
 
 	@Override
 	public void execute() {
-		schedulable.execute();
+		logSchedulable.execute();
 	}
 
 }
