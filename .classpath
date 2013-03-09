@@ -4,5 +4,6 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="lib" path="lib/log4j-1.2.16.jar"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/jamod"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/brootils"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

@@ -25,14 +25,14 @@ import java.util.Calendar;
 
 import org.apache.log4j.Logger;
 
+import ca.brood.brootils.csv.CSVFileWriter;
 import ca.brood.softlogger.modbus.register.RealRegister;
 import ca.brood.softlogger.scheduler.PrettyPeriodicSchedulable;
-import ca.brood.softlogger.util.CsvFileWriter;
 import ca.brood.softlogger.util.Util;
 
 public class CsvOutputModule extends AbstractOutputModule {
 	private Logger log;
-	private CsvFileWriter writer;
+	private CSVFileWriter writer;
 	private PrettyPeriodicSchedulable logSchedulable;
 	private PrettyPeriodicSchedulable fileCreateSchedulable;
 	private boolean firstLineOutputted;
@@ -40,7 +40,7 @@ public class CsvOutputModule extends AbstractOutputModule {
 	public CsvOutputModule() {
 		super();
 		log = Logger.getLogger(CsvOutputModule.class);
-		writer = new CsvFileWriter("testOut.csv");
+		writer = new CSVFileWriter("testOut.csv");
 		logSchedulable = new PrettyPeriodicSchedulable();
 		logSchedulable.setAction(this);
 		fileCreateSchedulable = new PrettyPeriodicSchedulable();
@@ -50,7 +50,7 @@ public class CsvOutputModule extends AbstractOutputModule {
 	public CsvOutputModule(CsvOutputModule o) {
 		super(o);
 		log = Logger.getLogger(CsvOutputModule.class);
-		writer = new CsvFileWriter(o.writer);
+		writer = new CSVFileWriter(o.writer);
 		logSchedulable = new PrettyPeriodicSchedulable(o.logSchedulable);
 		logSchedulable.setAction(this);
 		fileCreateSchedulable = new PrettyPeriodicSchedulable();

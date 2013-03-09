@@ -26,7 +26,7 @@ import org.apache.log4j.Logger;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import ca.brood.softlogger.util.XmlConfigurable;
+import ca.brood.brootils.xml.XmlConfigurable;
 
 public abstract class Register implements XmlConfigurable {
 	protected Logger log = Logger.getLogger(Register.class);;

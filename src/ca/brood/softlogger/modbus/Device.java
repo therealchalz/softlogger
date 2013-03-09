@@ -19,6 +19,7 @@
  *     Charles Hache <chache@brood.ca> - initial API and implementation
  ******************************************************************************/
 package ca.brood.softlogger.modbus;
+import ca.brood.brootils.xml.XmlConfigurable;
 import ca.brood.softlogger.datafunction.DataFunction;
 import ca.brood.softlogger.datafunction.DataProcessingManager;
 import ca.brood.softlogger.dataoutput.OutputModule;
@@ -27,7 +28,6 @@ import ca.brood.softlogger.modbus.channel.ModbusChannel;
 import ca.brood.softlogger.modbus.register.*;
 import ca.brood.softlogger.scheduler.Schedulable;
 import ca.brood.softlogger.scheduler.SchedulerQueue;
-import ca.brood.softlogger.util.XmlConfigurable;
 
 import java.util.ArrayList;
 import java.util.Collections;

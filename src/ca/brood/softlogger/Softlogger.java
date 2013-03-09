@@ -31,6 +31,9 @@ import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.Node;
 
+import ca.brood.brootils.thread.ThreadPerformanceMonitor;
+import ca.brood.brootils.xml.SimpleXmlErrorHandler;
+import ca.brood.brootils.xml.XmlErrorCallback;
 import ca.brood.softlogger.dataoutput.DataOutputManager;
 import ca.brood.softlogger.dataoutput.DataServer;
 import ca.brood.softlogger.dataoutput.OutputModule;
@@ -39,7 +42,6 @@ import ca.brood.softlogger.lookuptable.LookupTableGenerator;
 import ca.brood.softlogger.lookuptable.LookupTableManager;
 import ca.brood.softlogger.lookuptable.TestGenerator;
 import ca.brood.softlogger.modbus.Device;
-import ca.brood.softlogger.util.*;
 
 import java.io.File;
 

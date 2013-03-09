@@ -24,7 +24,7 @@ import org.apache.log4j.Logger;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import ca.brood.softlogger.util.XmlConfigurable;
+import ca.brood.brootils.xml.XmlConfigurable;
 
 import net.wimpi.modbus.msg.*;
 

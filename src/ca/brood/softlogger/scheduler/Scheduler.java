@@ -22,7 +22,8 @@ package ca.brood.softlogger.scheduler;
 
 
 import org.apache.log4j.Logger;
-import ca.brood.softlogger.util.ThreadPerformanceMonitor;
+
+import ca.brood.brootils.thread.ThreadPerformanceMonitor;
 
 public class Scheduler {
 	private SchedulerRunner runner;

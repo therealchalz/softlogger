@@ -25,14 +25,14 @@ import org.apache.log4j.Logger;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import ca.brood.brootils.thread.ThreadPerformanceMonitor;
+import ca.brood.brootils.xml.XmlConfigurable;
 import ca.brood.softlogger.dataoutput.OutputModule;
 import ca.brood.softlogger.dataoutput.OutputableDevice;
 import ca.brood.softlogger.modbus.Device;
 import ca.brood.softlogger.modbus.channel.*;
 import ca.brood.softlogger.scheduler.PeriodicSchedulable;
 import ca.brood.softlogger.scheduler.Scheduler;
-import ca.brood.softlogger.util.ThreadPerformanceMonitor;
-import ca.brood.softlogger.util.XmlConfigurable;
 
 
 public class SoftloggerChannel implements Runnable, XmlConfigurable {
