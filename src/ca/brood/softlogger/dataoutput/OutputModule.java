@@ -20,11 +20,11 @@
  ******************************************************************************/
 package ca.brood.softlogger.dataoutput;
 
-import ca.brood.brootils.xml.XmlConfigurable;
+import ca.brood.brootils.xml.XMLConfigurable;
 import ca.brood.softlogger.modbus.register.RegisterCollection;
 import ca.brood.softlogger.scheduler.Schedulable;
 
-public interface OutputModule extends XmlConfigurable, Schedulable, Runnable {
+public interface OutputModule extends XMLConfigurable, Schedulable, Runnable {
 	/** This is used to identify the output module when logging / for debugging.
 	 * This should identify this class of output module (so that it's the same
 	 * for all instances)

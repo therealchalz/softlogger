@@ -24,12 +24,12 @@ import org.apache.log4j.Logger;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import ca.brood.brootils.xml.XmlConfigurable;
+import ca.brood.brootils.xml.XMLConfigurable;
 
 import net.wimpi.modbus.msg.*;
 
 
-public abstract class ModbusChannel implements XmlConfigurable {
+public abstract class ModbusChannel implements XMLConfigurable {
 	protected Logger log;
 	protected final int id;
 	protected final int channelId;

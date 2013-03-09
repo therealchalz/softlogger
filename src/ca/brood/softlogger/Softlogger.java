@@ -24,16 +24,12 @@ import java.util.ArrayList;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.DocumentBuilder;
-
-import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.Node;
 
 import ca.brood.brootils.thread.ThreadPerformanceMonitor;
-import ca.brood.brootils.xml.SimpleXmlErrorHandler;
-import ca.brood.brootils.xml.XmlErrorCallback;
+import ca.brood.brootils.xml.XMLConfigurable;
+import ca.brood.brootils.xml.XMLFileLoader;
 import ca.brood.softlogger.dataoutput.DataOutputManager;
 import ca.brood.softlogger.dataoutput.DataServer;
 import ca.brood.softlogger.dataoutput.OutputModule;
@@ -46,7 +42,7 @@ import ca.brood.softlogger.modbus.Device;
 import java.io.File;
 
 
-public class Softlogger {
+public class Softlogger implements XMLConfigurable {
 	private Logger log;
 	
 	private String loggerName = "Unnamed Logger";
@@ -90,12 +86,20 @@ public class Softlogger {
 		log.info("SOFTLOGGER IS STARTING");
 		log.info("******************************");
 		log.info("Softlogger using config file: "+configFile);
+		
 		configFilePath = configFile;
-		if (!loadConfig(configFilePath)) {
-			log.fatal("Error loading config file.");
-			return false;
+		
+		XMLFileLoader xmlLoader = new XMLFileLoader(configFilePath, this);
+		
+		boolean success = false;
+		try {
+			success = xmlLoader.load();
+		} catch (Exception e) {
+			log.fatal("Error loading config file.", e);
 		}
-		return true;
+		
+		return success;
+		
 	}
 	public static void main(String[] args) {
 		Softlogger s = new Softlogger();
@@ -168,28 +172,19 @@ public class Softlogger {
 		dataOutputManager.start();
 	}
 
-	private boolean loadConfig(String filename) {
-		File xmlFile = new File(filename);
-		DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-		dbFactory.setValidating(true);
-		dbFactory.setNamespaceAware(true);
-		XmlErrorCallback error = new XmlErrorCallback();
-		Document doc;
-		try {
-			DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-			dBuilder.setErrorHandler(new SimpleXmlErrorHandler(this.log, error));
-			doc = dBuilder.parse(xmlFile);
-			
-			doc.getDocumentElement().normalize();
-			if (!error.isConfigValid()) {
-				throw new Exception("Config doesn't conform to schema.");
-			}
-		} catch (Exception e) {
-			log.fatal("Exception while trying to load config file: "+filename + " " + e.getMessage());
-			return false;
+	public void printAll() {
+		log.info("Name: "+this.loggerName);
+		if (defaultScanRate > 0)
+			log.info("Default scan rate: "+this.defaultScanRate);
+		
+		this.server.printAll();
+		for (SoftloggerChannel c : this.softloggerChannels) {
+			c.printAll();
 		}
-		Node currentConfigNode = doc.getDocumentElement();
-		NodeList loggerConfigNodes = currentConfigNode.getChildNodes();
+	}
+	@Override
+	public boolean configure(Node rootNode) {
+		NodeList loggerConfigNodes = rootNode.getChildNodes();
 		log.debug("Configuring Logger...");
 		for (int i=0; i<loggerConfigNodes.getLength(); i++) {
 			Node configNode = loggerConfigNodes.item(i);
@@ -223,7 +218,7 @@ public class Softlogger {
 		}
 		
 		//Load the data server
-		loggerConfigNodes = doc.getElementsByTagName("server");
+		loggerConfigNodes = rootNode.getOwnerDocument().getElementsByTagName("server");
 		if (loggerConfigNodes.getLength() == 0) {
 			log.fatal("Could not find a server defined in the config file.");
 			return false;
@@ -232,14 +227,14 @@ public class Softlogger {
 			log.fatal("Too many servers are defined in the config file");
 			return false;
 		}
-		currentConfigNode = loggerConfigNodes.item(0);
+		Node currentConfigNode = loggerConfigNodes.item(0);
 		server = new DataServer();
 		if (!server.configure(currentConfigNode)) {
 			return false;
 		}
 		
 		//Load the softloggerChannels
-		loggerConfigNodes = doc.getElementsByTagName("channel");
+		loggerConfigNodes = rootNode.getOwnerDocument().getElementsByTagName("channel");
 		boolean workingChannel = false;
 		for (int i=0; i<loggerConfigNodes.getLength(); i++) {
 			currentConfigNode = loggerConfigNodes.item(i);
@@ -261,7 +256,7 @@ public class Softlogger {
 		}
 		
 		//Load the global output modules
-		currentConfigNode = doc.getDocumentElement();
+		currentConfigNode = rootNode.getOwnerDocument().getDocumentElement();
 		loggerConfigNodes = currentConfigNode.getChildNodes();
 		for (int i=0; i<loggerConfigNodes.getLength(); i++) {
 			currentConfigNode = loggerConfigNodes.item(i);
@@ -290,15 +285,5 @@ public class Softlogger {
 		
 		
 		return true;
-	}
-	public void printAll() {
-		log.info("Name: "+this.loggerName);
-		if (defaultScanRate > 0)
-			log.info("Default scan rate: "+this.defaultScanRate);
-		
-		this.server.printAll();
-		for (SoftloggerChannel c : this.softloggerChannels) {
-			c.printAll();
-		}
 	}
 }

@@ -19,7 +19,7 @@
  *     Charles Hache <chache@brood.ca> - initial API and implementation
  ******************************************************************************/
 package ca.brood.softlogger.modbus;
-import ca.brood.brootils.xml.XmlConfigurable;
+import ca.brood.brootils.xml.XMLConfigurable;
 import ca.brood.softlogger.datafunction.DataFunction;
 import ca.brood.softlogger.datafunction.DataProcessingManager;
 import ca.brood.softlogger.dataoutput.OutputModule;
@@ -48,7 +48,7 @@ import org.apache.log4j.Logger;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-public class Device implements Schedulable, XmlConfigurable, OutputableDevice {
+public class Device implements Schedulable, XMLConfigurable, OutputableDevice {
 	private Logger log;
 	private final int id;
 	private int unitId = Integer.MAX_VALUE;

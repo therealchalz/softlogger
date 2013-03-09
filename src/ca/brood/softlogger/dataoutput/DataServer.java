@@ -24,9 +24,9 @@ import org.apache.log4j.Logger;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import ca.brood.brootils.xml.XmlConfigurable;
+import ca.brood.brootils.xml.XMLConfigurable;
 
-public class DataServer implements XmlConfigurable{
+public class DataServer implements XMLConfigurable{
 	private Logger log;
 	
 	private String username = "";
