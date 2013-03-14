@@ -31,44 +31,44 @@ import java.io.InputStream;
  * Arbitrary number of bytes up to first '\n' can be used for misc data
  * (eg description, calibration values, etc)
  * The next line is an integer in base 10 followed by a '\n'.  This number
- * is the number 'n' of bytes per lookup in the file (must 4 or 8).
- * If n is 4, then each lookup is treated as a float.
- * If n is 8, then each lookup is treated as a double.
- * The data starts immediately following the '\n'.
+ * is the word length/ number 'n' of bytes per lookup in the file (must 4 
+ * or 8). If n is 4, then each lookup is treated as a float. If n is 8, then 
+ * each lookup is treated as a double. The data starts immediately following 
+ * the '\n'.
  */
 
 public class LookupTable {
 	private String filename;
 	private InputStream fos;
 	private String description;
-	private int size;
+	private int wordLength;
 	
 	public LookupTable(String filename) {
 		this.filename = filename;
 	}
 	
 	public Double lookup(int index) throws IOException {
-		byte[] buffer = new byte[size];
+		byte[] buffer = new byte[wordLength];
 		
-		long seek = index*size;
-		fos.mark((int) (seek + size));
+		long seek = index*wordLength;
+		fos.mark((int) (seek + wordLength));
 		fos.skip(seek);
-		fos.read(buffer,0,size);
+		fos.read(buffer,0,wordLength);
 		
 		double val = parse(buffer);
 		fos.reset();
 		return val;
 	}
 	
-	public int getSize() {
-		return size;
+	public int getWordLength() {
+		return wordLength;
 	}
 	
 	public String getDescription() {
 		return description;
 	}
 	
-	private void readSize() throws Exception {
+	private void parseWordLength() throws Exception {
 		int s = fos.read() - '0'; //must be 4 or 8
 		if (s != 4 && s != 8) {
 			throw new Exception("Bad size in lookup table: "+s);
@@ -77,18 +77,17 @@ public class LookupTable {
 		if (nl != '\n') {
 			throw new Exception("Unexpected character in lookup table: "+nl);
 		}
-		this.size = s;
+		this.wordLength = s;
 	}
 	
-	private void readDescription() throws IOException {
-		StringBuilder ret = new StringBuilder();
+	private void parseDescription() throws IOException {
+		StringBuilder desc = new StringBuilder();
 		boolean reading = true;
+		
+		int readAheadSize = 32;
+		byte[] buffer = new byte[readAheadSize];
 		//Keep reading and appending bytes
 		while (reading) {
-			int readAheadSize = 32;
-			
-			byte[] buffer = new byte[readAheadSize];
-			
 			fos.mark(readAheadSize);
 			int bufSize = fos.read(buffer);
 			
@@ -100,18 +99,18 @@ public class LookupTable {
 					reading = false;
 					break;
 				}
-				ret.append(String.format("%c", buffer[i]));
+				desc.append(String.format("%c", buffer[i]));
 			}
 		}
 		
-		this.description = ret.toString();
+		this.description = desc.toString();
 	}
 	
 	public void open() throws Exception {
 		File tableFile = new File(filename);
 		fos = new BufferedInputStream(new FileInputStream(tableFile));
-		readDescription();
-		readSize();
+		parseDescription();
+		parseWordLength();
 	}
 	
 	public void close() throws Exception {
@@ -120,13 +119,13 @@ public class LookupTable {
 	
 	private double parse(byte[] buff) {
 		long val = 0;
-		if (size == 4) {
+		if (wordLength == 4) {
 			val += ((int)buff[0]&0xFF) << 24;
 			val += ((int)buff[1]&0xFF) << 16;
 			val += ((int)buff[2]&0xFF) << 8;
 			val += ((int)buff[3]&0xFF);
 			return (double) Float.intBitsToFloat((int)val);
-		} else if (size == 8) {
+		} else if (wordLength == 8) {
 			val += ((long)buff[0]&0xFF) << 56;
 			val += ((long)buff[1]&0xFF) << 48;
 			val += ((long)buff[2]&0xFF) << 40;

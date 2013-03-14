@@ -31,14 +31,15 @@ import java.io.IOException;
  * (eg description, calibration values, etc)
  * The next line is an integer in base 10 followed by a '\n'.  This number
  * is the number 'n' of bytes per lookup in the file (must 4 or 8).
- * If n is 4, then each lookup is treated as a float.
- * If n is 8, then each lookup is treated as a double.
+ * In other words it is the word length.
+ * If n is 4, then each lookup is treated as a java float.
+ * If n is 8, then each lookup is treated as a java double.
  * The data starts immediately following the '\n'.
  */
 
 public class LookupTableGenerator {
-	public static boolean generate(String outFileName, GenerationFunction function, int size, String description, int count) throws IOException {
-		if (size != 4 && size != 8) {
+	public static boolean generate(String outFileName, GenerationFunction function, int wordSize, String description, int count) throws IOException {
+		if (wordSize != 4 && wordSize != 8) {
 			return false;
 		}
 		File theFile = new File(outFileName);
@@ -47,8 +48,8 @@ public class LookupTableGenerator {
 		FileOutputStream fo = new FileOutputStream(theFile);
 		try {
 			fo.write((description+"\n").getBytes());
-			fo.write((Integer.toString(size)+"\n").getBytes());
-			if (size == 4) {
+			fo.write((Integer.toString(wordSize)+"\n").getBytes());
+			if (wordSize == 4) {
 				for (int i = 0; i < count; i++) {
 					float val = (float) function.process(i);
 					int byteVal = Float.floatToIntBits(val);

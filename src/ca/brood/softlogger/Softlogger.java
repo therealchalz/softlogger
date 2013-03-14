@@ -61,7 +61,6 @@ public class Softlogger implements XMLConfigurable {
 	 * 
 	 * TODO:
 	 * -dataFunction element (JEP, LUT is done)
-	 * -Cleanup of lookup table exceptions/error handling
 	 * 
 	 * Longer term TODO:
 	 * -logging to local database so other things can use the data (web realtime frontend etc)
