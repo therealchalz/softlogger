@@ -30,16 +30,16 @@ import ca.brood.softlogger.modbus.register.RealRegister;
 import ca.brood.softlogger.scheduler.PrettyPeriodicSchedulable;
 import ca.brood.softlogger.util.Util;
 
-public class CsvOutputModule extends AbstractOutputModule {
+public class CSVOutputModule extends AbstractOutputModule {
 	private Logger log;
 	private CSVFileWriter writer;
 	private PrettyPeriodicSchedulable logSchedulable;
 	private PrettyPeriodicSchedulable fileCreateSchedulable;
 	private boolean firstLineOutputted;
 	
-	public CsvOutputModule() {
+	public CSVOutputModule() {
 		super();
-		log = Logger.getLogger(CsvOutputModule.class);
+		log = Logger.getLogger(CSVOutputModule.class);
 		writer = new CSVFileWriter("testOut.csv");
 		logSchedulable = new PrettyPeriodicSchedulable();
 		logSchedulable.setAction(this);
@@ -47,9 +47,9 @@ public class CsvOutputModule extends AbstractOutputModule {
 		firstLineOutputted = false;
 	}
 	
-	public CsvOutputModule(CsvOutputModule o) {
+	public CSVOutputModule(CSVOutputModule o) {
 		super(o);
-		log = Logger.getLogger(CsvOutputModule.class);
+		log = Logger.getLogger(CSVOutputModule.class);
 		writer = new CSVFileWriter(o.writer);
 		logSchedulable = new PrettyPeriodicSchedulable(o.logSchedulable);
 		logSchedulable.setAction(this);
@@ -132,7 +132,7 @@ public class CsvOutputModule extends AbstractOutputModule {
 
 	@Override
 	public AbstractOutputModule clone() {
-		return new CsvOutputModule(this);
+		return new CSVOutputModule(this);
 	}
 
 	@Override
