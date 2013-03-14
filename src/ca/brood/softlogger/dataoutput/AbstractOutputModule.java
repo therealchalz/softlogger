@@ -28,17 +28,20 @@ import ca.brood.softlogger.modbus.register.RegisterCollection;
 public abstract class AbstractOutputModule 
 		implements OutputModule {
 	
-	protected OutputableDevice m_outputDevice;
+	protected OutputableDevice m_OutputDevice;
 	protected RegisterCollection m_Registers;
+	protected String m_DeviceDescription;
 	
 	public AbstractOutputModule() {
-		m_outputDevice = null;
+		m_OutputDevice = null;
 		m_Registers = new RegisterCollection();
+		m_DeviceDescription = "";
 	}
 	
 	public AbstractOutputModule(AbstractOutputModule other) {
 		m_Registers = new RegisterCollection(other.m_Registers);
-		m_outputDevice = other.m_outputDevice;
+		m_OutputDevice = other.m_OutputDevice;
+		m_DeviceDescription = other.m_DeviceDescription;
 	}
 	
 	protected abstract void setConfigValue(String name, String value);
@@ -71,6 +74,11 @@ public abstract class AbstractOutputModule
 	@Override
 	public void setRegisterCollection(RegisterCollection reg) {
 		m_Registers = reg;
+	}
+	
+	@Override
+	public void setDeviceDescription(String desc) {
+		this.m_DeviceDescription = desc;
 	}
 	
 	public void resetRegisterSamplings() {

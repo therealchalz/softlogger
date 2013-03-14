@@ -49,7 +49,8 @@ public class DataOutputManager {
 		log.trace("Initializing "+modules.size()+" output module instances");
 		//For now, we organize all the output modules of the same class together
 		//in the same scheduler.  This way we have an additional thread for each
-		//type of output module that is added.
+		//type of output module that is added.  If an output module is buggy then
+		//it won't affect the running of other output modules.
 		for (OutputModule toAdd : modules) {
 			Class<? extends OutputModule> moduleClass = toAdd.getClass();	
 			if (!schedulers.containsKey(moduleClass)) {

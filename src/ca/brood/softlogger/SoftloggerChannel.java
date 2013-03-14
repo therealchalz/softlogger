@@ -220,6 +220,10 @@ public class SoftloggerChannel implements Runnable, XMLConfigurable {
 			deviceScheduler.stop();
 		}
 		
+		for (Device d : devices) {
+			d.stop();
+		}
+		
 		log.debug("Done issuing stop commands.");
 		
 		this.channel.close();

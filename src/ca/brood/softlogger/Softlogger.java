@@ -60,6 +60,7 @@ public class Softlogger implements XMLConfigurable {
 	 * and they're not all the same size, the wrong size may be requested.
 	 * 
 	 * TODO:
+	 * -Improve log levels and use logger.config for output control
 	 * -dataFunction element (JEP, LUT is done)
 	 * 
 	 * Longer term TODO:
@@ -123,11 +124,16 @@ public class Softlogger implements XMLConfigurable {
 	}
 	public void stop() {
 		log.info("Softlogger stopping softloggerChannels");
+		
+		//Stop all outputting first
 		dataOutputManager.stop();
+		
+		//Stop data collection
 		for (int i=0; i<softloggerChannels.size(); i++) {
 			softloggerChannels.get(i).stop();
 		}
 		
+		//Close the global lookup tables
 		try {
 			LookupTableManager.closeAll();
 		} catch (Exception e) {
@@ -140,19 +146,7 @@ public class Softlogger implements XMLConfigurable {
 		try {
 			File f = new File("lut/LUT1.dat");
 			if (!f.exists())
-				LookupTableGenerator.generate("lut/LUT1.dat", new TestGenerator(), 4, "Test lookup table... 420 compliant", 65536);
-			/*LookupTable lut = new LookupTable("lut/lut1.dat");
-			lut.open();
-			log.info("LUT description: "+lut.getDescription());
-			log.info("LUT Size: "+lut.getSize());
-			log.info("LUT 0: "+lut.lookup(0));
-			log.info("LUT 1: "+lut.lookup(1));
-			log.info("LUT 10: "+lut.lookup(10));
-			log.info("LUT 20: "+lut.lookup(20));
-			log.info("LUT 100: "+lut.lookup(100));
-			log.info("LUT 200: "+lut.lookup(200));
-			log.info("LUT 1000: "+lut.lookup(1000));
-			lut.close();*/
+				LookupTableGenerator.generate("lut/LUT1.dat", new TestGenerator(), 4, "Test lookup table... ", 65536);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -249,6 +243,10 @@ public class Softlogger implements XMLConfigurable {
 			return false;
 		}
 		
+		for (int i=0; i<softloggerChannels.size(); i++) {
+			softloggerChannels.get(i).setDefaultScanRate(this.defaultScanRate);
+		}
+		
 		ArrayList<Device> devices = new ArrayList<Device>();
 		for (SoftloggerChannel channel : softloggerChannels) {
 			devices.addAll(channel.getDevices());
@@ -274,10 +272,6 @@ public class Softlogger implements XMLConfigurable {
 			} catch (Exception e) {
 				log.error("Got exception while loading output module: ",e);
 			}
-		}
-		
-		for (int i=0; i<softloggerChannels.size(); i++) {
-			softloggerChannels.get(i).setDefaultScanRate(this.defaultScanRate);
 		}
 		
 		this.printAll();

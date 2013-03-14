@@ -60,7 +60,13 @@ public class CSVOutputModule extends AbstractOutputModule {
 
 	@Override
 	public String getDescription() {
-		return "CsvOutputModule";
+		return "CSVOutputModule";
+	}
+	
+	@Override
+	public void setDeviceDescription(String desc) {
+		super.setDeviceDescription(desc);
+		writer = new CSVFileWriter(desc);
 	}
 	
 	protected void setConfigValue(String name, String value) {
@@ -143,6 +149,12 @@ public class CSVOutputModule extends AbstractOutputModule {
 	@Override
 	public void execute() {
 		logSchedulable.execute();
+	}
+
+	@Override
+	public void close() {
+		//No need to close anything since the writer automatically
+		//close the stream after every write.
 	}
 
 }

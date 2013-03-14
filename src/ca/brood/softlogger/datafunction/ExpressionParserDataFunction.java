@@ -33,7 +33,7 @@ public class ExpressionParserDataFunction implements DataFunction {
 	
 	@Override
 	public void process(RegisterData data, String funcArg) {
-		log.trace("Processing: "+funcArg);
+		//log.trace("Processing: "+funcArg);
 	}
 
 }

@@ -78,6 +78,7 @@ public class Device implements Schedulable, XMLConfigurable, OutputableDevice {
 	}
 	public void addOutputModule(OutputModule m) {
 		m.setRegisterCollection(new RegisterCollection(this.getAllRegisters()));
+		m.setDeviceDescription(getDescription());
 		outputModules.add(m);
 	}
 	public void deleteAllOutputModules() {
@@ -609,5 +610,11 @@ public class Device implements Schedulable, XMLConfigurable, OutputableDevice {
 		ArrayList<OutputModule> ret = new ArrayList<OutputModule>();
 		ret.addAll(outputModules);
 		return ret;
+	}
+
+	public void stop() {
+		for (OutputModule output : outputModules) {
+			output.close();
+		}
 	}
 }

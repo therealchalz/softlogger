@@ -54,15 +54,17 @@
 			<outputModule class="ca.brood.softlogger.dataoutput.DebugOutputModule">
 				<configValue name="logIntervalSeconds">1</configValue>
 			</outputModule>
-			<outputModule class="ca.brood.softlogger.dataoutput.CsvOutputModule">
+			<outputModule class="ca.brood.softlogger.dataoutput.CSVOutputModule">
 				<configValue name="logIntervalSeconds">5</configValue>
 				<configValue name="newFilePeriodMinutes">1</configValue>
 			</outputModule>
 			<outputModule class="ca.brood.softlogger.dataoutput.DBOutputModule">
-				<configValue name="logIntervalSeconds">1</configValue>
+				<configValue name="logIntervalSeconds">10</configValue>
 				<configValue name="dbUser">softie</configValue>
-				<configValue name="dbPass">password</configValue>
+				<configValue name="dbPassword">password</configValue>
 				<configValue name="database">softlogger</configValue>
+				<configValue name="dbHost">127.0.0.1</configValue>
+				<!-- <configValue name="dbPort">2222</configValue> -->
 			</outputModule>
 			<configRegister>
 				<fieldName>Config coil 1 true</fieldName>

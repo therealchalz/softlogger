@@ -35,6 +35,13 @@ public class Util {
 		}
 		return ret;
 	}
+	public static int parseInt(String number, int defaultValue) {
+		try {
+			return parseInt(number);
+		} catch (Exception e) {
+			return defaultValue;
+		}
+	}
 	public static RegisterData parseRegisterData(String val) throws NumberFormatException {
 		RegisterData ret = new RegisterData();
 		if (val.matches("[0-9]+\\.[0-9]+[fF]?")) { //floating point

@@ -50,4 +50,13 @@ public interface OutputModule extends XMLConfigurable, Schedulable, Runnable {
 	 * @param reg The new RegisterCollection.
 	 */
 	public void setRegisterCollection(RegisterCollection reg);
+	/** Tells this output module what device it is outputting for.
+	 * Called by the device with the device's description.
+	 * @param desc The description of the device.
+	 */
+	public void setDeviceDescription(String desc);
+	/** Notifies the output module that its shutdown is imminent.
+	 * This is where files and connections should be closed etc.
+	 */
+	public void close();
 }

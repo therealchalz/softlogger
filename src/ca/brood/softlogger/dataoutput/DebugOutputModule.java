@@ -103,4 +103,9 @@ public class DebugOutputModule extends AbstractOutputModule {
 		schedulable.execute();
 	}
 
+	@Override
+	public void close() {
+		//Nothing to close
+	}
+
 }
