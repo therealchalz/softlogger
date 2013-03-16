@@ -89,4 +89,8 @@ public enum RegisterType {
 			return RegisterType.OUTPUT_REGISTER;
 		}
 	}
+	
+	public static int getLongAddress(int address, RegisterType type) {
+		return type.leadingDigit*100000 + address;
+	}
 }

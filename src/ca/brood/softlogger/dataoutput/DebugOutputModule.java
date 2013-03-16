@@ -28,7 +28,7 @@ import ca.brood.softlogger.modbus.register.RealRegister;
 import ca.brood.softlogger.scheduler.PeriodicSchedulable;
 import ca.brood.softlogger.util.Util;
 
-public class DebugOutputModule extends AbstractOutputModule {
+public class DebugOutputModule extends AbstractOutputModule  implements Runnable {
 	private Logger log;
 	private String description;
 	private PeriodicSchedulable schedulable;
@@ -65,9 +65,9 @@ public class DebugOutputModule extends AbstractOutputModule {
 		for (RealRegister register : registers) {
 			try {
 				if (!register.isNull())
-					log.info(register.getFieldName()+"("+register.getAddress()+"): "+register.getFloat());
+					log.info(register.getFieldName()+"("+register.getLongAddress()+"): "+register.getFloat());
 				else
-					log.info(register.getFieldName()+"("+register.getAddress()+"): <null>");
+					log.info(register.getFieldName()+"("+register.getLongAddress()+"): <null>");
 			} catch (Exception e) {
 				log.info("Exception on print: ", e);
 			}

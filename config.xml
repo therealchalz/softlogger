@@ -59,7 +59,7 @@
 				<configValue name="newFilePeriodMinutes">1</configValue>
 			</outputModule>
 			<outputModule class="ca.brood.softlogger.dataoutput.DBOutputModule">
-				<configValue name="logIntervalSeconds">10</configValue>
+				<configValue name="logIntervalSeconds">1</configValue>
 				<configValue name="dbUser">softie</configValue>
 				<configValue name="dbPassword">password</configValue>
 				<configValue name="database">softlogger</configValue>

@@ -106,7 +106,7 @@ public class Softlogger implements XMLConfigurable {
 		if (s.configure("config.xml")) {
 			s.run();
 			try {
-				Thread.sleep(300000);
+				Thread.sleep(5000);
 			} catch (InterruptedException e) {
 			}
 			s.stop();

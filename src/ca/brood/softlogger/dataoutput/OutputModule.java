@@ -24,7 +24,7 @@ import ca.brood.brootils.xml.XMLConfigurable;
 import ca.brood.softlogger.modbus.register.RegisterCollection;
 import ca.brood.softlogger.scheduler.Schedulable;
 
-public interface OutputModule extends XMLConfigurable, Schedulable, Runnable {
+public interface OutputModule extends XMLConfigurable, Schedulable {
 	/** This is used to identify the output module when logging / for debugging.
 	 * This should identify this class of output module (so that it's the same
 	 * for all instances)
@@ -59,4 +59,9 @@ public interface OutputModule extends XMLConfigurable, Schedulable, Runnable {
 	 * This is where files and connections should be closed etc.
 	 */
 	public void close();
+	/** Indicates whether the configured register sampling function
+	 * is to be used for data updates to this output module.
+	 * @return true if the register sampling function is to be used.
+	 */
+	public boolean useRegisterSampling();
 }

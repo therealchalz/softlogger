@@ -23,6 +23,7 @@ package ca.brood.softlogger.dataoutput;
 import java.util.ArrayList;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -33,7 +34,7 @@ import ca.brood.softlogger.modbus.register.RealRegister;
 import ca.brood.softlogger.scheduler.PrettyPeriodicSchedulable;
 import ca.brood.softlogger.util.Util;
 
-public class DBOutputModule extends AbstractOutputModule {
+public class DBOutputModule extends AbstractOutputModule  implements Runnable {
 	private Logger log;
 	private PrettyPeriodicSchedulable logSchedulable;
 	private boolean firstIntervalOutputted = false;
@@ -43,6 +44,7 @@ public class DBOutputModule extends AbstractOutputModule {
 	private String dbHost = "";
 	private int dbPort = 3306;
 	private Connection connection = null;
+	private boolean isClosed = false;
 	
 	public DBOutputModule() {
 		super();
@@ -117,48 +119,67 @@ public class DBOutputModule extends AbstractOutputModule {
 		log.info("Running"); 
 		
 		//Skip first interval of data
-		if (!firstIntervalOutputted) {
+		//commented out for testing
+		/*if (!firstIntervalOutputted) {
 			firstIntervalOutputted = true;
 			this.resetRegisterSamplings();
 			return;
-		}
+		}*/
 		
-		//TODO: Write values to DB
 		ArrayList<RealRegister> re = this.m_Registers.readRegisters();
 		this.resetRegisterSamplings();
 		
-		checkConnection();
-	}
-	
-	private boolean checkConnection() {
-		
-		if (connection == null) {
-			String url = "jdbc:mysql://"+dbHost+":"+dbPort+"/"+database;
+		if (!isClosed) {
 			try {
-				connection = DriverManager.getConnection(url, dbUser, dbPassword);
-				Statement st = connection.createStatement();
-	            ResultSet rs = st.executeQuery("SELECT VERSION()");
-
-	            if (rs.next()) {
-	                log.info(rs.getString(1));
-	            }
-	            
-	            rs.close();
-	            
-	            st.close();
-	            
-	            connection.close();
-	            connection = null;
-			} catch (SQLException e) {
-				log.error("URL: "+url+" user: "+dbUser+" pass: "+dbPassword.replaceAll(".", "*"));
-				log.error("Error setting up DB connection", e);
-				return false;
+				checkConnection();
+				checkTable();
+			} catch (Exception e) {
+				log.error(e);
 			}
 		}
+
+	}
+	
+	private String getTableName() {
+		//replace all whitespace with _ and invalid characters with $
+		String name = this.m_DeviceDescription.replaceAll("\\s", "_");
+		name = name.replaceAll("[^\\w$]", "\\$");
+		return name;		
+	}
+	
+	private void checkTable() throws Exception {
+		String tableName = getTableName();
+		createTable(tableName);
+	}
+	
+	private void createTable(String tableName) throws SQLException {
+		Statement st = connection.createStatement();
+        st.executeQuery("CREATE TABLE "+tableName+"(P_Id int)");
+	}
+	
+	private void checkConnection() throws SQLException {
 		
+		if (!isClosed && connection == null || !connection.isValid(1000)) {
+			String url = "jdbc:mysql://"+dbHost+":"+dbPort+"/"+database;
+
+			connection = DriverManager.getConnection(url, dbUser, dbPassword);
+			
+			
+			Statement st = connection.createStatement();
+            ResultSet rs = st.executeQuery("SELECT VERSION()");
+
+            if (rs.next()) {
+                log.info("Connected to server: "+rs.getString(1));
+            }
+            
+            rs.close();
+            
+            st.close();
+
+		}
 		
-		
-		return true;
+		//log.error("URL: "+url+" user: "+dbUser+" pass: "+dbPassword.replaceAll(".", "*"));
+	
 	}
 
 	@Override
@@ -172,6 +193,11 @@ public class DBOutputModule extends AbstractOutputModule {
 				log.error("Exception while closing DB connection", e);
 			}
 		}
+		isClosed = true;
 	}
 
+	@Override
+	public boolean useRegisterSampling() {
+		return false;
+	}
 }

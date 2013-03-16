@@ -336,38 +336,32 @@ public class Device implements Schedulable, XMLConfigurable, OutputableDevice {
 		int numWords = getDataLength(response);
 		RegisterType type = RegisterType.fromResponse(response);
 		Collections.sort(registerList);
-		addressLoop:
 		for (int address = response.getReference(); address < response.getReference()+numWords; address++) {
-			//naive implementation
-			//TODO optimize
 			Iterator<RealRegister> registerIterator = registerList.iterator();
-			RealRegister reg = null;
-			while (registerIterator.hasNext()) {
+			RealRegister reg;
+			if (registerIterator.hasNext()) { //avoid NoSuchElementException
 				reg = registerIterator.next();
-				if (type == reg.getRegisterType())
-					break;
+			} else {
+				break;
 			}
-			do {
-				if (reg == null) {
-					break addressLoop;
-				}
-				if (address == reg.getAddress() && type == reg.getRegisterType()) {
-					//log.info("Adding register (add : "+address+", type: "+type+"): "+reg);
-					ret.add(reg);
+			boolean foundType = false;
+			while (reg != null) {
+				if (type != reg.getRegisterType()) {
+					if (foundType)
+						break;	//we're past all the registers of the correct type
+				} else {
+					foundType = true;
+					if (address == reg.getAddress()) {
+						//log.trace("Adding register (add : "+address+", type: "+type+"): "+reg);
+						ret.add(reg);
+					}
 				}
 				if (registerIterator.hasNext()) {
 					reg = registerIterator.next();
+				} else {
+					break;
 				}
-			} while (registerIterator.hasNext());
-			
-			if (reg == null) {
-				break addressLoop;
 			}
-			if (address == reg.getAddress() && type == reg.getRegisterType()) {
-				//log.info("Adding register (add : "+address+", type: "+type+"): "+reg);
-				ret.add(reg);
-			}
-			
 		}
 		return ret;
 	}
@@ -449,12 +443,12 @@ public class Device implements Schedulable, XMLConfigurable, OutputableDevice {
 			registerList.addAll(dataRegs);
 			registerList.addAll(configRegs);
 			
-			updateRegisters(registerList, responses);
+			updateRegisters(registerList, responses, true);
 			
 			for (OutputModule outputModule : outputModules) {
 				log.trace("Processing output module: "+outputModule.getDescription());
 				RegisterCollection collect = outputModule.getRegisterCollection();
-				updateRegisters(collect.beginUpdating(), responses);
+				updateRegisters(collect.beginUpdating(), responses, outputModule.useRegisterSampling());
 				collect.finishUpdating();
 			}
 		}
@@ -464,7 +458,7 @@ public class Device implements Schedulable, XMLConfigurable, OutputableDevice {
 		
 	}
 
-	private void setRegisterData(RealRegister reg, ModbusResponse response) {
+	private void setRegisterData(RealRegister reg, ModbusResponse response, boolean useSampling) {
 		int offset = reg.getAddress() - response.getReference();
 		//log.trace("Setting register: "+reg);
 		if (response instanceof ReadCoilsResponse) {
@@ -477,7 +471,10 @@ public class Device implements Schedulable, XMLConfigurable, OutputableDevice {
 			} else {
 				RegisterData temp = new RegisterData();
 				temp.setData(((ReadCoilsResponse)response).getCoilStatus(offset));
-				reg.setDataWithSampling(temp);
+				if (useSampling)
+					reg.setDataWithSampling(temp);
+				else
+					reg.setData(temp);
 			}
 		}
 		if (response instanceof ReadInputDiscretesResponse) {
@@ -490,7 +487,10 @@ public class Device implements Schedulable, XMLConfigurable, OutputableDevice {
 			} else {
 				RegisterData temp = new RegisterData();
 				temp.setData(((ReadInputDiscretesResponse)response).getDiscreteStatus(offset));
-				reg.setDataWithSampling(temp);
+				if (useSampling)
+					reg.setDataWithSampling(temp);
+				else
+					reg.setData(temp);
 			}
 		}
 		if (response instanceof ReadInputRegistersResponse) {
@@ -512,7 +512,10 @@ public class Device implements Schedulable, XMLConfigurable, OutputableDevice {
 					DataFunction func = DataProcessingManager.getDataFunction(reg.getFunctionClass());
 					func.process(temp, reg.getDataFunctionArgument());
 				}
-				reg.setDataWithSampling(temp);
+				if (useSampling)
+					reg.setDataWithSampling(temp);
+				else
+					reg.setData(temp);
 			} else if (getDataLength(response) >= offset+reg.getSize() && reg.getSize() == 2) {
 				//32-bit register reading
 				RegisterSizeType sizeType = reg.getSizeType();
@@ -535,7 +538,10 @@ public class Device implements Schedulable, XMLConfigurable, OutputableDevice {
 					DataFunction func = DataProcessingManager.getDataFunction(reg.getFunctionClass());
 					func.process(temp, reg.getDataFunctionArgument());
 				}
-				reg.setDataWithSampling(temp);
+				if (useSampling)
+					reg.setDataWithSampling(temp);
+				else
+					reg.setData(temp);
 			} else { //not 1 or 2 words
 				log.error("Invalid offset for ReadInputRegisterResponse - Offset: "+offset+" DataLength: "+getDataLength(response)+" Size: "+reg.getSize()+" "+reg);
 				reg.setNull();
@@ -560,7 +566,10 @@ public class Device implements Schedulable, XMLConfigurable, OutputableDevice {
 					DataFunction func = DataProcessingManager.getDataFunction(reg.getFunctionClass());
 					func.process(temp, reg.getDataFunctionArgument());
 				}
-				reg.setDataWithSampling(temp);
+				if (useSampling)
+					reg.setDataWithSampling(temp);
+				else
+					reg.setData(temp);
 			} else if (getDataLength(response) >= offset+reg.getSize() && reg.getSize() == 2) {
 				//32-bit register reading
 				RegisterSizeType sizeType = reg.getSizeType();
@@ -583,7 +592,10 @@ public class Device implements Schedulable, XMLConfigurable, OutputableDevice {
 					DataFunction func = DataProcessingManager.getDataFunction(reg.getFunctionClass());
 					func.process(temp, reg.getDataFunctionArgument());
 				}
-				reg.setDataWithSampling(temp);
+				if (useSampling)
+					reg.setDataWithSampling(temp);
+				else
+					reg.setData(temp);
 			} else { //not 1 or 2 words
 				log.error("Invalid offset for ReadMultipleRegistersResponse - Offset: "+offset+" DataLength: "+getDataLength(response)+" Size: "+reg.getSize()+" "+reg);
 				reg.setNull();
@@ -592,12 +604,12 @@ public class Device implements Schedulable, XMLConfigurable, OutputableDevice {
 		//log.trace("Setting register (NEW): "+reg);
 	}
 
-	private void updateRegisters(ArrayList<RealRegister> registerList, ArrayList<ModbusResponse> responses) {
+	private void updateRegisters(ArrayList<RealRegister> registerList, ArrayList<ModbusResponse> responses, boolean useSamplings) {
 		for (ModbusResponse response : responses) {
 			ArrayList<RealRegister> regsToUpdate = getRegistersToUpdate(registerList, response);
 			for (RealRegister regToUpdate : regsToUpdate) {
 				//log.trace("Got Register To Update: "+regToUpdate);
-				this.setRegisterData(regToUpdate, response);
+				this.setRegisterData(regToUpdate, response, useSamplings);
 				//if (regToUpdate instanceof ConfigRegister) {
 					//log.trace("Set config register: "+regToUpdate);
 				//}

@@ -85,4 +85,7 @@ public abstract class AbstractOutputModule
 		m_Registers.resetRegisterSamplings();
 	}
 
+	public boolean useRegisterSampling() {
+		return true;
+	}
 }

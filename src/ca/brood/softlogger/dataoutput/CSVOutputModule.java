@@ -30,7 +30,7 @@ import ca.brood.softlogger.modbus.register.RealRegister;
 import ca.brood.softlogger.scheduler.PrettyPeriodicSchedulable;
 import ca.brood.softlogger.util.Util;
 
-public class CSVOutputModule extends AbstractOutputModule {
+public class CSVOutputModule extends AbstractOutputModule implements Runnable {
 	private Logger log;
 	private CSVFileWriter writer;
 	private PrettyPeriodicSchedulable logSchedulable;

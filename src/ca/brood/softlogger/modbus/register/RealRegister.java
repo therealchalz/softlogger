@@ -39,7 +39,7 @@ public class RealRegister extends Register implements Comparable<RealRegister>{
 	protected int device = 0;
 	protected int scanRate = 0;
 	protected RegisterType regType;
-	protected ScanRateSampling sampling;
+	protected Sampling sampling;
 	protected double samplingValue = 0;
 	protected int samplingCount = 0;
 	protected RegisterSizeType sizeType;
@@ -50,7 +50,7 @@ public class RealRegister extends Register implements Comparable<RealRegister>{
 		super();
 		this.device = device;
 		log = Logger.getLogger(RealRegister.class + " device: "+device);
-		sampling = ScanRateSampling.MEAN;
+		sampling = Sampling.MEAN;
 		sizeType = RegisterSizeType.UNSIGNED;
 		functionClass = null;
 		dataFunctionArgument = "";
@@ -95,7 +95,7 @@ public class RealRegister extends Register implements Comparable<RealRegister>{
 		samplingCount = 0;
 		//Reset all latch-on and latch-off coils to null
 		if (this.getRegisterType() == RegisterType.INPUT_COIL || this.getRegisterType() == RegisterType.OUTPUT_COIL) {
-			if (this.sampling == ScanRateSampling.LATCHOFF || this.sampling == ScanRateSampling.LATCHON) {
+			if (this.sampling == Sampling.LATCHOFF || this.sampling == Sampling.LATCHON) {
 				this.registerData.nullData();
 			}
 		}
@@ -149,6 +149,9 @@ public class RealRegister extends Register implements Comparable<RealRegister>{
 	}
 	public int getAddress() {
 		return address;
+	}
+	public int getLongAddress() {
+		return RegisterType.getLongAddress(address, regType);
 	}
 	public int getSize() {
 		return size;
@@ -207,7 +210,7 @@ public class RealRegister extends Register implements Comparable<RealRegister>{
 				try {
 					if (configNode.getFirstChild() != null)
 						this.scanRate = Integer.parseInt(configNode.getFirstChild().getNodeValue());
-					this.sampling = ScanRateSampling.fromString(configNode.getAttributes().item(0).getTextContent());
+					this.sampling = Sampling.fromString(configNode.getAttributes().item(0).getTextContent());
 					registerNode.removeChild(configNode);
 				} catch (NumberFormatException e) {
 					log.error("Invalid scan rate: "+configNode.getFirstChild().getNodeValue());
@@ -227,9 +230,9 @@ public class RealRegister extends Register implements Comparable<RealRegister>{
 					log.warn("Got invalid size for an input or output coil.  Changing size to 1 from: "+this.size);
 				this.size = 1;
 			}
-			if (sampling == ScanRateSampling.SUM) {
+			if (sampling == Sampling.SUM) {
 				log.warn("SUM sampling not allowed for coils.  Using default of MEAN.");
-				sampling = ScanRateSampling.MEAN;
+				sampling = Sampling.MEAN;
 			}
 			break;
 		case INPUT_REGISTER:
@@ -239,9 +242,9 @@ public class RealRegister extends Register implements Comparable<RealRegister>{
 					log.warn("Got invalid size for an input or output register.  Changing size to 2 from: "+this.size);
 				this.size = 1;
 			}
-			if (sampling == ScanRateSampling.LATCHOFF || sampling == ScanRateSampling.LATCHON) {
+			if (sampling == Sampling.LATCHOFF || sampling == Sampling.LATCHON) {
 				log.warn("LATCHON / LATCHOFF samplings not allowed for non-coil registers. Using default of MEAN.");
-				sampling = ScanRateSampling.MEAN;
+				sampling = Sampling.MEAN;
 			}
 			break;
 		}

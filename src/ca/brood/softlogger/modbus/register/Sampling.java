@@ -20,14 +20,14 @@
  ******************************************************************************/
 package ca.brood.softlogger.modbus.register;
 
-public enum ScanRateSampling {
+public enum Sampling {
 	SUM,
 	MEAN,
 	LATEST,
 	LATCHON,
 	LATCHOFF;
 	
-	public static ScanRateSampling fromString(String text) {
+	public static Sampling fromString(String text) {
 		if (text.equalsIgnoreCase("average"))
 			return MEAN;
 		if (text.equalsIgnoreCase("sum"))

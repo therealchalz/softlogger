@@ -96,7 +96,7 @@ public class ConfigRegister extends RealRegister {
 			return false;
 		}
 		
-		this.sampling = ScanRateSampling.LATEST;
+		this.sampling = Sampling.LATEST;
 		
 		//log.debug(this.toString());
 		return true;
