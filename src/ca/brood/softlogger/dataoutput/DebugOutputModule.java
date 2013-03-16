@@ -20,6 +20,8 @@
  ******************************************************************************/
 package ca.brood.softlogger.dataoutput;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 
 import org.apache.log4j.Logger;
@@ -62,12 +64,13 @@ public class DebugOutputModule extends AbstractOutputModule  implements Runnable
 	private void printDeviceData() {
 		ArrayList<RealRegister> registers = this.m_Registers.readRegisters();
 		log.info("Printing "+description);
+		DateFormat sqlDateFormat = new SimpleDateFormat(Util.SQL_DATE_FORMAT_STRING);
 		for (RealRegister register : registers) {
 			try {
 				if (!register.isNull())
-					log.info(register.getFieldName()+"("+register.getLongAddress()+"): "+register.getFloat());
+					log.info(register.getFieldName()+"("+String.format("%06d", register.getLongAddress())+"-"+sqlDateFormat.format(register.getData().getTimestamp())+"): "+register.getFloat());
 				else
-					log.info(register.getFieldName()+"("+register.getLongAddress()+"): <null>");
+					log.info(register.getFieldName()+"("+String.format("%06d", register.getLongAddress())+"-"+sqlDateFormat.format(register.getData().getTimestamp())+"): <null>");
 			} catch (Exception e) {
 				log.info("Exception on print: ", e);
 			}

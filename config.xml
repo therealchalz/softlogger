@@ -62,7 +62,7 @@
 				<configValue name="logIntervalSeconds">1</configValue>
 				<configValue name="dbUser">softie</configValue>
 				<configValue name="dbPassword">password</configValue>
-				<configValue name="database">softlogger</configValue>
+				<configValue name="dbSchema">softlogger</configValue>
 				<configValue name="dbHost">127.0.0.1</configValue>
 				<!-- <configValue name="dbPort">2222</configValue> -->
 			</outputModule>

@@ -20,6 +20,9 @@
  ******************************************************************************/
 package ca.brood.softlogger.modbus.register;
 
+import java.text.DateFormat;
+import java.util.Date;
+
 import org.apache.log4j.Logger;
 
 import net.wimpi.modbus.msg.*;
@@ -29,6 +32,7 @@ public class RegisterData implements net.wimpi.modbus.procimg.Register{
 	private Integer dataInt = null;
 	private Float dataFloat = null;
 	private Boolean dataBool = null;
+	private Date timestamp = null;
 	private Logger log = Logger.getLogger(RegisterData.class);
 	public RegisterData() {
 		
@@ -37,6 +41,7 @@ public class RegisterData implements net.wimpi.modbus.procimg.Register{
 		dataInt = r.dataInt;
 		dataFloat = r.dataFloat;
 		dataBool = r.dataBool;
+		timestamp = r.timestamp;
 	}
 	public net.wimpi.modbus.procimg.Register getHighRegisterInt() {
 		 net.wimpi.modbus.procimg.Register ret = new SimpleRegister(dataInt>>16);
@@ -60,16 +65,24 @@ public class RegisterData implements net.wimpi.modbus.procimg.Register{
 		dataInt = null;
 		dataFloat = null;
 		dataBool = null;
+		timestamp = null;
 	}
 	
 	public boolean isNull() {
 		return (dataInt == null && dataFloat == null && dataBool == null);
 	}
 	
-	//Should always check for null first when getting these values
+	/** Returns the value of this register interpreted as signed 16 bits.
+	 * Always check that the register is not null first.
+	 * @return The 16-bit signed integer value of this register.
+	 */
 	public Short getShort() {
 		return dataInt.shortValue();
 	}
+	/** Returns the value of this register interpreted as signed 32 bits/unsigned 16 bits.
+	 * Always check that the register is not null first.
+	 * @return The 16-bit unsigned/32-bit signed integer value of this register.
+	 */
 	public Integer getInt() {
 		return dataInt;
 	}
@@ -79,10 +92,18 @@ public class RegisterData implements net.wimpi.modbus.procimg.Register{
 	public Boolean getBool() {
 		return dataBool;
 	}
+	public Date getTimestamp() {
+		return timestamp;
+	}
 	public void setData(RegisterData r) {
 		dataInt = r.dataInt;
 		dataFloat = r.dataFloat;
 		dataBool = r.dataBool;
+		timestamp = r.timestamp;
+	}
+	public void setData(Boolean b, Date timestamp) {
+		this.timestamp = timestamp;
+		setData(b);
 	}
 	public void setData(Boolean b) {
 		if (b) {
@@ -95,20 +116,36 @@ public class RegisterData implements net.wimpi.modbus.procimg.Register{
 			dataBool = false;
 		}
 	}
+	public void setData(Integer i, Date timestamp) {
+		this.timestamp = timestamp;
+		setData(i);
+	}
 	public void setData(Integer i) {
 		dataInt = i;
 		dataFloat = new Float(i);
 		dataBool = (i != 0 ? true : false);
+	}
+	public void setDataFloat(Integer i, Date timestamp) {
+		this.timestamp = timestamp;
+		setDataFloat(i);
 	}
 	public void setDataFloat(Integer i) {
 		dataFloat = Float.intBitsToFloat(i);
 		dataInt = dataFloat.intValue();
 		dataBool = (i != 0 ? true : false);
 	}
+	public void setDataFloat(Float f, Date timestamp) {
+		this.timestamp = timestamp;
+		setDataFloat(f);
+	}
 	public void setDataFloat(Float f) {
 		dataFloat = new Float(f);
 		dataInt = dataFloat.intValue();
 		dataBool = (dataInt != 0 ? true : false);
+	}
+	public void setData(ModbusResponse resp, Date timestamp) {
+		this.timestamp = timestamp;
+		setData(resp);
 	}
 	public void setData(ModbusResponse resp) {
 		if (resp.getClass() == ReadCoilsResponse.class) {
@@ -136,7 +173,7 @@ public class RegisterData implements net.wimpi.modbus.procimg.Register{
 				//TODO: figure out how to decide if we should treat the number as IEEE 754 or not.  Right now assume it is.
 				setDataFloat(((ReadInputRegistersResponse)resp).getRegister(0).getValue() << 16 + ((ReadInputRegistersResponse)resp).getRegister(1).getValue());
 			} else { //not 1 or 2 words
-				log.error("Cannot parse ReadInputDiscretesResponse because received unexpected number of coils: "+((ReadInputDiscretesResponse)resp).getBitCount());
+				log.error("Cannot parse ReadInputRegistersResponse because received unexpected number of words: "+((ReadInputRegistersResponse)resp).getWordCount());
 				this.nullData();
 				return;
 			}
@@ -147,9 +184,9 @@ public class RegisterData implements net.wimpi.modbus.procimg.Register{
 			} else if (((ReadMultipleRegistersResponse)resp).getWordCount() == 2) {
 				//32-bit register reading
 				//TODO: figure out how to decide if we should treat the number as IEEE 754 or not.  Right now assume it is.
-				setDataFloat(((ReadMultipleRegistersResponse)resp).getRegister(0).getValue() << 16 + ((ReadInputRegistersResponse)resp).getRegister(1).getValue());
+				setDataFloat(((ReadMultipleRegistersResponse)resp).getRegister(0).getValue() << 16 + ((ReadMultipleRegistersResponse)resp).getRegister(1).getValue());
 			} else { //not 1 or 2 words
-				log.error("Cannot parse ReadInputDiscretesResponse because received unexpected number of coils: "+((ReadInputDiscretesResponse)resp).getBitCount());
+				log.error("Cannot parse ReadMultipleRegistersResponse because received unexpected number of words: "+((ReadMultipleRegistersResponse)resp).getWordCount());
 				this.nullData();
 				return;
 			}
@@ -162,6 +199,9 @@ public class RegisterData implements net.wimpi.modbus.procimg.Register{
 	@Override
 	public String toString() {
 		String ret = "";
+		if (timestamp != null) {
+			ret+="Timestamp: "+DateFormat.getDateTimeInstance().format(timestamp);
+		}
 		if (dataInt != null) {
 			ret+="Int: "+dataInt+", ";
 		} else {

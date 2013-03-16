@@ -22,9 +22,13 @@ package ca.brood.softlogger.util;
 
 //import org.apache.log4j.Logger;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+
 import ca.brood.softlogger.modbus.register.RegisterData;
 
 public class Util {
+	public static final String SQL_DATE_FORMAT_STRING = "yyyy-MM-dd HH:mm:ss.SSS";
 	//private static Logger log = Logger.getLogger(Util.class);
 	public static int parseInt(String number) throws NumberFormatException {
 		int ret;

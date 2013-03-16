@@ -31,6 +31,7 @@ import ca.brood.softlogger.scheduler.SchedulerQueue;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -418,12 +419,13 @@ public class Device implements Schedulable, XMLConfigurable, OutputableDevice {
 		}
 		
 		SortedSet<RealRegister> registersToProcess = new TreeSet<RealRegister>();
-		while (getNextRun() < System.currentTimeMillis()+10) {
-			ScanGroup next = (ScanGroup) scanGroups.poll();
-			next.execute();
-			scanGroups.add(next);
+		long nextRunCutoff = System.currentTimeMillis() + 10;
+		while (getNextRun() < nextRunCutoff) {
+			ScanGroup nextGroup = (ScanGroup) scanGroups.poll();
+			nextGroup.execute();
+			scanGroups.add(nextGroup);
 			
-			registersToProcess.addAll(next.getRegisters());
+			registersToProcess.addAll(nextGroup.getRegisters());
 		}
 		
 		//wait until after we execute the scangroups
@@ -433,22 +435,28 @@ public class Device implements Schedulable, XMLConfigurable, OutputableDevice {
 		
 		if (registersToProcess.size() == 0)
 			log.warn("Registers to process: "+registersToProcess);
+		
 		synchronized (registerLock) {
 			
 			ArrayList<ModbusRequest> requests = getRequests(registersToProcess);
 			
+			long then = System.currentTimeMillis();
 			ArrayList<ModbusResponse> responses = executeRequests(requests);
+			long now = System.currentTimeMillis();
+			long measurementTimeMillis = (long) ((then+now)*0.5);
 			
 			ArrayList<RealRegister> registerList = new ArrayList<RealRegister>();
 			registerList.addAll(dataRegs);
 			registerList.addAll(configRegs);
 			
-			updateRegisters(registerList, responses, true);
+			Date timestamp = new Date(measurementTimeMillis);
+			
+			updateRegisters(registerList, responses, timestamp, true);
 			
 			for (OutputModule outputModule : outputModules) {
 				log.trace("Processing output module: "+outputModule.getDescription());
 				RegisterCollection collect = outputModule.getRegisterCollection();
-				updateRegisters(collect.beginUpdating(), responses, outputModule.useRegisterSampling());
+				updateRegisters(collect.beginUpdating(), responses, timestamp, outputModule.useRegisterSampling());
 				collect.finishUpdating();
 			}
 		}
@@ -458,7 +466,7 @@ public class Device implements Schedulable, XMLConfigurable, OutputableDevice {
 		
 	}
 
-	private void setRegisterData(RealRegister reg, ModbusResponse response, boolean useSampling) {
+	private void setRegisterData(RealRegister reg, ModbusResponse response, Date timestamp, boolean useSampling) {
 		int offset = reg.getAddress() - response.getReference();
 		//log.trace("Setting register: "+reg);
 		if (response instanceof ReadCoilsResponse) {
@@ -470,7 +478,7 @@ public class Device implements Schedulable, XMLConfigurable, OutputableDevice {
 				reg.setNull();
 			} else {
 				RegisterData temp = new RegisterData();
-				temp.setData(((ReadCoilsResponse)response).getCoilStatus(offset));
+				temp.setData(((ReadCoilsResponse)response).getCoilStatus(offset), timestamp);
 				if (useSampling)
 					reg.setDataWithSampling(temp);
 				else
@@ -486,7 +494,7 @@ public class Device implements Schedulable, XMLConfigurable, OutputableDevice {
 				reg.setNull();
 			} else {
 				RegisterData temp = new RegisterData();
-				temp.setData(((ReadInputDiscretesResponse)response).getDiscreteStatus(offset));
+				temp.setData(((ReadInputDiscretesResponse)response).getDiscreteStatus(offset), timestamp);
 				if (useSampling)
 					reg.setDataWithSampling(temp);
 				else
@@ -507,7 +515,7 @@ public class Device implements Schedulable, XMLConfigurable, OutputableDevice {
 					val = ((ReadInputRegistersResponse)response).getRegister(offset).getValue();
 				}
 				RegisterData temp = new RegisterData();
-				temp.setData(new Integer(val));
+				temp.setData(new Integer(val), timestamp);
 				if (reg.getFunctionClass() != null) {
 					DataFunction func = DataProcessingManager.getDataFunction(reg.getFunctionClass());
 					func.process(temp, reg.getDataFunctionArgument());
@@ -533,7 +541,7 @@ public class Device implements Schedulable, XMLConfigurable, OutputableDevice {
 				}
 				//log.info("Registers 1: "+((ReadInputRegistersResponse)response).getRegister(offset).getValue()+" Register 2: "+((ReadInputRegistersResponse)response).getRegister(offset+1).getValue()+" new Value: "+val);
 				RegisterData temp = new RegisterData();
-				temp.setDataFloat(val);
+				temp.setDataFloat(val, timestamp);
 				if (reg.getFunctionClass() != null) {
 					DataFunction func = DataProcessingManager.getDataFunction(reg.getFunctionClass());
 					func.process(temp, reg.getDataFunctionArgument());
@@ -561,7 +569,7 @@ public class Device implements Schedulable, XMLConfigurable, OutputableDevice {
 					val = ((ReadMultipleRegistersResponse)response).getRegister(offset).getValue();
 				}
 				RegisterData temp = new RegisterData();
-				temp.setData(new Integer(val));
+				temp.setData(new Integer(val), timestamp);
 				if (reg.getFunctionClass() != null) {
 					DataFunction func = DataProcessingManager.getDataFunction(reg.getFunctionClass());
 					func.process(temp, reg.getDataFunctionArgument());
@@ -587,7 +595,7 @@ public class Device implements Schedulable, XMLConfigurable, OutputableDevice {
 				}
 				//log.info("Registers 1: "+((ReadMultipleRegistersResponse)response).getRegister(offset).getValue()+" Register 2: "+((ReadMultipleRegistersResponse)response).getRegister(offset+1).getValue()+" new Value: "+val);
 				RegisterData temp = new RegisterData();
-				temp.setDataFloat(val);
+				temp.setDataFloat(val, timestamp);
 				if (reg.getFunctionClass() != null) {
 					DataFunction func = DataProcessingManager.getDataFunction(reg.getFunctionClass());
 					func.process(temp, reg.getDataFunctionArgument());
@@ -604,12 +612,12 @@ public class Device implements Schedulable, XMLConfigurable, OutputableDevice {
 		//log.trace("Setting register (NEW): "+reg);
 	}
 
-	private void updateRegisters(ArrayList<RealRegister> registerList, ArrayList<ModbusResponse> responses, boolean useSamplings) {
+	private void updateRegisters(ArrayList<RealRegister> registerList, ArrayList<ModbusResponse> responses, Date timestamp, boolean useSamplings) {
 		for (ModbusResponse response : responses) {
 			ArrayList<RealRegister> regsToUpdate = getRegistersToUpdate(registerList, response);
 			for (RealRegister regToUpdate : regsToUpdate) {
 				//log.trace("Got Register To Update: "+regToUpdate);
-				this.setRegisterData(regToUpdate, response, useSamplings);
+				this.setRegisterData(regToUpdate, response, timestamp, useSamplings);
 				//if (regToUpdate instanceof ConfigRegister) {
 					//log.trace("Set config register: "+regToUpdate);
 				//}

@@ -109,7 +109,7 @@ public class RealRegister extends Register implements Comparable<RealRegister>{
 			//Only for registers
 			samplingValue += temp.getFloat();
 			samplingCount ++;
-			this.setData((float)samplingValue);
+			this.setData((float)samplingValue, temp.getTimestamp());
 			break;
 		case MEAN:
 			samplingCount ++;
@@ -117,24 +117,24 @@ public class RealRegister extends Register implements Comparable<RealRegister>{
 				if (temp.getBool())
 					samplingValue ++;
 				if ((samplingValue/samplingCount) >0.5f) {
-					this.setData(true);
+					this.setData(true, temp.getTimestamp());
 				} else {
-					this.setData(false);
+					this.setData(false, temp.getTimestamp());
 				}
 			} else {
 				samplingValue += temp.getFloat();
-				this.setData((float)(samplingValue/samplingCount));
+				this.setData((float)(samplingValue/samplingCount), temp.getTimestamp());
 			}
 			break;
 		case LATCHON:
 			//only for coils
 			if (temp.getBool() || this.isNull())
-				this.setData(temp.getBool());
+				this.setData(temp.getBool(), temp.getTimestamp());
 			break;
 		case LATCHOFF:
 			//only for coils
 			if (!temp.getBool() || this.isNull())
-				this.setData(temp.getBool());
+				this.setData(temp.getBool(), temp.getTimestamp());
 			break;
 		}
 	}

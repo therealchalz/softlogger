@@ -39,7 +39,7 @@ public class DBOutputModule extends AbstractOutputModule  implements Runnable {
 	private PrettyPeriodicSchedulable logSchedulable;
 	private boolean firstIntervalOutputted = false;
 	private String dbUser = "";
-	private String database = "";
+	private String dbSchema = "";
 	private String dbPassword = "";
 	private String dbHost = "";
 	private int dbPort = 3306;
@@ -60,7 +60,7 @@ public class DBOutputModule extends AbstractOutputModule  implements Runnable {
 		logSchedulable.setAction(this);
 		firstIntervalOutputted = o.firstIntervalOutputted;
 		dbUser = o.dbUser;
-		database = o.database;
+		dbSchema = o.dbSchema;
 		dbPassword = o.dbPassword;
 		dbHost = o.dbHost;
 		dbPort = o.dbPort;
@@ -86,8 +86,8 @@ public class DBOutputModule extends AbstractOutputModule  implements Runnable {
 			}
 		} else if ("dbUser".equalsIgnoreCase(name)) {
 			dbUser = value;
-		} else if ("database".equalsIgnoreCase(name)) {
-			database = value;
+		} else if ("dbSchema".equalsIgnoreCase(name)) {
+			dbSchema = value;
 		} else if ("dbHost".equalsIgnoreCase(name)) {
 			dbHost = value;
 		} else if ("dbPassword".equalsIgnoreCase(name)) {
@@ -127,7 +127,6 @@ public class DBOutputModule extends AbstractOutputModule  implements Runnable {
 		}*/
 		
 		ArrayList<RealRegister> re = this.m_Registers.readRegisters();
-		this.resetRegisterSamplings();
 		
 		if (!isClosed) {
 			try {
@@ -144,6 +143,7 @@ public class DBOutputModule extends AbstractOutputModule  implements Runnable {
 		//replace all whitespace with _ and invalid characters with $
 		String name = this.m_DeviceDescription.replaceAll("\\s", "_");
 		name = name.replaceAll("[^\\w$]", "\\$");
+		name = dbSchema +"." + name;
 		return name;		
 	}
 	
@@ -154,13 +154,15 @@ public class DBOutputModule extends AbstractOutputModule  implements Runnable {
 	
 	private void createTable(String tableName) throws SQLException {
 		Statement st = connection.createStatement();
-        st.executeQuery("CREATE TABLE "+tableName+"(P_Id int)");
+		st.execute("DROP TABLE IF EXISTS "+tableName);
+        st.execute("CREATE  TABLE "+tableName+" (  `id` INT NOT NULL ,  `name` VARCHAR(64) NULL ,  `address` INT NULL ,  `value` VARCHAR(45) NULL ,  `t_stamp` DATETIME NULL,  `microseconds` INT NULL,  PRIMARY KEY (`id`) );");
+        st.close();
 	}
 	
 	private void checkConnection() throws SQLException {
 		
 		if (!isClosed && connection == null || !connection.isValid(1000)) {
-			String url = "jdbc:mysql://"+dbHost+":"+dbPort+"/"+database;
+			String url = "jdbc:mysql://"+dbHost+":"+dbPort+"/"+dbSchema;
 
 			connection = DriverManager.getConnection(url, dbUser, dbPassword);
 			
@@ -169,7 +171,7 @@ public class DBOutputModule extends AbstractOutputModule  implements Runnable {
             ResultSet rs = st.executeQuery("SELECT VERSION()");
 
             if (rs.next()) {
-                log.info("Connected to server: "+rs.getString(1));
+                log.info("Server version: "+rs.getString(1));
             }
             
             rs.close();
