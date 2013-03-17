@@ -6,5 +6,6 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/jamod"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/brootils"/>
 	<classpathentry kind="lib" path="lib/mysql-connector-java-5.1.23-bin.jar"/>
+	<classpathentry kind="lib" path="lib/commons-daemon-1.0.13.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

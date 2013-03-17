@@ -21,6 +21,10 @@
 package ca.brood.softlogger;
 
 import java.util.ArrayList;
+
+import org.apache.commons.daemon.Daemon;
+import org.apache.commons.daemon.DaemonContext;
+import org.apache.commons.daemon.DaemonInitException;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 
@@ -41,7 +45,9 @@ import ca.brood.softlogger.modbus.Device;
 import java.io.File;
 
 
-public class Softlogger implements XMLConfigurable {
+public class Softlogger implements Daemon, XMLConfigurable {
+	public static final String DEFAULT_CONFIG_FILE = "softlogger.xml";
+	private static Softlogger softlogger;
 	private Logger log;
 	
 	private String loggerName = "Unnamed Logger";
@@ -63,18 +69,19 @@ public class Softlogger implements XMLConfigurable {
 	 * -dataFunction element (JEP, LUT is done)
 	 * 
 	 * Longer term TODO:
-	 * -logging to local database so other things can use the data (web realtime frontend etc)
 	 * -sending of file to remote server
 	 * -email alerts
 	 * -reverse tunnel
 	 * -uptime tracking(cpu, internet, rtunnel)
-	 * -convert to apache daemon runner 
 	 */
 	
+	static {
+		softlogger = new Softlogger();
+		PropertyConfigurator.configure("logger.config");
+	}
 	
 	public Softlogger() {
 		log = Logger.getLogger(Softlogger.class);
-		PropertyConfigurator.configure("logger.config");
 		softloggerChannels = new ArrayList<SoftloggerChannel>();
 		dataOutputManager = new DataOutputManager();
 	}
@@ -101,27 +108,28 @@ public class Softlogger implements XMLConfigurable {
 		
 	}
 	public static void main(String[] args) {
-		Softlogger s = new Softlogger();
-		if (s.configure("config.xml")) {
-			s.run();
+		if (softlogger.configure(Softlogger.DEFAULT_CONFIG_FILE)) {
+			softlogger.softloggerStart();
 			try {
 				Thread.sleep(600000);
 			} catch (InterruptedException e) {
 			}
-			s.stop();
+			softlogger.softloggerStop();
 			//Wait a second for the threads to quit before printing performance data
 			try {
 				Thread.sleep(1000);
 			} catch (InterruptedException e) {
 			}
 			ThreadPerformanceMonitor.printPerformanceData();
+		} else {
+			softlogger.log.fatal("Error loading config file: "+Softlogger.DEFAULT_CONFIG_FILE);
 		}
-		s.log.info("All done");
+		softlogger.log.info("All done");
 	}
 	public void kill() {
 		log.info("Softlogger killing softloggerChannels");
 	}
-	public void stop() {
+	public void softloggerStop() {
 		log.info("Softlogger stopping softloggerChannels");
 		
 		//Stop all outputting first
@@ -140,7 +148,7 @@ public class Softlogger implements XMLConfigurable {
 		}
 	}
 	
-	public void run() {
+	public void softloggerStart() {
 		
 		try {
 			File f = new File("lut/LUT1.dat");
@@ -163,6 +171,63 @@ public class Softlogger implements XMLConfigurable {
 		dataOutputManager.initializeSchedulers(devices);
 		dataOutputManager.start();
 	}
+	
+    @Override
+    public void init(DaemonContext arg) throws DaemonInitException, Exception {
+    	//TODO: get an xml config file from the command line
+    	log.info("Linux daemon received init");
+    	for (String s : arg.getArguments()) {
+    		log.debug("Got argument: "+s);
+    	}
+    	if (!this.configure(DEFAULT_CONFIG_FILE)) {
+    		throw new DaemonInitException("Error configuring logger with file: "+DEFAULT_CONFIG_FILE);
+    	}
+    }
+    
+    @Override
+    public void start() throws Exception {
+    	log.info("Linux daemon received start command");
+    	softloggerStart();
+    }
+    
+    @Override
+    public void stop() throws Exception {
+    	log.info("Linux daemon received stop command");
+    	softloggerStop();
+    }
+    
+	@Override
+    public void destroy() {
+        log.info("Linux daemon received destroy command");
+    }
+    
+    /**
+     * Static methods called by prunsrv to start/stop
+     * the Windows service.  Pass the argument "start"
+     * to start the service, and pass "stop" to
+     * stop the service.
+     * Stolen from FAQ at commons daemon.
+     */
+    public static void windowsService(String[] args) {
+        String cmd = "start";
+        if (args.length > 0) {
+            cmd = args[0];
+        }
+
+        if ("start".equals(cmd)) {
+        	softlogger.log.info("Windows service received Start command");
+        	if (!softlogger.configure(DEFAULT_CONFIG_FILE)) {
+        		softlogger.log.fatal("Error configuring softlogger with file: "+DEFAULT_CONFIG_FILE);
+        	} else {
+        		softlogger.softloggerStart();
+        	}
+        } else if ("stop".equals(cmd)) {
+        	softlogger.log.info("Windows service received Stop command");
+        	softlogger.softloggerStop();
+        } else {
+        	softlogger.log.error("Unrecognized service option: "+cmd);
+        }
+    }
 
 	public void printAll() {
 		log.info("Name: "+this.loggerName);
