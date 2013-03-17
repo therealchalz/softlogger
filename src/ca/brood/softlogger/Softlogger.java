@@ -33,7 +33,6 @@ import ca.brood.brootils.xml.XMLFileLoader;
 import ca.brood.softlogger.dataoutput.DataOutputManager;
 import ca.brood.softlogger.dataoutput.DataServer;
 import ca.brood.softlogger.dataoutput.OutputModule;
-import ca.brood.softlogger.dataoutput.OutputableDevice;
 import ca.brood.softlogger.lookuptable.LookupTableGenerator;
 import ca.brood.softlogger.lookuptable.LookupTableManager;
 import ca.brood.softlogger.lookuptable.TestGenerator;
@@ -106,7 +105,7 @@ public class Softlogger implements XMLConfigurable {
 		if (s.configure("config.xml")) {
 			s.run();
 			try {
-				Thread.sleep(5000);
+				Thread.sleep(600000);
 			} catch (InterruptedException e) {
 			}
 			s.stop();
@@ -157,7 +156,7 @@ public class Softlogger implements XMLConfigurable {
 			softloggerChannels.get(i).start();
 		}
 		
-		ArrayList<OutputableDevice> devices = new ArrayList<OutputableDevice>();
+		ArrayList<Device> devices = new ArrayList<Device>();
 		for (SoftloggerChannel channel : softloggerChannels) {
 			devices.addAll(channel.getDevices());
 		}
@@ -265,7 +264,7 @@ public class Softlogger implements XMLConfigurable {
 				Class<? extends OutputModule> outputClass = (Class<? extends OutputModule>) Class.forName(currentConfigNode.getAttributes().getNamedItem("class").getNodeValue());
 				OutputModule outputModule = outputClass.newInstance();
 				if (outputModule.configure(currentConfigNode)) {
-					for (OutputableDevice d : devices) {
+					for (Device d : devices) {
 						d.addOutputModule(outputModule.clone());
 					}
 				}

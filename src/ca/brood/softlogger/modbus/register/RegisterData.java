@@ -21,7 +21,6 @@
 package ca.brood.softlogger.modbus.register;
 
 import java.text.DateFormat;
-import java.util.Date;
 
 import org.apache.log4j.Logger;
 
@@ -32,7 +31,7 @@ public class RegisterData implements net.wimpi.modbus.procimg.Register{
 	private Integer dataInt = null;
 	private Float dataFloat = null;
 	private Boolean dataBool = null;
-	private Date timestamp = null;
+	private Long timestamp = null;
 	private Logger log = Logger.getLogger(RegisterData.class);
 	public RegisterData() {
 		
@@ -92,7 +91,7 @@ public class RegisterData implements net.wimpi.modbus.procimg.Register{
 	public Boolean getBool() {
 		return dataBool;
 	}
-	public Date getTimestamp() {
+	public Long getTimestamp() {
 		return timestamp;
 	}
 	public void setData(RegisterData r) {
@@ -101,7 +100,7 @@ public class RegisterData implements net.wimpi.modbus.procimg.Register{
 		dataBool = r.dataBool;
 		timestamp = r.timestamp;
 	}
-	public void setData(Boolean b, Date timestamp) {
+	public void setData(Boolean b, Long timestamp) {
 		this.timestamp = timestamp;
 		setData(b);
 	}
@@ -116,7 +115,7 @@ public class RegisterData implements net.wimpi.modbus.procimg.Register{
 			dataBool = false;
 		}
 	}
-	public void setData(Integer i, Date timestamp) {
+	public void setData(Integer i, Long timestamp) {
 		this.timestamp = timestamp;
 		setData(i);
 	}
@@ -125,7 +124,7 @@ public class RegisterData implements net.wimpi.modbus.procimg.Register{
 		dataFloat = new Float(i);
 		dataBool = (i != 0 ? true : false);
 	}
-	public void setDataFloat(Integer i, Date timestamp) {
+	public void setDataFloat(Integer i, Long timestamp) {
 		this.timestamp = timestamp;
 		setDataFloat(i);
 	}
@@ -134,7 +133,7 @@ public class RegisterData implements net.wimpi.modbus.procimg.Register{
 		dataInt = dataFloat.intValue();
 		dataBool = (i != 0 ? true : false);
 	}
-	public void setDataFloat(Float f, Date timestamp) {
+	public void setDataFloat(Float f, Long timestamp) {
 		this.timestamp = timestamp;
 		setDataFloat(f);
 	}
@@ -143,7 +142,7 @@ public class RegisterData implements net.wimpi.modbus.procimg.Register{
 		dataInt = dataFloat.intValue();
 		dataBool = (dataInt != 0 ? true : false);
 	}
-	public void setData(ModbusResponse resp, Date timestamp) {
+	public void setData(ModbusResponse resp, Long timestamp) {
 		this.timestamp = timestamp;
 		setData(resp);
 	}

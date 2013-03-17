@@ -50,11 +50,6 @@ public interface OutputModule extends XMLConfigurable, Schedulable {
 	 * @param reg The new RegisterCollection.
 	 */
 	public void setRegisterCollection(RegisterCollection reg);
-	/** Tells this output module what device it is outputting for.
-	 * Called by the device with the device's description.
-	 * @param desc The description of the device.
-	 */
-	public void setDeviceDescription(String desc);
 	/** Notifies the output module that its shutdown is imminent.
 	 * This is where files and connections should be closed etc.
 	 */
@@ -64,4 +59,9 @@ public interface OutputModule extends XMLConfigurable, Schedulable {
 	 * @return true if the register sampling function is to be used.
 	 */
 	public boolean useRegisterSampling();
+	/** Sets the device that this output module is outputting for.
+	 * Provides the output module with some metadata.
+	 * @param dev The outputable device.
+	 */
+	public void setOutputableDevice(OutputableDevice dev);
 }

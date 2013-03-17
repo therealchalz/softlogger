@@ -20,8 +20,6 @@
  ******************************************************************************/
 package ca.brood.softlogger.modbus.register;
 
-import java.util.Date;
-
 import net.wimpi.modbus.msg.ModbusResponse;
 
 import org.apache.log4j.Logger;
@@ -67,25 +65,25 @@ public abstract class Register implements XMLConfigurable {
 	public void setData(RegisterData data) {
 		this.registerData.setData(data);
 	}
-	public void setData(ModbusResponse r, Date timestamp) {
+	public void setData(ModbusResponse r, Long timestamp) {
 		registerData.setData(r, timestamp);
 	}
 	public void setData(ModbusResponse r) {
 		registerData.setData(r);
 	}
-	public void setData(Integer i, Date timestamp) {
+	public void setData(Integer i, Long timestamp) {
 		registerData.setData(i, timestamp);
 	}
 	public void setData(Integer i) {
 		registerData.setData(i);
 	}
-	public void setData(Float f, Date timestamp) {
+	public void setData(Float f, Long timestamp) {
 		registerData.setDataFloat(f, timestamp);
 	}
 	public void setData(Float f) {
 		registerData.setDataFloat(f);
 	}
-	public void setData(Boolean b, Date timestamp) {
+	public void setData(Boolean b, Long timestamp) {
 		registerData.setData(b, timestamp);
 	}
 	public void setData(Boolean b) {

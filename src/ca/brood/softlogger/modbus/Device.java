@@ -31,10 +31,10 @@ import ca.brood.softlogger.scheduler.SchedulerQueue;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.Iterator;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import net.wimpi.modbus.ModbusException;
 import net.wimpi.modbus.msg.ModbusRequest;
@@ -60,6 +60,7 @@ public class Device implements Schedulable, XMLConfigurable, OutputableDevice {
 	private SchedulerQueue scanGroups;
 	private Object registerLock;
 	private ArrayList<OutputModule> outputModules;
+	private AtomicBoolean isOnline;
 	
 	private int scanRate = 0;
 	private static volatile int nextId = 1;
@@ -76,10 +77,11 @@ public class Device implements Schedulable, XMLConfigurable, OutputableDevice {
 		scanGroups = new SchedulerQueue();
 		registerLock = new Object();
 		outputModules = new ArrayList<OutputModule>();
+		isOnline = new AtomicBoolean(false);
 	}
 	public void addOutputModule(OutputModule m) {
 		m.setRegisterCollection(new RegisterCollection(this.getAllRegisters()));
-		m.setDeviceDescription(getDescription());
+		m.setOutputableDevice(this);
 		outputModules.add(m);
 	}
 	public void deleteAllOutputModules() {
@@ -433,8 +435,10 @@ public class Device implements Schedulable, XMLConfigurable, OutputableDevice {
 			return;
 		}
 		
-		if (registersToProcess.size() == 0)
+		if (registersToProcess.size() == 0) {
 			log.warn("Registers to process: "+registersToProcess);
+			return;
+		}
 		
 		synchronized (registerLock) {
 			
@@ -445,18 +449,24 @@ public class Device implements Schedulable, XMLConfigurable, OutputableDevice {
 			long now = System.currentTimeMillis();
 			long measurementTimeMillis = (long) ((then+now)*0.5);
 			
+			if (responses.size() == 0) {
+				isOnline.set(false);
+				log.error("ERROR: Device appears to be offline.");
+				return;
+			}
+			
+			isOnline.set(true);
+			
 			ArrayList<RealRegister> registerList = new ArrayList<RealRegister>();
 			registerList.addAll(dataRegs);
 			registerList.addAll(configRegs);
 			
-			Date timestamp = new Date(measurementTimeMillis);
-			
-			updateRegisters(registerList, responses, timestamp, true);
+			updateRegisters(registerList, responses, measurementTimeMillis, true);
 			
 			for (OutputModule outputModule : outputModules) {
 				log.trace("Processing output module: "+outputModule.getDescription());
 				RegisterCollection collect = outputModule.getRegisterCollection();
-				updateRegisters(collect.beginUpdating(), responses, timestamp, outputModule.useRegisterSampling());
+				updateRegisters(collect.beginUpdating(), responses, measurementTimeMillis, outputModule.useRegisterSampling());
 				collect.finishUpdating();
 			}
 		}
@@ -466,7 +476,7 @@ public class Device implements Schedulable, XMLConfigurable, OutputableDevice {
 		
 	}
 
-	private void setRegisterData(RealRegister reg, ModbusResponse response, Date timestamp, boolean useSampling) {
+	private void setRegisterData(RealRegister reg, ModbusResponse response, Long timestamp, boolean useSampling) {
 		int offset = reg.getAddress() - response.getReference();
 		//log.trace("Setting register: "+reg);
 		if (response instanceof ReadCoilsResponse) {
@@ -612,7 +622,7 @@ public class Device implements Schedulable, XMLConfigurable, OutputableDevice {
 		//log.trace("Setting register (NEW): "+reg);
 	}
 
-	private void updateRegisters(ArrayList<RealRegister> registerList, ArrayList<ModbusResponse> responses, Date timestamp, boolean useSamplings) {
+	private void updateRegisters(ArrayList<RealRegister> registerList, ArrayList<ModbusResponse> responses, Long timestamp, boolean useSamplings) {
 		for (ModbusResponse response : responses) {
 			ArrayList<RealRegister> regsToUpdate = getRegistersToUpdate(registerList, response);
 			for (RealRegister regToUpdate : regsToUpdate) {
@@ -625,7 +635,6 @@ public class Device implements Schedulable, XMLConfigurable, OutputableDevice {
 		}
 	}
 
-	@Override
 	public ArrayList<OutputModule> getOutputModules() {
 		ArrayList<OutputModule> ret = new ArrayList<OutputModule>();
 		ret.addAll(outputModules);
@@ -633,8 +642,14 @@ public class Device implements Schedulable, XMLConfigurable, OutputableDevice {
 	}
 
 	public void stop() {
+		isOnline.set(false);
 		for (OutputModule output : outputModules) {
 			output.close();
 		}
+	}
+
+	@Override
+	public boolean isOnline() {
+		return isOnline.get();
 	}
 }

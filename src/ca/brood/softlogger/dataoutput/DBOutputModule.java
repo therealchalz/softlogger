@@ -20,13 +20,15 @@
  ******************************************************************************/
 package ca.brood.softlogger.dataoutput;
 
-import java.util.ArrayList;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import org.apache.log4j.Logger;
 
@@ -45,6 +47,7 @@ public class DBOutputModule extends AbstractOutputModule  implements Runnable {
 	private int dbPort = 3306;
 	private Connection connection = null;
 	private boolean isClosed = false;
+	private boolean tableCreated = false;
 	
 	public DBOutputModule() {
 		super();
@@ -118,20 +121,22 @@ public class DBOutputModule extends AbstractOutputModule  implements Runnable {
 	public void run() {
 		log.info("Running"); 
 		
+		if (!m_OutputDevice.isOnline()) {
+			return;
+		}
+		
 		//Skip first interval of data
-		//commented out for testing
-		/*if (!firstIntervalOutputted) {
+		if (!firstIntervalOutputted) {
 			firstIntervalOutputted = true;
 			this.resetRegisterSamplings();
 			return;
-		}*/
-		
-		ArrayList<RealRegister> re = this.m_Registers.readRegisters();
+		}
 		
 		if (!isClosed) {
 			try {
 				checkConnection();
 				checkTable();
+				updateRegisters();
 			} catch (Exception e) {
 				log.error(e);
 			}
@@ -139,24 +144,53 @@ public class DBOutputModule extends AbstractOutputModule  implements Runnable {
 
 	}
 	
-	private String getTableName() {
+	private String sqlSanitize(String in) {
 		//replace all whitespace with _ and invalid characters with $
-		String name = this.m_DeviceDescription.replaceAll("\\s", "_");
-		name = name.replaceAll("[^\\w$]", "\\$");
-		name = dbSchema +"." + name;
-		return name;		
+		String ret = in.replaceAll("\\s", "_");
+		ret = ret.replaceAll("[^\\w$]", "\\$");
+		return ret;
+	}
+	
+	private void updateRegisters() throws SQLException {
+		String tableName = getTableName();
+		DateFormat sqlDateFormat = new SimpleDateFormat(Util.SQL_DATE_FORMAT_STRING);
+		for (RealRegister r : this.getRegisterCollection().readRegisters()) {
+			PreparedStatement s = connection.prepareStatement("UPDATE "+dbSchema+"."+tableName
+					+" SET `value`=?,`t_stamp`=?,`date`=? WHERE `address`=?;");
+			s.setDouble(1, r.getFloat());
+			s.setLong(2, r.getData().getTimestamp());
+			s.setString(3, sqlDateFormat.format(new Date(r.getData().getTimestamp())));
+			s.setInt(4, r.getLongAddress());
+        	s.execute();
+        	s.close();
+        }
+	}
+	
+	private String getTableName() {
+		return sqlSanitize(m_OutputDevice.getDescription());		
 	}
 	
 	private void checkTable() throws Exception {
-		String tableName = getTableName();
-		createTable(tableName);
+		if (!tableCreated) {
+			String tableName = getTableName();
+			createTable(tableName);
+			tableCreated = true;
+		}
 	}
 	
 	private void createTable(String tableName) throws SQLException {
 		Statement st = connection.createStatement();
-		st.execute("DROP TABLE IF EXISTS "+tableName);
-        st.execute("CREATE  TABLE "+tableName+" (  `id` INT NOT NULL ,  `name` VARCHAR(64) NULL ,  `address` INT NULL ,  `value` VARCHAR(45) NULL ,  `t_stamp` DATETIME NULL,  `microseconds` INT NULL,  PRIMARY KEY (`id`) );");
+		st.execute("DROP TABLE IF EXISTS "+dbSchema+"."+tableName);
+        st.execute("CREATE  TABLE "+dbSchema+"."+tableName+" (  `id` INT(11) unsigned NOT NULL AUTO_INCREMENT,  `name` VARCHAR(64) NULL ,  `address` INT(6) NULL ,  `value` DOUBLE NULL ,  `t_stamp` BIGINT NULL, `date` DATETIME NULL,  PRIMARY KEY (`id`) );");
+        for (RealRegister r : this.getRegisterCollection().readRegisters()) {
+        	PreparedStatement s = connection.prepareStatement("INSERT INTO "+dbSchema+"."+tableName+" ( `name`, `address`) values (?, ?);");
+        	s.setString(1, r.getFieldName());
+        	s.setString(2, String.format("%06d", r.getLongAddress()));
+        	s.execute();
+        	s.close();
+        }
         st.close();
+        log.info("Table "+dbSchema+"."+tableName+" created.");
 	}
 	
 	private void checkConnection() throws SQLException {

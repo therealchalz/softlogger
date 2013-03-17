@@ -30,18 +30,15 @@ public abstract class AbstractOutputModule
 	
 	protected OutputableDevice m_OutputDevice;
 	protected RegisterCollection m_Registers;
-	protected String m_DeviceDescription;
 	
 	public AbstractOutputModule() {
 		m_OutputDevice = null;
 		m_Registers = new RegisterCollection();
-		m_DeviceDescription = "";
 	}
 	
 	public AbstractOutputModule(AbstractOutputModule other) {
 		m_Registers = new RegisterCollection(other.m_Registers);
 		m_OutputDevice = other.m_OutputDevice;
-		m_DeviceDescription = other.m_DeviceDescription;
 	}
 	
 	protected abstract void setConfigValue(String name, String value);
@@ -77,8 +74,8 @@ public abstract class AbstractOutputModule
 	}
 	
 	@Override
-	public void setDeviceDescription(String desc) {
-		this.m_DeviceDescription = desc;
+	public void setOutputableDevice(OutputableDevice dev) {
+		this.m_OutputDevice = dev;
 	}
 	
 	public void resetRegisterSamplings() {

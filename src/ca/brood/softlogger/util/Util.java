@@ -22,9 +22,6 @@ package ca.brood.softlogger.util;
 
 //import org.apache.log4j.Logger;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-
 import ca.brood.softlogger.modbus.register.RegisterData;
 
 public class Util {

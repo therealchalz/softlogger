@@ -26,6 +26,7 @@ import java.util.Map;
 
 import org.apache.log4j.Logger;
 
+import ca.brood.softlogger.modbus.Device;
 import ca.brood.softlogger.scheduler.Scheduler;
 
 public class DataOutputManager {
@@ -38,10 +39,10 @@ public class DataOutputManager {
 		log = Logger.getLogger(DataOutputManager.class);
 	}
 	
-	public void initializeSchedulers(ArrayList<OutputableDevice> allDevices) {
+	public void initializeSchedulers(ArrayList<Device> allDevices) {
 		//Get all the output modules from all the devices
 		ArrayList<OutputModule> modules = new ArrayList<OutputModule>();
-		for (OutputableDevice d : allDevices) {
+		for (Device d : allDevices) {
 			ArrayList<OutputModule> add = d.getOutputModules();
 			log.trace("Device "+d.getDescription()+" has "+add.size()+" output modules");
 			modules.addAll(d.getOutputModules());

@@ -28,7 +28,6 @@ import org.w3c.dom.NodeList;
 import ca.brood.brootils.thread.ThreadPerformanceMonitor;
 import ca.brood.brootils.xml.XMLConfigurable;
 import ca.brood.softlogger.dataoutput.OutputModule;
-import ca.brood.softlogger.dataoutput.OutputableDevice;
 import ca.brood.softlogger.modbus.Device;
 import ca.brood.softlogger.modbus.channel.*;
 import ca.brood.softlogger.scheduler.PeriodicSchedulable;
@@ -132,7 +131,7 @@ public class SoftloggerChannel implements Runnable, XMLConfigurable {
 				Class<? extends OutputModule> outputClass = (Class<? extends OutputModule>) Class.forName(currentConfigNode.getAttributes().getNamedItem("class").getNodeValue());
 				OutputModule outputModule = outputClass.newInstance();
 				if (outputModule.configure(currentConfigNode)) {
-					for (OutputableDevice d : devices) {
+					for (Device d : devices) {
 						d.addOutputModule(outputModule.clone());
 					}
 				}

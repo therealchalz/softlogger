@@ -36,25 +36,29 @@ public class CSVOutputModule extends AbstractOutputModule implements Runnable {
 	private PrettyPeriodicSchedulable logSchedulable;
 	private PrettyPeriodicSchedulable fileCreateSchedulable;
 	private boolean firstLineOutputted;
+	private boolean firstFileCreated;
 	
 	public CSVOutputModule() {
 		super();
 		log = Logger.getLogger(CSVOutputModule.class);
-		writer = new CSVFileWriter("testOut.csv");
+		writer = null;
 		logSchedulable = new PrettyPeriodicSchedulable();
-		logSchedulable.setAction(this);
 		fileCreateSchedulable = new PrettyPeriodicSchedulable();
 		firstLineOutputted = false;
+		firstFileCreated = false;
 	}
 	
 	public CSVOutputModule(CSVOutputModule o) {
 		super(o);
 		log = Logger.getLogger(CSVOutputModule.class);
-		writer = new CSVFileWriter(o.writer);
+		if (o.writer == null)
+			writer = null;
+		else
+			writer = new CSVFileWriter(o.writer);
 		logSchedulable = new PrettyPeriodicSchedulable(o.logSchedulable);
-		logSchedulable.setAction(this);
-		fileCreateSchedulable = new PrettyPeriodicSchedulable();
+		fileCreateSchedulable = new PrettyPeriodicSchedulable(o.fileCreateSchedulable);
 		firstLineOutputted = o.firstLineOutputted;
+		firstFileCreated = o.firstFileCreated;
 	}
 
 
@@ -62,13 +66,7 @@ public class CSVOutputModule extends AbstractOutputModule implements Runnable {
 	public String getDescription() {
 		return "CSVOutputModule";
 	}
-	
-	@Override
-	public void setDeviceDescription(String desc) {
-		super.setDeviceDescription(desc);
-		writer = new CSVFileWriter(desc);
-	}
-	
+
 	protected void setConfigValue(String name, String value) {
 		if ("logIntervalSeconds".equalsIgnoreCase(name)) { //seconds
 			logSchedulable.setPeriod(Util.parseInt(value) * 1000);
@@ -78,10 +76,50 @@ public class CSVOutputModule extends AbstractOutputModule implements Runnable {
 			log.warn("Got unexpected config value: "+name+" = "+value);
 		}
 	}
+	
+	private void updateFilename() {
+		String theFileName;
+		Calendar cal = Calendar.getInstance();
+		theFileName = String.format("%1$tY%1$tm%1$td-%1$tT", cal)+"-"+m_OutputDevice.getDescription()+".csv";
+		if (writer == null)
+			writer = new CSVFileWriter(theFileName);
+		else
+			writer.setFilename(theFileName);
+	}
+	
+	@Override
+	public void setOutputableDevice(OutputableDevice d) {
+		super.setOutputableDevice(d);
+	}
 
 	@Override
 	public void run() {
 		log.info("Running");
+		long currentTime = System.currentTimeMillis();
+		//Should the file be recreated?
+		if (fileCreateSchedulable.getNextRun() <= currentTime || !firstFileCreated) {
+			if (fileCreateSchedulable.getNextRun() <= currentTime)
+				fileCreateSchedulable.execute();	//Updates the time (only if the period has elapsed)
+			firstFileCreated = true;
+			log.trace("Creating new CSV file");
+			updateFilename();
+		}
+		
+		if (logSchedulable.getNextRun() <= currentTime) {
+			log.trace("Logging data this run");
+			logSchedulable.execute();
+		} else {
+			return;
+		}
+		
+		// If the device is offline don't log.  Make
+		// sure this is after the schedulables have .execute
+		// called on them because we return here.
+		if (!m_OutputDevice.isOnline()) {
+			firstLineOutputted = false;
+			log.trace("Device is offline... Skipping");
+			return;
+		}
 		
 		/* Always skip the first line of data, aka the first call
 		 * to run().  We always want to make sure that the first
@@ -93,6 +131,7 @@ public class CSVOutputModule extends AbstractOutputModule implements Runnable {
 		if (!firstLineOutputted) {
 			firstLineOutputted = true;
 			this.resetRegisterSamplings();
+			log.trace("Skipping the first line of data");
 			return;
 		}
 		
@@ -110,17 +149,10 @@ public class CSVOutputModule extends AbstractOutputModule implements Runnable {
 		
 		ArrayList<String> values = new ArrayList<String>();
 		Calendar cal = Calendar.getInstance();
-		long currentTime = System.currentTimeMillis();
+		currentTime = System.currentTimeMillis();
 		cal.setTimeInMillis(currentTime);
 		values.add(String.format("%1$tY%1$tm%1$td-%1$tT", cal));
 		values.add(""+currentTime);
-		
-		//Should the file be recreated?
-		if (fileCreateSchedulable.getNextRun() <= currentTime) {
-			fileCreateSchedulable.execute();	//Updates the time
-			log.trace("Creating new CSV file");
-			writer.newFile();
-		}
 		
 		boolean atLeastOneGoodValue = false;
 		
@@ -132,8 +164,11 @@ public class CSVOutputModule extends AbstractOutputModule implements Runnable {
 				atLeastOneGoodValue = true;
 			}
 		}
-		if (atLeastOneGoodValue)
+		if (atLeastOneGoodValue) {
 			writer.writeData(values);
+		} else {
+			log.trace("No good values to write. Not writing to file.");
+		}
 	}
 
 	@Override
@@ -143,12 +178,15 @@ public class CSVOutputModule extends AbstractOutputModule implements Runnable {
 
 	@Override
 	public long getNextRun() {
-		return logSchedulable.getNextRun();
+		if (logSchedulable.getNextRun() < fileCreateSchedulable.getNextRun())
+			return logSchedulable.getNextRun();
+		else
+			return fileCreateSchedulable.getNextRun();
 	}
 
 	@Override
 	public void execute() {
-		logSchedulable.execute();
+		this.run();
 	}
 
 	@Override
