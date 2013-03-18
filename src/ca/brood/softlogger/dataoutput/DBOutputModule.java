@@ -161,9 +161,9 @@ public class DBOutputModule extends AbstractOutputModule  implements Runnable {
 			s.setLong(2, r.getData().getTimestamp());
 			s.setString(3, sqlDateFormat.format(new Date(r.getData().getTimestamp())));
 			s.setInt(4, r.getLongAddress());
-        	s.execute();
-        	s.close();
-        }
+			s.execute();
+			s.close();
+		}
 	}
 	
 	private String getTableName() {
@@ -181,37 +181,32 @@ public class DBOutputModule extends AbstractOutputModule  implements Runnable {
 	private void createTable(String tableName) throws SQLException {
 		Statement st = connection.createStatement();
 		st.execute("DROP TABLE IF EXISTS "+dbSchema+"."+tableName);
-        st.execute("CREATE  TABLE "+dbSchema+"."+tableName+" (  `id` INT(11) unsigned NOT NULL AUTO_INCREMENT,  `name` VARCHAR(64) NULL ,  `address` INT(6) NULL ,  `value` DOUBLE NULL ,  `t_stamp` BIGINT NULL, `date` DATETIME NULL,  PRIMARY KEY (`id`) );");
-        for (RealRegister r : this.getRegisterCollection().readRegisters()) {
-        	PreparedStatement s = connection.prepareStatement("INSERT INTO "+dbSchema+"."+tableName+" ( `name`, `address`) values (?, ?);");
-        	s.setString(1, r.getFieldName());
-        	s.setString(2, String.format("%06d", r.getLongAddress()));
-        	s.execute();
-        	s.close();
-        }
-        st.close();
-        log.info("Table "+dbSchema+"."+tableName+" created.");
+		st.execute("CREATE  TABLE "+dbSchema+"."+tableName+" (  `id` INT(11) unsigned NOT NULL AUTO_INCREMENT,  `name` VARCHAR(64) NULL ,  `address` INT(6) NULL ,  `value` DOUBLE NULL ,  `t_stamp` BIGINT NULL, `date` DATETIME NULL,  PRIMARY KEY (`id`) );");
+		for (RealRegister r : this.getRegisterCollection().readRegisters()) {
+			PreparedStatement s = connection.prepareStatement("INSERT INTO "+dbSchema+"."+tableName+" ( `name`, `address`) values (?, ?);");
+			s.setString(1, r.getFieldName());
+			s.setString(2, String.format("%06d", r.getLongAddress()));
+			s.execute();
+			s.close();
+		}
+		st.close();
+		log.info("Table "+dbSchema+"."+tableName+" created.");
 	}
 	
 	private void checkConnection() throws SQLException {
-		
 		if (!isClosed && connection == null || !connection.isValid(1000)) {
 			String url = "jdbc:mysql://"+dbHost+":"+dbPort+"/"+dbSchema;
-
+			
 			connection = DriverManager.getConnection(url, dbUser, dbPassword);
 			
-			
 			Statement st = connection.createStatement();
-            ResultSet rs = st.executeQuery("SELECT VERSION()");
+			ResultSet rs = st.executeQuery("SELECT VERSION()");
 
-            if (rs.next()) {
-                log.info("Server version: "+rs.getString(1));
-            }
-            
-            rs.close();
-            
-            st.close();
-
+			if (rs.next()) {
+				log.info("Server version: "+rs.getString(1));
+			}
+			rs.close();
+			st.close();
 		}
 		
 		//log.error("URL: "+url+" user: "+dbUser+" pass: "+dbPassword.replaceAll(".", "*"));
