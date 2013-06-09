@@ -28,6 +28,7 @@ import net.wimpi.modbus.net.*;
 import org.apache.log4j.Logger;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import jssc.SerialPort;
 
 public class ModbusSerialChannel extends ModbusChannel {
 
@@ -35,6 +36,8 @@ public class ModbusSerialChannel extends ModbusChannel {
 	private SerialParameters params = null;
 	private int baud = 0;
 	private SerialConnection connection = null;
+	private int interRequestDelay = 0;
+	private long lastRequest = 0;
 	
 	public ModbusSerialChannel(int chanId) {
 		super(chanId);
@@ -91,6 +94,11 @@ public class ModbusSerialChannel extends ModbusChannel {
 		params.setStopbits(1);
 		params.setEncoding("rtu");
 		params.setEcho(false);
+		params.setFlowControlIn(SerialPort.FLOWCONTROL_NONE);
+		params.setFlowControlOut(SerialPort.FLOWCONTROL_NONE);
+		
+		//TODO: add request delay to config file
+		this.interRequestDelay = 150;	//ms
 		
 		return true;
 	}
@@ -104,6 +112,12 @@ public class ModbusSerialChannel extends ModbusChannel {
 				throw new Exception("Connection Closed");
 			}
 		}
+		long currentTime = System.currentTimeMillis();
+		if (currentTime < this.lastRequest + this.interRequestDelay) {
+			Thread.sleep(lastRequest + interRequestDelay - currentTime);
+			currentTime = System.currentTimeMillis();
+		}
+		lastRequest = currentTime;
 		ModbusSerialTransaction trans = new ModbusSerialTransaction(this.connection);
 		trans.setRequest(req);
 		trans.execute();
@@ -131,7 +145,7 @@ public class ModbusSerialChannel extends ModbusChannel {
 		try {
 			connection.open();
 		} catch (Exception e) {
-			log.error("Serial channel could open connection");
+			log.error("Serial channel could not open connection", e);
 			return false;
 		}
 		return true;
