@@ -41,21 +41,25 @@ public abstract class AbstractOutputModule
 		m_OutputDevice = other.m_OutputDevice;
 	}
 	
-	protected abstract void setConfigValue(String name, String value);
+	protected abstract void setConfigValue(String name, String value) throws Exception;
 	
 	@Override
 	public boolean configure(Node rootNode) {
 		NodeList configNodes = rootNode.getChildNodes();
-		for (int i=0; i<configNodes.getLength(); i++) {
-			Node configNode = configNodes.item(i);
-			if (("#text".compareToIgnoreCase(configNode.getNodeName())==0) || 
-					("#comment".compareToIgnoreCase(configNode.getNodeName())==0))	{
-				continue;
-			} else if (("configValue".compareToIgnoreCase(configNode.getNodeName())==0)) {
-				String name = configNode.getAttributes().getNamedItem("name").getNodeValue();
-				String value = configNode.getFirstChild().getNodeValue();
-				setConfigValue(name, value);
+		try {
+			for (int i=0; i<configNodes.getLength(); i++) {
+				Node configNode = configNodes.item(i);
+				if (("#text".compareToIgnoreCase(configNode.getNodeName())==0) || 
+						("#comment".compareToIgnoreCase(configNode.getNodeName())==0))	{
+					continue;
+				} else if (("configValue".compareToIgnoreCase(configNode.getNodeName())==0)) {
+					String name = configNode.getAttributes().getNamedItem("name").getNodeValue();
+					String value = configNode.getFirstChild().getNodeValue();
+					setConfigValue(name, value);
+				}
 			}
+		} catch (Exception e) {
+			return false;
 		}
 		return true;
 	}

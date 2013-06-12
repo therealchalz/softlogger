@@ -43,6 +43,19 @@ public class Util {
 			return defaultValue;
 		}
 	}
+	public static boolean parseBool(String text) throws Exception {
+		if (text.equalsIgnoreCase("true")
+				|| text.equalsIgnoreCase("t")
+				|| text.equalsIgnoreCase("yes")
+				|| text.equalsIgnoreCase("y"))
+			return true;
+		else if (text.equalsIgnoreCase("false")
+				|| text.equalsIgnoreCase("f")
+				|| text.equalsIgnoreCase("no")
+				|| text.equalsIgnoreCase("n"))
+			return false;
+		throw new Exception("Cannot parse a boolean from text: "+text);
+	}
 	public static RegisterData parseRegisterData(String val) throws NumberFormatException {
 		RegisterData ret = new RegisterData();
 		if (val.matches("[0-9]+\\.[0-9]+[fF]?")) { //floating point

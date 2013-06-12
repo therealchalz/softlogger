@@ -26,6 +26,7 @@ import java.util.Calendar;
 import org.apache.log4j.Logger;
 
 import ca.brood.brootils.csv.CSVFileWriter;
+import ca.brood.softlogger.modbus.register.DataRegister;
 import ca.brood.softlogger.modbus.register.RealRegister;
 import ca.brood.softlogger.scheduler.PrettyPeriodicSchedulable;
 import ca.brood.softlogger.util.Util;
@@ -37,6 +38,7 @@ public class CSVOutputModule extends AbstractOutputModule implements Runnable {
 	private PrettyPeriodicSchedulable fileCreateSchedulable;
 	private boolean firstLineOutputted;
 	private boolean firstFileCreated;
+	private boolean writeGuids;
 	
 	public CSVOutputModule() {
 		super();
@@ -46,6 +48,7 @@ public class CSVOutputModule extends AbstractOutputModule implements Runnable {
 		fileCreateSchedulable = new PrettyPeriodicSchedulable();
 		firstLineOutputted = false;
 		firstFileCreated = false;
+		writeGuids = true;
 	}
 	
 	public CSVOutputModule(CSVOutputModule o) {
@@ -59,6 +62,7 @@ public class CSVOutputModule extends AbstractOutputModule implements Runnable {
 		fileCreateSchedulable = new PrettyPeriodicSchedulable(o.fileCreateSchedulable);
 		firstLineOutputted = o.firstLineOutputted;
 		firstFileCreated = o.firstFileCreated;
+		writeGuids = o.writeGuids;
 	}
 
 
@@ -67,11 +71,13 @@ public class CSVOutputModule extends AbstractOutputModule implements Runnable {
 		return "CSVOutputModule";
 	}
 
-	protected void setConfigValue(String name, String value) {
+	protected void setConfigValue(String name, String value) throws Exception {
 		if ("logIntervalSeconds".equalsIgnoreCase(name)) { //seconds
 			logSchedulable.setPeriod(Util.parseInt(value) * 1000);
 		} else if ("newFilePeriodMinutes".equalsIgnoreCase(name)) { //minutes
 			fileCreateSchedulable.setPeriod(Util.parseInt(value) * 60 * 1000);
+		} else if ("printGUID".equalsIgnoreCase(name)) {
+			writeGuids = Util.parseBool(value);
 		} else {
 			log.warn("Got unexpected config value: "+name+" = "+value);
 		}
@@ -143,7 +149,13 @@ public class CSVOutputModule extends AbstractOutputModule implements Runnable {
 		//the chance that we miss an update
 		this.resetRegisterSamplings();
 		for (RealRegister r : re) {
-			heads.add(r.getFieldName());
+			String headerText = r.getFieldName();
+			if (writeGuids) {
+				if ((Object)r instanceof DataRegister) {
+					headerText += "~"+((DataRegister)r).getGUID();
+				}
+			}
+			heads.add(headerText);
 		}
 		writer.setHeaders(heads);
 		

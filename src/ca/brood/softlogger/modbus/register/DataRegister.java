@@ -41,6 +41,11 @@ public class DataRegister extends RealRegister {
 	public DataRegister clone() {
 		return new DataRegister(this);
 	}
+	
+	public String getGUID() {
+		return guid;
+	}
+	
 	private void setupLog() {
 		log = Logger.getLogger(DataRegister.class+" GUID: "+this.guid);
 	}
