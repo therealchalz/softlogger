@@ -21,7 +21,7 @@
 <!DOCTYPE softlogger SYSTEM "softlogger.dtd">
 <softlogger>
 	<name>Test Logger</name>
-	<defaultScanRate>11111</defaultScanRate> <!-- default scan rate in milliseconds -->
+	<defaultScanRate>500</defaultScanRate> <!-- default scan rate in milliseconds -->
 	<server>
 		<user>logger1</user>
 		<host>127.0.0.1</host>
@@ -34,10 +34,9 @@
 		<homeFolder>/home/logger1/data</homeFolder>
 	</server>
 	<channel>
-		<defaultScanRate>333</defaultScanRate> <!-- default scan rate for this channel, overrides Softlogger scan rate -->
 		<tcp>
-			<host>127.0.0.1</host>
-			<port>5020</port>
+			<host>192.168.1.25</host>
+			<port>502</port>
 		</tcp>
 		<!--
 		<serial>
@@ -48,9 +47,8 @@
 		<device>
 			<!-- devices can each have a scan rate as well, which overrides their channel
 			and softlogger default scan rates. -->
-			<unitId>15</unitId>
-			<description>DSI #1</description>
-			<defaultScanRate>100</defaultScanRate>
+			<unitId>1</unitId>
+			<description>Office WattsOn</description>
 			<outputModule class="ca.brood.softlogger.dataoutput.DebugOutputModule">
 				<configValue name="logIntervalSeconds">1</configValue>
 			</outputModule>
@@ -58,75 +56,90 @@
 				<configValue name="logIntervalSeconds">5</configValue>
 				<configValue name="newFilePeriodMinutes">1</configValue>
 			</outputModule>
-			<outputModule class="ca.brood.softlogger.dataoutput.DBOutputModule">
-				<configValue name="logIntervalSeconds">1</configValue>
-				<configValue name="dbUser">softie</configValue>
-				<configValue name="dbPassword">password</configValue>
-				<configValue name="dbSchema">softlogger</configValue>
-				<configValue name="dbHost">127.0.0.1</configValue>
-				<!-- <configValue name="dbPort">2222</configValue> -->
-			</outputModule>
-			<configRegister>
-				<fieldName>Config coil 1 true</fieldName>
-				<registerAddress>000001</registerAddress>
-				<value>true</value>
-			</configRegister>
-			<configRegister>
-				<fieldName>Config value 1</fieldName>
-				<registerAddress>400003</registerAddress>	<!-- Addresses can be of the form [0134][0-9]{4,5}.  The first digit indicates the type of register (input,output)*(coil,register). -->
-				<size type="signed">2</size> <!-- size in words of the register. 2 and 4 are supported type=(s|u|f|)=(int|uint|float) -->
-				<value>-5</value>	<!-- value for the config register, overwrite the device's register with this -->
-			</configRegister>
 			<dataRegister>
-				<fieldName>Measurement 1</fieldName>
-				<registerAddress>300001</registerAddress>
-				<guid>D3M01</guid>
+					<fieldName>Total Energy Consumption</fieldName>
+					<scanRate sampling="latest"></scanRate>
+					<registerAddress>400000</registerAddress>
+					<size type="signed">2</size>
+					<guid>D1M001</guid>
 			</dataRegister>
 			<dataRegister>
-				<fieldName>Measurement 2</fieldName>
-				<scanRate sampling="latest"></scanRate>
-				<registerAddress>300003</registerAddress>
-				<size>2</size>
-				<dataFunction class="ca.brood.softlogger.datafunction.LookupTableDataFunction">lut/LUT1.dat</dataFunction>
-				<guid>D3M02</guid>
+					<fieldName>Total Real Power</fieldName>
+					<registerAddress>400771</registerAddress>
+					<size type="float">2</size>
+					<guid>D1M002</guid>
 			</dataRegister>
 			<dataRegister>
-				<fieldName>Measurement 3</fieldName>
-				<scanRate sampling="sum"></scanRate>
-				<registerAddress>300005</registerAddress>
-				<size type="float">1</size>
-				<guid>D3M03</guid>
+					<fieldName>Total Apparent Power</fieldName>
+					<registerAddress>400775</registerAddress>
+					<size type="float">2</size>
+					<guid>D1M003</guid>
 			</dataRegister>
 			<dataRegister>
-				<fieldName>Measurement 4</fieldName>
-				<registerAddress>400005</registerAddress>
-				<size type="float">2</size>
-				<dataFunction class="ca.brood.softlogger.datafunction.ExpressionParserDataFunction">PI*$*1000/sqrt(E)</dataFunction>
-				<guid>D3M04</guid>
+					<fieldName>Power Factor</fieldName>
+					<registerAddress>400783</registerAddress>
+					<size type="float">2</size>
+					<guid>D1M004</guid>
 			</dataRegister>
 			<dataRegister>
-				<fieldName>Measurement 5</fieldName>
-				<scanRate sampling="sum"></scanRate>
-				<registerAddress>400007</registerAddress>
-				<size type="float">2</size>
-				<guid>D3M5</guid>
+					<fieldName>Frequency</fieldName>
+					<registerAddress>400785</registerAddress>
+					<size type="float">2</size>
+					<guid>D1M005</guid>
 			</dataRegister>
 			<dataRegister>
-				<fieldName>Measurement 6</fieldName>
-				<registerAddress>000001</registerAddress>
-				<guid>D3M6</guid>
+					<fieldName>Current A</fieldName>
+					<registerAddress>400801</registerAddress>
+					<size type="float">2</size>
+					<guid>D1M006</guid>
 			</dataRegister>
 			<dataRegister>
-				<fieldName>Measurement 7</fieldName>
-				<registerAddress>100001</registerAddress>
-				<guid>D3M7</guid>
+					<fieldName>Current B</fieldName>
+					<registerAddress>400803</registerAddress>
+					<size type="float">2</size>
+					<guid>D1M007</guid>
 			</dataRegister>
 			<dataRegister>
-				<fieldName>Measurement 8</fieldName>
-				<scanRate sampling="latest"></scanRate>
-				<registerAddress>400003</registerAddress>
-				<size type="signed">2</size>
-				<guid>D3M8</guid>
+					<fieldName>Current C</fieldName>
+					<registerAddress>400805</registerAddress>
+					<size type="float">2</size>
+					<guid>D1M008</guid>
+			</dataRegister>
+			<dataRegister>
+					<fieldName>Voltage A</fieldName>
+					<registerAddress>400789</registerAddress>
+					<size type="float">2</size>
+					<guid>D1M009</guid>
+			</dataRegister>
+			<dataRegister>
+					<fieldName>Voltage B</fieldName>
+					<registerAddress>400791</registerAddress>
+					<size type="float">2</size>
+					<guid>D1M010</guid>
+			</dataRegister>
+			<dataRegister>
+					<fieldName>Voltage C</fieldName>
+					<registerAddress>400793</registerAddress>
+					<size type="float">2</size>
+					<guid>D1M011</guid>
+			</dataRegister>
+			<dataRegister>
+					<fieldName>Apparent Power A</fieldName>
+					<registerAddress>400819</registerAddress>
+					<size type="float">2</size>
+					<guid>D1M012</guid>
+			</dataRegister>
+			<dataRegister>
+					<fieldName>Apparent Power B</fieldName>
+					<registerAddress>400821</registerAddress>
+					<size type="float">2</size>
+					<guid>D1M013</guid>
+			</dataRegister>
+			<dataRegister>
+					<fieldName>Apparent Power C</fieldName>
+					<registerAddress>400823</registerAddress>
+					<size type="float">2</size>
+					<guid>D1M014</guid>
 			</dataRegister>
 		</device>
 	</channel>

@@ -20,6 +20,8 @@
  ******************************************************************************/
 package ca.brood.softlogger.lookuptable;
 
+import java.io.BufferedOutputStream;
+import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -46,20 +48,20 @@ public class LookupTableGenerator {
 		theFile.delete();
 		theFile.createNewFile();
 		FileOutputStream fo = new FileOutputStream(theFile);
+		BufferedOutputStream bos = new BufferedOutputStream(fo);
+		DataOutputStream dos = new DataOutputStream(bos);
 		try {
 			fo.write((description+"\n").getBytes());
 			fo.write((Integer.toString(wordSize)+"\n").getBytes());
 			if (wordSize == 4) {
 				for (int i = 0; i < count; i++) {
 					float val = (float) function.process(i);
-					int byteVal = Float.floatToIntBits(val);
-					write4Value(fo, byteVal);
+					dos.writeFloat(val);
 				}
 			} else {
 				for (int i = 0; i < count; i++) {
 					double val = function.process(i);
-					long byteVal = Double.doubleToLongBits(val);
-					write8Value(fo, byteVal);
+					dos.writeDouble(val);
 				}
 			}
 		} finally {
@@ -67,20 +69,4 @@ public class LookupTableGenerator {
 		}
 		return true;
 	}
-	
-	private static void write4Value(FileOutputStream stream, long val) throws IOException {
-		stream.write((int) ((val>>24) & 0xFF));
-		stream.write((int) ((val>>16) & 0xFF));
-		stream.write((int) ((val>>8) & 0xFF));
-		stream.write((int) ((val) & 0xFF));
-	}
-	
-	private static void write8Value(FileOutputStream stream, long val) throws IOException {
-		stream.write((int) ((val>>56) & 0xFF));
-		stream.write((int) ((val>>48) & 0xFF));
-		stream.write((int) ((val>>40) & 0xFF));
-		stream.write((int) ((val>>32) & 0xFF));
-		write4Value(stream, val);
-	}
-
 }
