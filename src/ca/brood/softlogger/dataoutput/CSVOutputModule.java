@@ -151,8 +151,16 @@ public class CSVOutputModule extends AbstractOutputModule implements Runnable {
 		for (RealRegister r : re) {
 			String headerText = r.getFieldName();
 			if (writeGuids) {
+				boolean guidAdded = false;
 				if ((Object)r instanceof DataRegister) {
-					headerText += "~"+((DataRegister)r).getGUID();
+					String guid = ((DataRegister)r).getGUID();
+					if (guid != null && guid.length() > 0) {
+						headerText += "~"+guid;
+						guidAdded = true;
+					}
+				}
+				if (!guidAdded) {
+					headerText += "~Unknown";
 				}
 			}
 			heads.add(headerText);
