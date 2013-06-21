@@ -20,9 +20,14 @@
  ******************************************************************************/
 package ca.brood.softlogger.dataoutput;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Iterator;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 
 import ca.brood.brootils.csv.CSVFileWriter;
@@ -39,6 +44,8 @@ public class CSVOutputModule extends AbstractOutputModule implements Runnable {
 	private boolean firstLineOutputted;
 	private boolean firstFileCreated;
 	private boolean writeGuids;
+	private String completedFileDirectory;
+	private String csvSubdirectory;
 	
 	public CSVOutputModule() {
 		super();
@@ -49,6 +56,8 @@ public class CSVOutputModule extends AbstractOutputModule implements Runnable {
 		firstLineOutputted = false;
 		firstFileCreated = false;
 		writeGuids = true;
+		completedFileDirectory = "";
+		csvSubdirectory = "";
 	}
 	
 	public CSVOutputModule(CSVOutputModule o) {
@@ -63,6 +72,8 @@ public class CSVOutputModule extends AbstractOutputModule implements Runnable {
 		firstLineOutputted = o.firstLineOutputted;
 		firstFileCreated = o.firstFileCreated;
 		writeGuids = o.writeGuids;
+		completedFileDirectory = o.completedFileDirectory;
+		csvSubdirectory = o.csvSubdirectory;
 	}
 
 
@@ -78,19 +89,75 @@ public class CSVOutputModule extends AbstractOutputModule implements Runnable {
 			fileCreateSchedulable.setPeriod(Util.parseInt(value) * 60 * 1000);
 		} else if ("printGUID".equalsIgnoreCase(name)) {
 			writeGuids = Util.parseBool(value);
+		} else if ("completedFileDirectory".equalsIgnoreCase(name)) {
+			completedFileDirectory = value;
+		} else if ("csvSubdirectory".equalsIgnoreCase(name)) {
+			csvSubdirectory = value;
 		} else {
 			log.warn("Got unexpected config value: "+name+" = "+value);
 		}
 	}
 	
-	private void updateFilename() {
+	private void updateFilename() throws Exception {
 		String theFileName;
+		String oldFileName;
 		Calendar cal = Calendar.getInstance();
-		theFileName = String.format("%1$tY%1$tm%1$td-%1$tT", cal)+"-"+m_OutputDevice.getDescription()+".csv";
-		if (writer == null)
+		theFileName = csvSubdirectory+"/"+String.format("%1$tY%1$tm%1$td-%1$tH.%1$tM.%1$tS", cal)+"-"+m_OutputDevice.getDescription()+".csv";
+		
+		try {
+			File csvDir = new File(csvSubdirectory);
+			if (!csvDir.isDirectory()) {
+				csvDir.mkdirs();
+			}
+		} catch (Exception e) {
+			log.error("Error - couldn't create the CSV destination directory: "+csvSubdirectory, e);
+			throw e;
+		}
+		
+		if (writer == null) {
 			writer = new CSVFileWriter(theFileName);
-		else
+			
+			//Move all CSV files from csvSubdirectory to completedFileDirectory
+			String[] extensions = new String[1];
+			extensions[0] = "csv";
+			File csvDir = new File(csvSubdirectory);
+			File completedDir = new File(completedFileDirectory);
+			
+			try {
+				Iterator<File> fileIter = FileUtils.iterateFiles(csvDir, extensions, false);
+				
+				while (fileIter.hasNext()) {
+					FileUtils.moveFileToDirectory(fileIter.next(), completedDir, true);
+				}
+			} catch (Exception e) {
+				log.error("Couldn't move existing CSV files on startup.", e);
+			}
+			
+		} else {
+			oldFileName = writer.getFilename();
 			writer.setFilename(theFileName);
+			
+			if (!oldFileName.equalsIgnoreCase(theFileName)) {
+				//File name has changed, move the old file if required
+				try {
+					if (completedFileDirectory.length() > 0) {
+						File completedDir = new File(completedFileDirectory);
+						if (!completedDir.isDirectory()) {
+							completedDir.mkdirs();
+						}
+						File oldFile = new File(oldFileName);
+						String movedFileName = completedFileDirectory+"/"+oldFile.getName();
+						File movedFile = new File(movedFileName);
+						
+						log.debug("Moving "+oldFileName+" to "+movedFileName);
+						
+						FileUtils.moveFile(oldFile, movedFile);
+					}
+				} catch (Exception e) {
+					log.error("Couldn't move the completed CSV file", e);
+				}
+			}
+		}
 	}
 	
 	@Override
@@ -108,7 +175,12 @@ public class CSVOutputModule extends AbstractOutputModule implements Runnable {
 				fileCreateSchedulable.execute();	//Updates the time (only if the period has elapsed)
 			firstFileCreated = true;
 			log.trace("Creating new CSV file");
-			updateFilename();
+			try {
+				updateFilename();
+			} catch (Exception e) {
+				log.error("Couldn't prepare new CSV file.");
+				return;
+			}
 		}
 		
 		if (logSchedulable.getNextRun() <= currentTime) {

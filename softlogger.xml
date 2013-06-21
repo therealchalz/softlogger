@@ -50,11 +50,13 @@
 			<unitId>1</unitId>
 			<description>Office WattsOn</description>
 			<outputModule class="ca.brood.softlogger.dataoutput.DebugOutputModule">
-				<configValue name="logIntervalSeconds">1</configValue>
+				<configValue name="logIntervalSeconds">5</configValue>
 			</outputModule>
 			<outputModule class="ca.brood.softlogger.dataoutput.CSVOutputModule">
 				<configValue name="logIntervalSeconds">5</configValue>
 				<configValue name="newFilePeriodMinutes">1</configValue>
+				<configValue name="csvSubdirectory">csv</configValue>
+				<configValue name="completedFileDirectory">csv/completed</configValue>
 			</outputModule>
 			<dataRegister>
 					<fieldName>Total Energy Consumption</fieldName>

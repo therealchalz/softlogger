@@ -77,7 +77,7 @@ public class Softlogger implements Daemon, XMLConfigurable {
 	
 	static {
 		softlogger = new Softlogger();
-		PropertyConfigurator.configure("logger.config");
+		PropertyConfigurator.configure("log4j.config");
 	}
 	
 	public Softlogger() {
