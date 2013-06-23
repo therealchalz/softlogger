@@ -22,8 +22,8 @@ package ca.brood.softlogger.scheduler;
 
 public class PeriodicSchedulable implements Schedulable, Comparable<Schedulable> {
 
-	protected long nextRun;
-	protected int period;
+	protected volatile long nextRun;
+	protected volatile int period;
 	protected Runnable action;
 	
 	public PeriodicSchedulable() {

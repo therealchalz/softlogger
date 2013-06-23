@@ -231,7 +231,7 @@ public class Device implements Schedulable, XMLConfigurable, OutputableDevice {
 		scanGroups = new SchedulerQueue();
 		//Get all registers ordered by scan rate, then type, then address
 		SortedSet<RealRegister> regs = getAllRegistersByScanRate();
-		log.debug("All registers by scan rate: "+regs);
+		log.trace("All registers by scan rate: "+regs);
 		
 		//Combine all the registers with the same scan rate into scan groups
 		ScanGroup scanGroup = null;
@@ -240,8 +240,7 @@ public class Device implements Schedulable, XMLConfigurable, OutputableDevice {
 				if (reg.getScanRate() == scanGroup.getScanRate()) {
 					scanGroup.addRegister(reg);
 				} else {
-					log.debug("Adding ScanGroup: "+scanGroup);
-					log.debug(scanGroup.getRegisters());
+					log.trace(scanGroup.getRegisters());
 					scanGroups.add(scanGroup);
 					scanGroup = null;
 				}
@@ -254,11 +253,11 @@ public class Device implements Schedulable, XMLConfigurable, OutputableDevice {
 				}
 				scanGroup = new ScanGroup(sRate);
 				scanGroup.addRegister(reg);
+				scanGroup.setNextRun(System.currentTimeMillis()+1000); //We'll start in 1 second
 			} 
 		}
 		if (scanGroup != null) {
-			log.debug("Adding Scangroup: "+scanGroup);
-			log.debug(scanGroup.getRegisters());
+			log.trace(scanGroup.getRegisters());
 			scanGroups.add(scanGroup);
 		}
 	}
@@ -663,7 +662,7 @@ public class Device implements Schedulable, XMLConfigurable, OutputableDevice {
 		}
 	}
 	
-	private void setOnline(boolean online) {
+	public void setOnline(boolean online) {
 		synchronized (isOnline) {
 			isOnline.set(online);
 			if (!online) {

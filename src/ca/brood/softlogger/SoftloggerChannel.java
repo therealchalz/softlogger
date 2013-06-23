@@ -37,12 +37,12 @@ import ca.brood.softlogger.scheduler.Scheduler;
 
 
 public class SoftloggerChannel implements Runnable, XMLConfigurable {
-	private static final int HEARTBEAT_INTERVAL = 1000;
 	private Logger log;
 	private ArrayList<Device> devices = null;
 	private final int id;
 	private ModbusChannel channel = null;
 	private int scanRate = 0;
+	private int retryInterval = 10000;
 	private static int nextId = 1;
 	private Scheduler deviceScheduler;
 	private PeriodicSchedulable mySchedulable;
@@ -52,7 +52,6 @@ public class SoftloggerChannel implements Runnable, XMLConfigurable {
 		this.id = getNextId();
 		log = Logger.getLogger(SoftloggerChannel.class+" ID: "+id);
 		devices = new ArrayList<Device>();
-		mySchedulable = new PeriodicSchedulable(HEARTBEAT_INTERVAL, this);
 		shouldRun = new AtomicBoolean(false);
 	}
 	public ArrayList<Device> getDevices() {
@@ -95,13 +94,18 @@ public class SoftloggerChannel implements Runnable, XMLConfigurable {
 				if (!this.channel.configure(configNode)) {
 					return false;
 				}
-			}else if ("defaultScanRate".compareToIgnoreCase(configNode.getNodeName())==0){
-				//log.debug("Default scan rate: "+configNode.getFirstChild().getNodeValue());
+			} else if ("defaultScanRate".compareToIgnoreCase(configNode.getNodeName())==0){
 				try {
 					this.scanRate = Integer.parseInt(configNode.getFirstChild().getNodeValue());
 				} catch (NumberFormatException e) {
 					log.error("Invalid scan rate: "+configNode.getFirstChild().getNodeValue());
 					this.scanRate = 0;
+				}
+			} else if ("retryInterval".compareToIgnoreCase(configNode.getNodeName())==0){
+				try {
+					this.retryInterval = Integer.parseInt(configNode.getFirstChild().getNodeValue());
+				} catch (NumberFormatException e) {
+					log.error("Invalid retryInterval: "+configNode.getFirstChild().getNodeValue());
 				}
 			} else {
 				log.warn("Got unknown node in config: "+configNode.getNodeName());
@@ -139,6 +143,8 @@ public class SoftloggerChannel implements Runnable, XMLConfigurable {
 			}
 		}
 		
+		mySchedulable = new PeriodicSchedulable(retryInterval, this);
+		
 		return true;
 	}
 	
@@ -153,7 +159,7 @@ public class SoftloggerChannel implements Runnable, XMLConfigurable {
 	@Override
 	public void run() {
 		//The softlogger channel is setup so that this run method gets
-		//scheduled every 1000ms by the same scheduler that handles the
+		//scheduled every retryInterval(ms) by the same scheduler that handles the
 		//devices.  The idea is that the channel can check if the devices
 		//should run - if not then the channel can stop the scheduler
 		//temporarily then restart it when the comm link comes back, for
@@ -166,11 +172,15 @@ public class SoftloggerChannel implements Runnable, XMLConfigurable {
 				if (!stopped) {
 					log.info("Channel is down!");
 					deviceScheduler.stop();
+					for (Device d : devices) {
+						d.setOnline(false);
+					}
 					stopped = true;
 				}
 			} else {
-				if (stopped)
+				if (stopped) {
 					deviceScheduler.start();
+				}
 				break;
 			}
 			
@@ -179,9 +189,10 @@ public class SoftloggerChannel implements Runnable, XMLConfigurable {
 				//scheduler, we don't want to pollute our stats so we keep 
 				//them updated:
 				ThreadPerformanceMonitor.threadStopping();
-				Thread.sleep(HEARTBEAT_INTERVAL);
-				ThreadPerformanceMonitor.threadStarting();
+				Thread.sleep(retryInterval);
 			} catch (InterruptedException e) {
+			} finally {
+				ThreadPerformanceMonitor.threadStarting();
 			}
 		}
 	}
@@ -200,6 +211,8 @@ public class SoftloggerChannel implements Runnable, XMLConfigurable {
 		}
 		
 		setShouldRun(true);
+		
+		//Run the channel before any of the devices
 		
 		deviceScheduler.start();
 		

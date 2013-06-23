@@ -26,8 +26,11 @@ import net.wimpi.modbus.msg.*;
 import net.wimpi.modbus.util.*;
 import net.wimpi.modbus.net.*;
 import org.apache.log4j.Logger;
+import org.w3c.dom.DOMException;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+
+import ca.brood.softlogger.util.Util;
 import jssc.SerialPort;
 
 public class ModbusSerialChannel extends ModbusChannel {
@@ -36,8 +39,9 @@ public class ModbusSerialChannel extends ModbusChannel {
 	private SerialParameters params = null;
 	private int baud = 0;
 	private SerialConnection connection = null;
-	private int interRequestDelay = 0;
+	private int interRequestDelay = 150;	//ms
 	private long lastRequest = 0;
+	private boolean rs485Echo = false;;
 	
 	public ModbusSerialChannel(int chanId) {
 		super(chanId);
@@ -65,6 +69,13 @@ public class ModbusSerialChannel extends ModbusChannel {
 			} else if (("comport".compareToIgnoreCase(configNode.getNodeName())==0))	{
 				this.comport = configNode.getFirstChild().getNodeValue();
 				log.debug("Comport set to: "+this.comport);
+			} else if (("echo".compareToIgnoreCase(configNode.getNodeName())==0))	{
+				try {
+					this.rs485Echo = Util.parseBool(configNode.getFirstChild().getNodeValue());
+					log.debug("RS485 Echo set to: "+this.rs485Echo);
+				} catch (Exception e) {
+					log.error("Couldn't parse echo to boolean from: "+configNode.getFirstChild().getNodeValue());
+				}
 			} else if (("baud".compareToIgnoreCase(configNode.getNodeName())==0))	{
 				try {
 					this.baud = Integer.parseInt(configNode.getFirstChild().getNodeValue());
@@ -72,7 +83,14 @@ public class ModbusSerialChannel extends ModbusChannel {
 				} catch (NumberFormatException e) {
 					log.error("Couldn't parse baud to integer from: "+configNode.getFirstChild().getNodeValue());
 				}
-			}else {
+			} else if (("requestDelay".compareToIgnoreCase(configNode.getNodeName())==0))	{
+				try {
+					this.interRequestDelay = Integer.parseInt(configNode.getFirstChild().getNodeValue());
+					log.debug("Inter-request delay set to: "+this.interRequestDelay);
+				} catch (NumberFormatException e) {
+					log.error("Couldn't parse requestDelay to integer from: "+configNode.getFirstChild().getNodeValue());
+				}
+			} else {
 				log.warn("Got unknown node in config: "+configNode.getNodeName());
 			}
 		}
@@ -93,12 +111,9 @@ public class ModbusSerialChannel extends ModbusChannel {
 		params.setParity("None");
 		params.setStopbits(1);
 		params.setEncoding("rtu");
-		params.setEcho(false);
+		params.setEcho(rs485Echo);
 		params.setFlowControlIn(SerialPort.FLOWCONTROL_NONE);
 		params.setFlowControlOut(SerialPort.FLOWCONTROL_NONE);
-		
-		//TODO: add request delay to config file
-		this.interRequestDelay = 150;	//ms
 		
 		return true;
 	}

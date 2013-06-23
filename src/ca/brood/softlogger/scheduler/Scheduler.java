@@ -116,7 +116,7 @@ public class Scheduler {
 			while (getShouldRun()) {
 				currentTime = System.currentTimeMillis();
 				
-				while (schedulerQueue.peek().getNextRun() <= currentTime) {
+				while (schedulerQueue.peek().getNextRun() <= currentTime && getShouldRun()) {
 					 Schedulable s = schedulerQueue.poll();
 					 s.execute();
 					 schedulerQueue.add(s);
