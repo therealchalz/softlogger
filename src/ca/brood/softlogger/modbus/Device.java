@@ -60,7 +60,9 @@ public class Device implements Schedulable, XMLConfigurable, OutputableDevice {
 	private SchedulerQueue scanGroups;
 	private Object registerLock;
 	private ArrayList<OutputModule> outputModules;
-	private AtomicBoolean isOnline;
+	private final AtomicBoolean isOnline;
+	private long offlineTime = 0;
+	private int retryTimeSeconds = 5;
 	
 	private int scanRate = 0;
 	private static volatile int nextId = 1;
@@ -159,6 +161,8 @@ public class Device implements Schedulable, XMLConfigurable, OutputableDevice {
 		Collections.sort(dataRegs);
 		
 		buildScanGroupQueue();
+		
+		setOnline(true);
 		
 		return true;
 	}
@@ -420,6 +424,17 @@ public class Device implements Schedulable, XMLConfigurable, OutputableDevice {
 			return;
 		}
 		
+		//If we're not online, retry every retryTimeSeconds
+		if (!isOnline()) {
+			synchronized (isOnline) {
+				if ((System.currentTimeMillis() - offlineTime)/1000 > retryTimeSeconds) {
+					setOnline (true);
+				} else {
+					return;
+				}
+			}
+		}
+		
 		SortedSet<RealRegister> registersToProcess = new TreeSet<RealRegister>();
 		long nextRunCutoff = System.currentTimeMillis() + 10;
 		while (getNextRun() < nextRunCutoff) {
@@ -450,12 +465,12 @@ public class Device implements Schedulable, XMLConfigurable, OutputableDevice {
 			long measurementTimeMillis = (long) ((then+now)*0.5);
 			
 			if (responses.size() == 0) {
-				isOnline.set(false);
-				log.error("ERROR: Device appears to be offline.");
+				setOnline(false);
+				log.error("ERROR: Device appears to be offline.  Retrying in "+retryTimeSeconds+" seconds");
 				return;
 			}
 			
-			isOnline.set(true);
+			setOnline(true);
 			
 			ArrayList<RealRegister> registerList = new ArrayList<RealRegister>();
 			registerList.addAll(dataRegs);
@@ -642,14 +657,25 @@ public class Device implements Schedulable, XMLConfigurable, OutputableDevice {
 	}
 
 	public void stop() {
-		isOnline.set(false);
+		setOnline(false);
 		for (OutputModule output : outputModules) {
 			output.close();
+		}
+	}
+	
+	private void setOnline(boolean online) {
+		synchronized (isOnline) {
+			isOnline.set(online);
+			if (!online) {
+				offlineTime = System.currentTimeMillis();
+			}
 		}
 	}
 
 	@Override
 	public boolean isOnline() {
-		return isOnline.get();
+		synchronized (isOnline) {
+			return isOnline.get();
+		}
 	}
 }

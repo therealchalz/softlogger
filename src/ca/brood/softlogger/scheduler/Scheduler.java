@@ -21,6 +21,8 @@
 package ca.brood.softlogger.scheduler;
 
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import org.apache.log4j.Logger;
 
 import ca.brood.brootils.thread.ThreadPerformanceMonitor;
@@ -50,14 +52,14 @@ public class Scheduler {
 	
 	private class SchedulerRunner implements Runnable {
 		private SchedulerQueue schedulerQueue;
-		private Boolean shouldRun;
+		private final AtomicBoolean shouldRun;
 		private Logger log;
 		private String name;
 		private Thread myRunner;
 		
 		public SchedulerRunner() {
 			schedulerQueue = new SchedulerQueue();
-			shouldRun = new Boolean(false);
+			shouldRun = new AtomicBoolean(false);
 			log = Logger.getLogger(SchedulerRunner.class);
 			name = "Unnamed Thread Scheduler";
 		}
@@ -91,21 +93,17 @@ public class Scheduler {
 		}
 		
 		private boolean getShouldRun() {
-			synchronized (shouldRun) {
-				return shouldRun;
-			}
+			return shouldRun.get();
 		}
 		
 		private void setShouldRun(boolean should) {
-			synchronized (shouldRun) {
-				shouldRun = should;
-			}
+			shouldRun.set(should);
 		}
 		@Override
 		public void run() {
 			
 			if (schedulerQueue.peek() == null) {
-				log.error("No devices configured.  Exiting thread.");
+				log.error("No schedulees configured.  Exiting thread.");
 				this.setShouldRun(false);
 				return;
 			}

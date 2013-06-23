@@ -21,8 +21,6 @@
 package ca.brood.softlogger.dataoutput;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Iterator;

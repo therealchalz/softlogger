@@ -21,6 +21,8 @@
 package ca.brood.softlogger;
 
 import java.util.ArrayList;
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import org.apache.log4j.Logger;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -37,7 +39,6 @@ import ca.brood.softlogger.scheduler.Scheduler;
 public class SoftloggerChannel implements Runnable, XMLConfigurable {
 	private static final int HEARTBEAT_INTERVAL = 1000;
 	private Logger log;
-	
 	private ArrayList<Device> devices = null;
 	private final int id;
 	private ModbusChannel channel = null;
@@ -45,16 +46,14 @@ public class SoftloggerChannel implements Runnable, XMLConfigurable {
 	private static int nextId = 1;
 	private Scheduler deviceScheduler;
 	private PeriodicSchedulable mySchedulable;
-	private Boolean shouldRun;
-	private Object shouldRunLock;
+	private final AtomicBoolean shouldRun;
 	
 	public SoftloggerChannel() {
 		this.id = getNextId();
 		log = Logger.getLogger(SoftloggerChannel.class+" ID: "+id);
 		devices = new ArrayList<Device>();
 		mySchedulable = new PeriodicSchedulable(HEARTBEAT_INTERVAL, this);
-		shouldRun = false;
-		shouldRunLock = new Object();
+		shouldRun = new AtomicBoolean(false);
 	}
 	public ArrayList<Device> getDevices() {
 		return devices;
@@ -144,15 +143,11 @@ public class SoftloggerChannel implements Runnable, XMLConfigurable {
 	}
 	
 	private boolean getShouldRun() {
-		synchronized (shouldRunLock) {
-			return shouldRun;
-		}
+		return shouldRun.get();
 	}
 	
 	private void setShouldRun(boolean b) {
-		synchronized(shouldRunLock) {
-			shouldRun = b;
-		}
+		shouldRun.set(b);
 	}
 	
 	@Override
@@ -194,9 +189,6 @@ public class SoftloggerChannel implements Runnable, XMLConfigurable {
 	public void start() {
 		if (channel == null)	//Not configured yet
 			return;
-		channel.open();
-		
-		setShouldRun(true);
 		
 		deviceScheduler = new Scheduler();
 		deviceScheduler.setThreadName("Scheduler - Channel "+this.id);
@@ -206,6 +198,8 @@ public class SoftloggerChannel implements Runnable, XMLConfigurable {
 		for (Device d : devices) {
 			deviceScheduler.addSchedulee(d);
 		}
+		
+		setShouldRun(true);
 		
 		deviceScheduler.start();
 		
