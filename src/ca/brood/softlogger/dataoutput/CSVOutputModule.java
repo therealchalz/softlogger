@@ -55,7 +55,7 @@ public class CSVOutputModule extends AbstractOutputModule implements Runnable {
 		firstFileCreated = false;
 		writeGuids = true;
 		completedFileDirectory = "";
-		csvSubdirectory = "";
+		csvSubdirectory = ".";
 	}
 	
 	public CSVOutputModule(CSVOutputModule o) {
@@ -103,9 +103,11 @@ public class CSVOutputModule extends AbstractOutputModule implements Runnable {
 		theFileName = csvSubdirectory+"/"+String.format("%1$tY%1$tm%1$td-%1$tH.%1$tM.%1$tS", cal)+"-"+m_OutputDevice.getDescription()+".csv";
 		
 		try {
-			File csvDir = new File(csvSubdirectory);
-			if (!csvDir.isDirectory()) {
-				csvDir.mkdirs();
+			if (!csvSubdirectory.equals(".")) {
+				File csvDir = new File(csvSubdirectory);
+				if (!csvDir.isDirectory()) {
+					csvDir.mkdirs();
+				}
 			}
 		} catch (Exception e) {
 			log.error("Error - couldn't create the CSV destination directory: "+csvSubdirectory, e);
@@ -116,19 +118,21 @@ public class CSVOutputModule extends AbstractOutputModule implements Runnable {
 			writer = new CSVFileWriter(theFileName);
 			
 			//Move all CSV files from csvSubdirectory to completedFileDirectory
-			String[] extensions = new String[1];
-			extensions[0] = "csv";
-			File csvDir = new File(csvSubdirectory);
-			File completedDir = new File(completedFileDirectory);
-			
-			try {
-				Iterator<File> fileIter = FileUtils.iterateFiles(csvDir, extensions, false);
+			if (completedFileDirectory.length() > 0) {
+				String[] extensions = new String[1];
+				extensions[0] = "csv";
+				File csvDir = new File(csvSubdirectory);
+				File completedDir = new File(completedFileDirectory);
 				
-				while (fileIter.hasNext()) {
-					FileUtils.moveFileToDirectory(fileIter.next(), completedDir, true);
+				try {
+					Iterator<File> fileIter = FileUtils.iterateFiles(csvDir, extensions, false);
+					
+					while (fileIter.hasNext()) {
+						FileUtils.moveFileToDirectory(fileIter.next(), completedDir, true);
+					}
+				} catch (Exception e) {
+					log.error("Couldn't move existing CSV files on startup.", e);
 				}
-			} catch (Exception e) {
-				log.error("Couldn't move existing CSV files on startup.", e);
 			}
 			
 		} else {

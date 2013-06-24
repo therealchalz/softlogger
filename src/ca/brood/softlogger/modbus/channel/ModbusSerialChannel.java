@@ -26,7 +26,6 @@ import net.wimpi.modbus.msg.*;
 import net.wimpi.modbus.util.*;
 import net.wimpi.modbus.net.*;
 import org.apache.log4j.Logger;
-import org.w3c.dom.DOMException;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
