@@ -38,9 +38,14 @@ public class LookupTableDataFunction implements DataFunction {
 		//log.trace("Processing: "+funcArg);
 		try {
 			LookupTable lut = LookupTableManager.getLookupTable(funcArg);
-			data.setDataFloat(lut.lookup(data.getInt()).floatValue());
+			Integer reading = data.getInt();
+			if (reading == null) {
+				throw new Exception("Got a null reading from device");
+			}
+			Double realValue = lut.lookup(reading);
+			data.setDataFloat(realValue.floatValue());
 		} catch (Exception e) {
-			log.error("Error in table: "+funcArg);
+			log.error("Error in table: "+funcArg, e);
 		}
 	}
 	
