@@ -43,7 +43,12 @@ public class LookupTableDataFunction implements DataFunction {
 				throw new Exception("Got a null reading from device");
 			}
 			Double realValue = lut.lookup(reading);
-			data.setDataFloat(realValue.floatValue());
+			if (realValue == Double.NaN || realValue == Float.NaN) {
+				log.warn("Got a NaN when trying to process lookup index: "+reading+" from table: "+funcArg);
+				data.nullData();	//return null
+			} else {
+				data.setDataFloat(realValue.floatValue());
+			}
 		} catch (Exception e) {
 			log.error("Error in table: "+funcArg, e);
 		}

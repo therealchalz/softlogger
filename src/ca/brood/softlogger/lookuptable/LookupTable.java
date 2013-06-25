@@ -21,10 +21,10 @@
 package ca.brood.softlogger.lookuptable;
 
 import java.io.BufferedInputStream;
+import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 
 /*
  * Lookup table format:
@@ -35,28 +35,43 @@ import java.io.InputStream;
  * or 8). If n is 4, then each lookup is treated as a float. If n is 8, then 
  * each lookup is treated as a double. The data starts immediately following 
  * the '\n'.
+ * 
+ * TODO: Optimize this.  Currently for every single lookup we open the file
+ * and seek to the spot we want, then close the file.  Before I was keeping
+ * the file up and using mark() and then I'd reset() before the next lookup,
+ * but that stopped working when I tried to mark over 8000 bytes or so.
  */
 
 public class LookupTable {
 	private String filename;
-	private InputStream fos;
 	private String description;
 	private int wordLength;
+	private int introEndSeek;	//Points to the first character/byte of LUT data (after the preamble/intro stuff)
 	
 	public LookupTable(String filename) {
 		this.filename = filename;
 	}
 	
-	public Double lookup(int index) throws IOException {
-		byte[] buffer = new byte[wordLength];
+	public synchronized Double lookup(int index) throws IOException {
+		long seek = index*wordLength + introEndSeek;
 		
-		long seek = index*wordLength;
-		fos.mark((int) (seek + wordLength));
-		fos.skip(seek);
-		fos.read(buffer,0,wordLength);
+		DataInputStream din = new DataInputStream(new BufferedInputStream(new FileInputStream(filename)));
+
+		din.skip(seek);
 		
-		double val = parse(buffer);
-		fos.reset();
+		double val;
+		
+		try {
+			if (wordLength == 4)
+				val = din.readFloat();
+			else if (wordLength == 8)
+				val = din.readDouble();
+			else
+				throw new IOException ("Invalid word length in LUT: "+filename);
+		} finally {
+			din.close();
+		}
+		
 		return val;
 	}
 	
@@ -68,19 +83,22 @@ public class LookupTable {
 		return description;
 	}
 	
-	private void parseWordLength() throws Exception {
-		int s = fos.read() - '0'; //must be 4 or 8
+	private void parseWordLength(DataInputStream din) throws Exception {
+		int s = din.read() - '0'; //must be 4 or 8
 		if (s != 4 && s != 8) {
 			throw new Exception("Bad size in lookup table: "+s);
 		}
-		int nl = fos.read(); //skip the newline
+		int nl = din.read(); //skip the newline
 		if (nl != '\n') {
 			throw new Exception("Unexpected character in lookup table: "+nl);
 		}
+		
+		introEndSeek += 2;	//the word length character + the newline
+		
 		this.wordLength = s;
 	}
 	
-	private void parseDescription() throws IOException {
+	private void parseDescription(DataInputStream din) throws IOException {
 		StringBuilder desc = new StringBuilder();
 		boolean reading = true;
 		
@@ -88,14 +106,17 @@ public class LookupTable {
 		byte[] buffer = new byte[readAheadSize];
 		//Keep reading and appending bytes
 		while (reading) {
-			fos.mark(readAheadSize);
-			int bufSize = fos.read(buffer);
+			din.mark(readAheadSize);
+			int bufSize = din.read(buffer);
 			
 			for (int i = 0; i < bufSize; i++) {
+				
+				introEndSeek++;	//Count each character and the newline
+				
 				if (buffer[i] == '\n') {
 					//seek to the byte past the newline
-					fos.reset();
-					fos.skip(i+1);
+					din.reset();
+					din.skip(i+1);
 					reading = false;
 					break;
 				}
@@ -106,37 +127,19 @@ public class LookupTable {
 		this.description = desc.toString();
 	}
 	
-	public void open() throws Exception {
+	//Package private, for LookupTableManager
+	void open() throws Exception {
 		File tableFile = new File(filename);
-		fos = new BufferedInputStream(new FileInputStream(tableFile));
-		parseDescription();
-		parseWordLength();
-	}
-	
-	public void close() throws Exception {
-		fos.close();
-	}
-	
-	private double parse(byte[] buff) {
-		long val = 0;
-		if (wordLength == 4) {
-			val += ((int)buff[0]&0xFF) << 24;
-			val += ((int)buff[1]&0xFF) << 16;
-			val += ((int)buff[2]&0xFF) << 8;
-			val += ((int)buff[3]&0xFF);
-			return (double) Float.intBitsToFloat((int)val);
-		} else if (wordLength == 8) {
-			val += ((long)buff[0]&0xFF) << 56;
-			val += ((long)buff[1]&0xFF) << 48;
-			val += ((long)buff[2]&0xFF) << 40;
-			val += ((long)buff[3]&0xFF) << 32;
-			val += ((long)buff[4]&0xFF) << 24;
-			val += ((long)buff[5]&0xFF) << 16;
-			val += ((long)buff[6]&0xFF) << 8;
-			val += ((long)buff[7]&0xFF);
-			return Double.longBitsToDouble(val);
-		}
-		return 0.0;
+		DataInputStream din = new DataInputStream(new BufferedInputStream(new FileInputStream(tableFile)));
 		
+		introEndSeek = 0;
+		
+		parseDescription(din);
+		parseWordLength(din);
+	}
+	
+	//Package private, for LookupTableManager
+	void close() throws Exception {
+		//If we had something to clean up, we'd do it here
 	}
 }

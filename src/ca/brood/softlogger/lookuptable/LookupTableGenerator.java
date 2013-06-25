@@ -20,9 +20,12 @@
  ******************************************************************************/
 package ca.brood.softlogger.lookuptable;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
@@ -40,33 +43,103 @@ import java.io.IOException;
  */
 
 public class LookupTableGenerator {
-	public static boolean generate(String outFileName, GenerationFunction function, int wordSize, String description, int count) throws IOException {
+	/** Generates a new lookup table.
+	 * The format of the table is as follows:<br>
+	 * The first line (arbitrary number of bytes up to first '\n' can be used for misc data
+	 * (eg: description, calibration values, etc). <br>
+	 * The next line is an integer in base 10 followed by a '\n'.  This number is
+	 * the number 'n' of bytes per lookup in the file (must be 4 for float values or
+	 * 8 for double values).  Aka Word Length.<br>
+	 * The word length and the '\n' the data starts.  Each subsequent 'n' bytes represents
+	 * a float (for n=4) or a double (for n=8) saved to the stream via {@link DataOutputStream#writeFloat(float)} and
+	 * {@link DataOutputStream#writeDouble(double)} respectively.
+	 * @param outFileName The name of the output file
+	 * @param function The function to use for the data
+	 * @param wordSize The wordsize for storage in the file.  Must be 4 for float or 8 for double values.
+	 * @param description The description to put in the file.
+	 * @param count The number of times to call the function.  The function gets called with each integer argument in [0, count-1].
+	 * @throws IOException On error.
+	 */
+	public static void generate(String outFileName, GenerationFunction function, int wordSize, String description, int count) throws IOException {
+		generateFile(outFileName, function, wordSize, description, count, false);
+	}
+	
+	/** Generates a new lookup table for human debugging.  This is very similar to {@link #generate(String, GenerationFunction, int, String, int)}.
+	 * The difference is that instead of encoding all the data in binary form, the debug lookup table encodes all the data as strings
+	 * separated by newlines.  This makes it much easier to verify that a table is good, and also allows one to quickly view what
+	 * the expected output for a particular lookup would be (by using the line numbers).
+	 * @param outFileName The name of the output file
+	 * @param function The function to use for the data
+	 * @param wordSize The wordsize for storage in the file.  Must be 4 for float or 8 for double values.
+	 * @param description The description to put in the file.
+	 * @param count The number of times to call the function.  The function gets called with each integer argument in [0, count-1].
+	 * @throws IOException On error.
+	 */
+	public static void generateDebug(String outFileName, GenerationFunction function, int wordSize, String description, int count) throws IOException {
+		generateFile(outFileName, function, wordSize, description, count, true);
+	}
+	
+	/** This takes a LUT generated with {@link #generate(String, GenerationFunction, int, String, int)} and converts it to
+	 * what it would look like if it had been generated with {@link #generateDebug(String, GenerationFunction, int, String, int)}.
+	 * That is, it takes a non-human-readable LUT and makes it human readable.
+	 * @param tableIn The input LUT, must exist and be in correct format.
+	 * @param tableOut The output LUT.
+	 * @throws IOException On error.
+	 */
+	public static void decryptLUT(String tableIn, String tableOut) throws IOException {
+		DataInputStream din = new DataInputStream(new BufferedInputStream(new FileInputStream(tableIn)));
+		DataOutputStream dos = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(tableOut)));
+		
+		try {
+			
+			int newlineCount = 0;
+			
+			while (newlineCount < 2) {
+				int c = din.read();
+				if (c == '\n')
+					newlineCount++;
+				dos.write(c);
+			}
+			while (din.available()>0) {
+				float val = din.readFloat();
+				dos.write(String.format("%f\n", val).getBytes());
+			}
+		} finally {
+			din.close();
+			dos.close();
+		}
+	}
+	
+	private static void generateFile(String outFileName, GenerationFunction function, int wordSize, String description, int count, boolean debug) throws IOException {
 		if (wordSize != 4 && wordSize != 8) {
-			return false;
+			throw new IOException("Invalid word size specified for file: "+wordSize);
 		}
 		File theFile = new File(outFileName);
 		theFile.delete();
 		theFile.createNewFile();
-		FileOutputStream fo = new FileOutputStream(theFile);
-		BufferedOutputStream bos = new BufferedOutputStream(fo);
-		DataOutputStream dos = new DataOutputStream(bos);
+		DataOutputStream dos = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(theFile)));
 		try {
-			fo.write((description+"\n").getBytes());
-			fo.write((Integer.toString(wordSize)+"\n").getBytes());
+			dos.write((description+"\n").getBytes());
+			dos.write((Integer.toString(wordSize)+"\n").getBytes());
 			if (wordSize == 4) {
 				for (int i = 0; i < count; i++) {
 					float val = (float) function.process(i);
-					dos.writeFloat(val);
+					if (debug)
+						dos.write(String.format("%f\n", val).getBytes());
+					else
+						dos.writeFloat(val);
 				}
 			} else {
 				for (int i = 0; i < count; i++) {
 					double val = function.process(i);
-					dos.writeDouble(val);
+					if (debug)
+						dos.write(String.format("%f\n", val).getBytes());
+					else
+						dos.writeDouble(val);
 				}
 			}
 		} finally {
-			fo.close();
+			dos.close();
 		}
-		return true;
 	}
 }
