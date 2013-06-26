@@ -47,6 +47,8 @@ public enum RegisterType {
 			log.warn("Trying to parse modbus address with funny range: "+address);
 		}
 		int offset = Integer.parseInt(addr.substring(pos+1));
+		//Note that register 1 is actually address 0, so we need to subtract 1
+		offset--;
 		return offset;
 	}
 	
@@ -91,6 +93,8 @@ public enum RegisterType {
 	}
 	
 	public static int getLongAddress(int address, RegisterType type) {
-		return type.leadingDigit*100000 + address;
+		//Note that the address here is the 0-based address, but in
+		//the long/modicon version of addresses is 1-based.
+		return type.leadingDigit*100000 + address + 1;
 	}
 }
