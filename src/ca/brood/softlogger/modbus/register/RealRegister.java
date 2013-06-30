@@ -88,7 +88,7 @@ public class RealRegister extends Register implements Comparable<RealRegister>{
 		return this.sizeType;
 	}
 	public void setNull() {
-		this.registerData.nullData();
+		this.registerData.setNull();
 	}
 	public void resetSampling() {
 		samplingValue = 0;
@@ -96,7 +96,7 @@ public class RealRegister extends Register implements Comparable<RealRegister>{
 		//Reset all latch-on and latch-off coils to null
 		if (this.getRegisterType() == RegisterType.INPUT_COIL || this.getRegisterType() == RegisterType.OUTPUT_COIL) {
 			if (this.sampling == Sampling.LATCHOFF || this.sampling == Sampling.LATCHON) {
-				this.registerData.nullData();
+				this.registerData.setNull();
 			}
 		}
 	}
@@ -107,23 +107,35 @@ public class RealRegister extends Register implements Comparable<RealRegister>{
 			break;
 		case SUM:
 			//Only for registers
-			samplingValue += temp.getFloat();
-			samplingCount ++;
-			this.setData((float)samplingValue, temp.getTimestamp());
+			if (!temp.isNull()) {
+				samplingValue += temp.getFloat();
+				samplingCount ++;
+				this.setData((float)samplingValue, temp.getTimestamp());
+			} else {
+				this.setNull();
+			}
 			break;
 		case MEAN:
 			samplingCount ++;
 			if (this.getRegisterType() == RegisterType.INPUT_COIL || this.getRegisterType() == RegisterType.OUTPUT_COIL) {
-				if (temp.getBool())
-					samplingValue ++;
-				if ((samplingValue/samplingCount) >0.5f) {
-					this.setData(true, temp.getTimestamp());
+				if (!temp.isNull()) {
+					if (temp.getBool())
+						samplingValue ++;
+					if ((samplingValue/samplingCount) >0.5f) {
+						this.setData(true, temp.getTimestamp());
+					} else {
+						this.setData(false, temp.getTimestamp());
+					}
 				} else {
-					this.setData(false, temp.getTimestamp());
+					this.setNull();
 				}
 			} else {
-				samplingValue += temp.getFloat();
-				this.setData((float)(samplingValue/samplingCount), temp.getTimestamp());
+				if (!temp.isNull()) {
+					samplingValue += temp.getFloat();
+					this.setData((float)(samplingValue/samplingCount), temp.getTimestamp());
+				} else {
+					this.setNull();
+				}
 			}
 			break;
 		case LATCHON:
@@ -218,7 +230,7 @@ public class RealRegister extends Register implements Comparable<RealRegister>{
 				}
 			}
 		}
-		if (this.address < 1 || this.address > 65535) {
+		if (this.address < 0 || this.address > 65535) {
 			log.error("Parsed invalid address: "+this.address);
 			return false;
 		}

@@ -45,7 +45,7 @@ public class LookupTableDataFunction implements DataFunction {
 			Double realValue = lut.lookup(reading);
 			if (realValue == Double.NaN || realValue == Float.NaN) {
 				log.warn("Got a NaN when trying to process lookup index: "+reading+" from table: "+funcArg);
-				data.nullData();	//return null
+				data.setNull();	//return null
 			} else {
 				data.setDataFloat(realValue.floatValue());
 			}

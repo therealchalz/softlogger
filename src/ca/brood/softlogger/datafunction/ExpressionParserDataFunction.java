@@ -20,20 +20,41 @@
  ******************************************************************************/
 package ca.brood.softlogger.datafunction;
 
-//import org.apache.log4j.Logger;
+import org.apache.log4j.Logger;
 
 import ca.brood.softlogger.modbus.register.RegisterData;
+import org.nfunk.jep.JEP;
 
 public class ExpressionParserDataFunction implements DataFunction {
-	//private Logger log;
+	private Logger log;
 	
 	public ExpressionParserDataFunction() {
-		//log = Logger.getLogger(ExpressionParserDataFunction.class);
+		log = Logger.getLogger(ExpressionParserDataFunction.class);
 	}
 	
 	@Override
 	public void process(RegisterData data, String funcArg) {
-		//log.trace("Processing: "+funcArg);
+		log.trace("Processing: "+funcArg);
+		JEP j = new JEP();
+		j.addStandardConstants();
+		j.addStandardFunctions();
+		j.addConstant("$", new Double(data.getFloat()));
+		
+		j.parseExpression(funcArg);
+		
+		if (j.hasError()) {
+			log.error((j.getErrorInfo()));
+			data.setNull();
+		} else {
+			Double value = j.getValue();
+			
+			if (j.hasError()) {
+				log.error(j.getErrorInfo());
+			} else {
+				data.setDataFloat(value.floatValue());
+				log.trace("Evaluated to : "+value);
+			}
+		}
 	}
 
 }

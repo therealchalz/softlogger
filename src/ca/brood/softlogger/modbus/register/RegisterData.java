@@ -60,7 +60,7 @@ public class RegisterData implements net.wimpi.modbus.procimg.Register{
 		this.setData(resp);
 	}
 	
-	public void nullData() {
+	public void setNull() {
 		dataInt = null;
 		dataFloat = null;
 		dataBool = null;
@@ -95,10 +95,14 @@ public class RegisterData implements net.wimpi.modbus.procimg.Register{
 		return timestamp;
 	}
 	public void setData(RegisterData r) {
-		dataInt = r.dataInt;
-		dataFloat = r.dataFloat;
-		dataBool = r.dataBool;
-		timestamp = r.timestamp;
+		if (r.isNull())
+			this.setNull();
+		else {
+			dataInt = r.dataInt;
+			dataFloat = r.dataFloat;
+			dataBool = r.dataBool;
+			timestamp = r.timestamp;
+		}
 	}
 	public void setData(Boolean b, Long timestamp) {
 		this.timestamp = timestamp;
@@ -150,7 +154,7 @@ public class RegisterData implements net.wimpi.modbus.procimg.Register{
 		if (resp.getClass() == ReadCoilsResponse.class) {
 			if (((ReadCoilsResponse)resp).getBitCount() != 1) {
 				log.error("Cannot parse ReadCoilsResponse because received unexpected number of coils: "+((ReadCoilsResponse)resp).getBitCount());
-				this.nullData();
+				this.setNull();
 				return;
 			}
 			setData(((ReadCoilsResponse)resp).getCoilStatus(0));
@@ -159,7 +163,7 @@ public class RegisterData implements net.wimpi.modbus.procimg.Register{
 		} else if (resp.getClass() == ReadInputDiscretesResponse.class) {
 			if (((ReadInputDiscretesResponse)resp).getBitCount() != 1) {
 				log.error("Cannot parse ReadInputDiscretesResponse because received unexpected number of coils: "+((ReadInputDiscretesResponse)resp).getBitCount());
-				this.nullData();
+				this.setNull();
 				return;
 			}
 			setData(((ReadInputDiscretesResponse)resp).getDiscreteStatus(0));
@@ -173,7 +177,7 @@ public class RegisterData implements net.wimpi.modbus.procimg.Register{
 				setDataFloat(((ReadInputRegistersResponse)resp).getRegister(0).getValue() << 16 + ((ReadInputRegistersResponse)resp).getRegister(1).getValue());
 			} else { //not 1 or 2 words
 				log.error("Cannot parse ReadInputRegistersResponse because received unexpected number of words: "+((ReadInputRegistersResponse)resp).getWordCount());
-				this.nullData();
+				this.setNull();
 				return;
 			}
 		} else if (resp.getClass() == ReadMultipleRegistersResponse.class) {
@@ -186,7 +190,7 @@ public class RegisterData implements net.wimpi.modbus.procimg.Register{
 				setDataFloat(((ReadMultipleRegistersResponse)resp).getRegister(0).getValue() << 16 + ((ReadMultipleRegistersResponse)resp).getRegister(1).getValue());
 			} else { //not 1 or 2 words
 				log.error("Cannot parse ReadMultipleRegistersResponse because received unexpected number of words: "+((ReadMultipleRegistersResponse)resp).getWordCount());
-				this.nullData();
+				this.setNull();
 				return;
 			}
 		} else if (resp.getClass() == WriteSingleRegisterResponse.class) {
@@ -264,7 +268,7 @@ public class RegisterData implements net.wimpi.modbus.procimg.Register{
 			}
 			this.setData(i);
 		} else {
-			this.nullData();
+			this.setNull();
 		}
 	}
 	@Override
