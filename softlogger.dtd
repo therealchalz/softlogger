@@ -31,11 +31,14 @@
 <!ELEMENT configPoll (#PCDATA)>
 <!ELEMENT homeFolder (#PCDATA)>
 
-<!ELEMENT outputModule (configValue|configElement)*>
-<!ATTLIST outputModule class CDATA #REQUIRED>
+<!ELEMENT runnableModule (configValue|configElement)*>
+<!ATTLIST runnableModule class CDATA #REQUIRED>
 <!ELEMENT configValue (#PCDATA)>
 <!ATTLIST configValue name CDATA #REQUIRED>
 <!ELEMENT configElement (configValue|configElement)*>
+
+<!ELEMENT outputModule (configValue|configElement)*>
+<!ATTLIST outputModule class CDATA #REQUIRED>
 
 <!ELEMENT channel (defaultScanRate?,retryInterval?,(tcp|serial),outputModule*,device*)>
 <!ELEMENT retryInterval (#PCDATA)>
