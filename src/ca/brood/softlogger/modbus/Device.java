@@ -427,9 +427,9 @@ public class Device implements Schedulable, XMLConfigurable, OutputableDevice {
 		if (!isOnline()) {
 			synchronized (isOnline) {
 				if ((System.currentTimeMillis() - offlineTime)/1000 > retryTimeSeconds) {
-					setOnline (true);
+					//Fall through and continue executing to see if we're online now
 				} else {
-					return;
+					return;	//Give up, we're probably still offline
 				}
 			}
 		}
