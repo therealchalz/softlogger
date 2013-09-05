@@ -254,7 +254,16 @@ public class CSVOutputModule extends AbstractOutputModule implements Runnable {
 			if (r.isNull())
 				values.add("NULL");
 			else {
-				values.add(""+r.getFloat());
+				switch (r.getSizeType()) {
+				case FLOAT:
+					values.add(""+r.getFloat());
+					break;
+				default:
+				case SIGNED:
+				case UNSIGNED:
+					values.add(""+r.getInteger());
+					break;
+				}
 				atLeastOneGoodValue = true;
 			}
 		}
