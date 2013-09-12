@@ -36,6 +36,7 @@ public class ModbusTcpChannel extends ModbusChannel {
 	private TCPMasterConnection connection = null;
 	private InetAddress host = null;
 	private int port = 0;
+	private boolean connected = false;
 	
 	public ModbusTcpChannel(int chanId) {
 		super(chanId);
@@ -43,9 +44,10 @@ public class ModbusTcpChannel extends ModbusChannel {
 	}
 	@Override
 	public synchronized boolean close() {
-		if (connection == null)
-			return true;
-		connection.close();
+		if (connected) {
+			connection.close();
+			connected = false;
+		}
 		return true;
 	}
 
@@ -108,7 +110,7 @@ public class ModbusTcpChannel extends ModbusChannel {
 		}
 		
 		ModbusTCPTransaction trans = new ModbusTCPTransaction(this.connection);
-		
+		//trans.setReconnecting(true);
 		trans.setRequest(req);
 		try {
 			trans.execute();
@@ -122,9 +124,7 @@ public class ModbusTcpChannel extends ModbusChannel {
 
 	@Override
 	public synchronized boolean isOpen() {
-		if (connection == null)
-			return false;
-		return connection.isConnected();
+		return connected;
 	}
 
 	@Override
@@ -142,6 +142,7 @@ public class ModbusTcpChannel extends ModbusChannel {
 			connection = null;
 			return false;
 		}
+		connected = true;
 		return true;
 	}
 	
