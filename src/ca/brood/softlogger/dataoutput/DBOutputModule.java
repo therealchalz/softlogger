@@ -54,6 +54,7 @@ public class DBOutputModule extends AbstractOutputModule  implements Runnable {
 		log = Logger.getLogger(DBOutputModule.class);
 		logSchedulable = new PrettyPeriodicSchedulable();
 		logSchedulable.setAction(this);
+		logSchedulable.setEpochUpdateRate(24*3600);
 	}
 	
 	public DBOutputModule(DBOutputModule o) {
@@ -61,6 +62,7 @@ public class DBOutputModule extends AbstractOutputModule  implements Runnable {
 		log = Logger.getLogger(DBOutputModule.class);
 		logSchedulable = new PrettyPeriodicSchedulable(o.logSchedulable);
 		logSchedulable.setAction(this);
+		logSchedulable.setEpochUpdateRate(24*3600);
 		firstIntervalOutputted = o.firstIntervalOutputted;
 		dbUser = o.dbUser;
 		dbSchema = o.dbSchema;

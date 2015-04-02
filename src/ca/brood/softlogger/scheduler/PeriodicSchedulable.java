@@ -22,8 +22,8 @@ package ca.brood.softlogger.scheduler;
 
 public class PeriodicSchedulable implements Schedulable, Comparable<Schedulable> {
 
-	protected volatile long nextRun;
-	protected volatile int period;
+	protected volatile long nextRun;	//in nanoseconds
+	protected volatile int period;	//in milliseconds
 	protected Runnable action;
 	
 	public PeriodicSchedulable() {
@@ -42,9 +42,7 @@ public class PeriodicSchedulable implements Schedulable, Comparable<Schedulable>
 	}
 	
 	public PeriodicSchedulable(int period) {
-		this.period = period;
-		nextRun = System.currentTimeMillis();
-		
+		setPeriod(period);
 	}
 	public PeriodicSchedulable(int period, Runnable action) {
 		this(period);
@@ -54,9 +52,10 @@ public class PeriodicSchedulable implements Schedulable, Comparable<Schedulable>
 	public synchronized int getPeriod() {
 		return period;
 	}
+	
 	public synchronized void setPeriod(int p) {
 		period = p;
-		setNextRun(System.currentTimeMillis() + getPeriod());
+		setNextRun(System.nanoTime() + (getPeriod()*1000000l));
 	}
 
 	@Override
@@ -96,12 +95,12 @@ public class PeriodicSchedulable implements Schedulable, Comparable<Schedulable>
 	//to run.
 	protected synchronized void updateNextRunWithPeriod() {
 		long oldNextRun = getNextRun();
-		long period = getPeriod();
-		long curTime = System.currentTimeMillis();
-		if ((curTime - oldNextRun) < 2 * period) {
-			setNextRun(oldNextRun + period);
+		long periodNanos = getPeriod() * 1000000l;
+		long curTime = System.nanoTime();
+		if ((curTime - oldNextRun) < 2l * periodNanos) {
+			setNextRun(oldNextRun + periodNanos);
 		} else {
-			setNextRun(curTime + period);
+			setNextRun(curTime + periodNanos);
 		}
 	}
 }

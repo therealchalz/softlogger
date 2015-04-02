@@ -320,7 +320,7 @@ public class RealRegister extends Register implements Comparable<RealRegister>{
 	}
 	public static class ScanRateComparator implements Comparator<RealRegister> {
 
-		@Override
+		//@Override
 		public int compare(RealRegister arg0, RealRegister arg1) {
 			int ret = arg0.scanRate - arg1.scanRate;
 			if (ret != 0)
@@ -328,9 +328,7 @@ public class RealRegister extends Register implements Comparable<RealRegister>{
 			ret = arg0.regType.compareTo(arg1.regType);
 			if (ret != 0)
 				return ret;
-			ret = arg0.address - arg1.address;
-			if (ret != 0);
-				return ret;
+			return arg0.address - arg1.address;
 		}
 		
 	}

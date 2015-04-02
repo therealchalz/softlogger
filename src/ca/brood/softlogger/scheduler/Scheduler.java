@@ -114,9 +114,9 @@ public class Scheduler {
 			long currentTime;
 			
 			while (getShouldRun()) {
-				currentTime = System.currentTimeMillis();
+				currentTime = System.nanoTime();
 				
-				while (schedulerQueue.peek().getNextRun() <= currentTime && getShouldRun()) {
+				while (schedulerQueue.peek().getNextRun() - currentTime <= 0 && getShouldRun()) {
 					 Schedulable s = schedulerQueue.poll();
 					 s.execute();
 					 schedulerQueue.add(s);
@@ -130,8 +130,8 @@ public class Scheduler {
 				}
 				
 				long wakeTime = schedulerQueue.peek().getNextRun();
-				long sleepTime = wakeTime - System.currentTimeMillis();
-				if (sleepTime > 10) {
+				long sleepTime = (wakeTime - System.nanoTime())/1000000l;
+				if (sleepTime > 0) {
 					try {
 						log.trace("Sleeping for "+sleepTime+" milliseconds.");
 						ThreadPerformanceMonitor.threadStopping();

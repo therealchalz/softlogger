@@ -24,12 +24,22 @@ import java.util.Calendar;
 
 public class PrettyPeriodicSchedulable extends PeriodicSchedulable {
 	
+	private long nanoEpochTimestamp;
+	private long milliWalltimeEpochTimestamp = 0;
+	
+	private long epochUpdateRate = 0;	//in ns.
+	
 	public PrettyPeriodicSchedulable() {
 		super();
+		updateEpochIfRequired();
 	}
 	
 	public PrettyPeriodicSchedulable(PrettyPeriodicSchedulable o) {
 		super(o);
+		nanoEpochTimestamp = o.nanoEpochTimestamp;
+		milliWalltimeEpochTimestamp = o.milliWalltimeEpochTimestamp;
+		epochUpdateRate = o.epochUpdateRate;
+		updateEpochIfRequired();
 	}
 	
 	public PrettyPeriodicSchedulable clone() {
@@ -38,41 +48,77 @@ public class PrettyPeriodicSchedulable extends PeriodicSchedulable {
 	
 	public PrettyPeriodicSchedulable(int period) {
 		super (period);
-		this.nextRun = getNextPrettyTime(System.currentTimeMillis());
+		updateEpochIfRequired();
+		this.nextRun = getNextPrettyTime(System.nanoTime());
 	}
 	
 	public PrettyPeriodicSchedulable(int period, Runnable action) {
 		super(period, action);
-		this.nextRun = getNextPrettyTime(System.currentTimeMillis());
+		updateEpochIfRequired();
+		this.nextRun = getNextPrettyTime(System.nanoTime());
+	}
+	
+	public void updateEpoch() {
+		milliWalltimeEpochTimestamp = System.currentTimeMillis();
+		nanoEpochTimestamp = System.nanoTime();
+	}
+	
+	public void setEpochUpdateRate(long rateSeconds) {
+		epochUpdateRate = rateSeconds * 1000000000l;
+	}
+	
+	private void updateEpochIfRequired() {
+		long currentTimeNanos = System.nanoTime();
+		
+		if (milliWalltimeEpochTimestamp == 0 ||
+			(epochUpdateRate != 0 && (currentTimeNanos - (epochUpdateRate +nanoEpochTimestamp) >= 0))) {
+			updateEpoch();
+		}
+		
 	}
 	
 	@Override
 	public synchronized void setPeriod(int p) {
 		period = p;
-		setNextRun(getNextPrettyTime(System.currentTimeMillis()));
+		setNextRun(getNextPrettyTime(System.nanoTime()));
 	}
 	
-	private long getNextPrettyTime(long currentTime) {
+	private long getNextPrettyTime(long nanoTimestamp) {
+		updateEpochIfRequired();
+		
+		long currentTimeMillis = milliWalltimeEpochTimestamp + ((nanoTimestamp-nanoEpochTimestamp)/1000000l);
 		long nextTime = 0;
+		long periodNanos = getPeriod() * 1000000l;
 		
 		Calendar cal = Calendar.getInstance();
-		cal.setTimeInMillis(currentTime);
+		cal.setTimeInMillis(currentTimeMillis);
 		cal.set(Calendar.HOUR, 0);
 		cal.set(Calendar.MINUTE, 0);
 		cal.set(Calendar.SECOND, 0);
 		cal.set(Calendar.MILLISECOND, 0);
 		
-		int fullPeriodsToday = (int) ((currentTime - cal.getTimeInMillis()) / period);
-		nextTime = cal.getTimeInMillis() + (period * (fullPeriodsToday+1));
+		long midnightMillis = cal.getTimeInMillis();
+		long midnightNanos = nanoEpochTimestamp - ((milliWalltimeEpochTimestamp - midnightMillis) * 1000000l);
+		
+		long nanosToday = (nanoTimestamp - midnightNanos);
+		float periodsToday = (float)nanosToday / (float)periodNanos;
+		
+		int fullPeriodsToday = (int) periodsToday;
+		if (periodsToday - fullPeriodsToday >= 0.96) {
+			fullPeriodsToday ++;
+		}
+		
+		nextTime = midnightNanos + (periodNanos * (fullPeriodsToday+1l));
+		
 		return nextTime;
 	}
 	
 	@Override
 	protected synchronized void updateNextRunWithPeriod() {
 		long oldNextRun = getNextRun();
-		long period = getPeriod();
-		long curTime = System.currentTimeMillis();
-		if ((curTime - oldNextRun) < 2 * period) {
+		long periodNanos = getPeriod()*1000000l;
+		long curTime = System.nanoTime();
+		if ((curTime - oldNextRun) < 2l * periodNanos) {
 			setNextRun(getNextPrettyTime(oldNextRun));
 		} else {
 			setNextRun(getNextPrettyTime(curTime));

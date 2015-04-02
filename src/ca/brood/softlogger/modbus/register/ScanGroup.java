@@ -45,7 +45,7 @@ public class ScanGroup extends PeriodicSchedulable {
 	}
 	
 	public String toString() {
-		return "ScanGroup: TTL: "+(System.currentTimeMillis()-this.getNextRun())+" scanRate: "+this.getScanRate();
+		return "ScanGroup: TTL: "+(System.nanoTime()-this.getNextRun())/1000000l+" scanRate: "+this.getScanRate();
 	}
 	
 }

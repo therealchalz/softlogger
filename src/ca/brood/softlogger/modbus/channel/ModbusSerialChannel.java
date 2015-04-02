@@ -126,10 +126,10 @@ public class ModbusSerialChannel extends ModbusChannel {
 				throw new Exception("Connection Closed");
 			}
 		}
-		long currentTime = System.currentTimeMillis();
-		if (currentTime < this.lastRequest + this.interRequestDelay) {
-			Thread.sleep(lastRequest + interRequestDelay - currentTime);
-			currentTime = System.currentTimeMillis();
+		long currentTime = System.nanoTime();
+		if (currentTime - (this.lastRequest + this.interRequestDelay * 1000000l) < 0) {
+			Thread.sleep((lastRequest + (interRequestDelay * 1000000l) - currentTime)/1000000l);
+			currentTime = System.nanoTime();
 		}
 		lastRequest = currentTime;
 		ModbusSerialTransaction trans = new ModbusSerialTransaction(this.connection);

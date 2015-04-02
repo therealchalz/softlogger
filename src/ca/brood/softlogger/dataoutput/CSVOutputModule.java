@@ -44,6 +44,7 @@ public class CSVOutputModule extends AbstractOutputModule implements Runnable {
 	private boolean writeGuids;
 	private String completedFileDirectory;
 	private String csvSubdirectory;
+	private long nanoTimeOffset;
 	
 	public CSVOutputModule() {
 		super();
@@ -56,6 +57,7 @@ public class CSVOutputModule extends AbstractOutputModule implements Runnable {
 		writeGuids = true;
 		completedFileDirectory = "";
 		csvSubdirectory = ".";
+		nanoTimeOffset = System.nanoTime();
 	}
 	
 	public CSVOutputModule(CSVOutputModule o) {
@@ -72,6 +74,7 @@ public class CSVOutputModule extends AbstractOutputModule implements Runnable {
 		writeGuids = o.writeGuids;
 		completedFileDirectory = o.completedFileDirectory;
 		csvSubdirectory = o.csvSubdirectory;
+		nanoTimeOffset = o.nanoTimeOffset;
 	}
 
 
@@ -148,12 +151,14 @@ public class CSVOutputModule extends AbstractOutputModule implements Runnable {
 							completedDir.mkdirs();
 						}
 						File oldFile = new File(oldFileName);
-						String movedFileName = completedFileDirectory+"/"+oldFile.getName();
-						File movedFile = new File(movedFileName);
-						
-						log.debug("Moving "+oldFileName+" to "+movedFileName);
-						
-						FileUtils.moveFile(oldFile, movedFile);
+						if (oldFile.exists()) {
+							String movedFileName = completedFileDirectory+"/"+oldFile.getName();
+							File movedFile = new File(movedFileName);
+							
+							log.debug("Moving "+oldFileName+" to "+movedFileName);
+							
+							FileUtils.moveFile(oldFile, movedFile);
+						}
 					}
 				} catch (Exception e) {
 					log.error("Couldn't move the completed CSV file", e);
@@ -170,11 +175,14 @@ public class CSVOutputModule extends AbstractOutputModule implements Runnable {
 	@Override
 	public void run() {
 		log.info("Running");
-		long currentTime = System.currentTimeMillis();
-		//Should the file be recreated?
-		if (fileCreateSchedulable.getNextRun() <= currentTime || !firstFileCreated) {
-			if (fileCreateSchedulable.getNextRun() <= currentTime)
+		long currentTime = System.nanoTime();
+		//Should the file be recreated? Add in a 25ms (25*1000000 ns) fudge factor
+		if (fileCreateSchedulable.getNextRun() - currentTime <= 25l*1000000l || !firstFileCreated) {
+			if (fileCreateSchedulable.getNextRun() - currentTime <= 25l*1000000l) {
 				fileCreateSchedulable.execute();	//Updates the time (only if the period has elapsed)
+				logSchedulable.updateEpoch();
+				fileCreateSchedulable.updateEpoch();
+			}
 			firstFileCreated = true;
 			log.trace("Creating new CSV file");
 			try {
@@ -185,7 +193,8 @@ public class CSVOutputModule extends AbstractOutputModule implements Runnable {
 			}
 		}
 		
-		if (logSchedulable.getNextRun() <= currentTime) {
+		//Add in a 25ms (25*1000000 ns) fudge factor
+		if (logSchedulable.getNextRun() - currentTime <= 25l*1000000l) {
 			log.trace("Logging data this run");
 			logSchedulable.execute();
 		} else {
@@ -243,10 +252,11 @@ public class CSVOutputModule extends AbstractOutputModule implements Runnable {
 		
 		ArrayList<String> values = new ArrayList<String>();
 		Calendar cal = Calendar.getInstance();
-		currentTime = System.currentTimeMillis();
-		cal.setTimeInMillis(currentTime);
+		long currentWallTime = System.currentTimeMillis();
+		long millisSinceStart = (System.nanoTime() - nanoTimeOffset)/1000000l;
+		cal.setTimeInMillis(currentWallTime);
 		values.add(String.format("%1$tY%1$tm%1$td-%1$tT", cal));
-		values.add(""+currentTime);
+		values.add(""+millisSinceStart);
 		
 		boolean atLeastOneGoodValue = false;
 		
@@ -281,7 +291,7 @@ public class CSVOutputModule extends AbstractOutputModule implements Runnable {
 
 	@Override
 	public long getNextRun() {
-		if (logSchedulable.getNextRun() < fileCreateSchedulable.getNextRun())
+		if (logSchedulable.getNextRun() - fileCreateSchedulable.getNextRun()< 0)
 			return logSchedulable.getNextRun();
 		else
 			return fileCreateSchedulable.getNextRun();

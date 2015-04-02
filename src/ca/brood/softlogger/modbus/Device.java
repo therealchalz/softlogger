@@ -32,6 +32,7 @@ import ca.brood.softlogger.scheduler.SchedulerQueue;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -241,7 +242,6 @@ public class Device implements Schedulable, XMLConfigurable, OutputableDevice {
 					scanGroup.addRegister(reg);
 				} else {
 					log.trace(scanGroup.getRegisters());
-					scanGroups.add(scanGroup);
 					scanGroup = null;
 				}
 			}
@@ -253,7 +253,8 @@ public class Device implements Schedulable, XMLConfigurable, OutputableDevice {
 				}
 				scanGroup = new ScanGroup(sRate);
 				scanGroup.addRegister(reg);
-				scanGroup.setNextRun(System.currentTimeMillis()+1000); //We'll start in 1 second
+				scanGroup.setNextRun(System.nanoTime()+(1000l*1000000l)); //We'll start in 1 second
+				scanGroups.add(scanGroup);
 			} 
 		}
 		if (scanGroup != null) {
@@ -426,7 +427,7 @@ public class Device implements Schedulable, XMLConfigurable, OutputableDevice {
 		//If we're not online, retry every retryTimeSeconds
 		if (!isOnline()) {
 			synchronized (isOnline) {
-				if ((System.currentTimeMillis() - offlineTime)/1000 > retryTimeSeconds) {
+				if ((System.nanoTime() - offlineTime)/(1000l*1000000l) > retryTimeSeconds) {
 					//Fall through and continue executing to see if we're online now
 				} else {
 					return;	//Give up, we're probably still offline
@@ -435,13 +436,17 @@ public class Device implements Schedulable, XMLConfigurable, OutputableDevice {
 		}
 		
 		SortedSet<RealRegister> registersToProcess = new TreeSet<RealRegister>();
-		long nextRunCutoff = System.currentTimeMillis() + 10;
-		while (getNextRun() < nextRunCutoff) {
+		List<ScanGroup> scanGroupsToAdd = new ArrayList<ScanGroup>();
+		long nextRunCutoff = System.nanoTime() + (10l*1000000l);	//Add a 10ms fudge factor
+		while (getNextRun() - nextRunCutoff < 0) {
 			ScanGroup nextGroup = (ScanGroup) scanGroups.poll();
 			nextGroup.execute();
-			scanGroups.add(nextGroup);
-			
+			scanGroupsToAdd.add(nextGroup);
 			registersToProcess.addAll(nextGroup.getRegisters());
+		}
+		
+		for (ScanGroup sg : scanGroupsToAdd) {
+			scanGroups.add(sg);
 		}
 		
 		//wait until after we execute the scangroups
@@ -458,10 +463,10 @@ public class Device implements Schedulable, XMLConfigurable, OutputableDevice {
 			
 			ArrayList<ModbusRequest> requests = getRequests(registersToProcess);
 			
-			long then = System.currentTimeMillis();
+			long then = System.nanoTime();
 			ArrayList<ModbusResponse> responses = executeRequests(requests);
-			long now = System.currentTimeMillis();
-			long measurementTimeMillis = (long) ((then+now)*0.5);
+			long now = System.nanoTime();
+			long measurementTimeMillis = (long) (((then+now)*0.5d)/1000000l);
 			
 			if (responses.size() == 0) {
 				setOnline(false);
@@ -666,7 +671,7 @@ public class Device implements Schedulable, XMLConfigurable, OutputableDevice {
 		synchronized (isOnline) {
 			isOnline.set(online);
 			if (!online) {
-				offlineTime = System.currentTimeMillis();
+				offlineTime = System.nanoTime();
 			}
 		}
 	}
