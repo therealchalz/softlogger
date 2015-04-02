@@ -159,7 +159,7 @@ public class DBOutputModule extends AbstractOutputModule  implements Runnable {
 		for (RealRegister r : this.getRegisterCollection().readRegisters()) {
 			PreparedStatement s = connection.prepareStatement("UPDATE "+dbSchema+"."+tableName
 					+" SET `value`=?,`t_stamp`=?,`date`=? WHERE `address`=?;");
-			if (!r.isNull()) {
+			if (!r.isNull() && !Float.isInfinite(r.getFloat()) && !Float.isNaN(r.getFloat())) {
 				s.setDouble(1, r.getFloat());
 				s.setLong(2, r.getData().getTimestamp());
 				s.setString(3, sqlDateFormat.format(new Date(r.getData().getTimestamp())));
