@@ -116,10 +116,11 @@ public class Scheduler {
 			while (getShouldRun()) {
 				currentTime = System.nanoTime();
 				
-				while (schedulerQueue.peek().getNextRun() - currentTime <= 0 && getShouldRun()) {
-					 Schedulable s = schedulerQueue.poll();
-					 s.execute();
-					 schedulerQueue.add(s);
+				while (schedulerQueue.peek().getNextRun() - currentTime <= (1000000l) && getShouldRun()) {
+					Schedulable s = schedulerQueue.poll();
+					s.execute();
+					schedulerQueue.add(s);
+					//schedulerQueue.showNextRuntimes(log);
 				}
 				
 				//The schedulable's action could take a while, so it's possible
@@ -137,9 +138,10 @@ public class Scheduler {
 						ThreadPerformanceMonitor.threadStopping();
 						Thread.sleep(sleepTime);
 					} catch (InterruptedException e) {
+					} finally {
+						ThreadPerformanceMonitor.threadStarting();
 					}
 				}
-				ThreadPerformanceMonitor.threadStarting();
 			}
 			log.info("Thread exiting");
 			ThreadPerformanceMonitor.threadExit();

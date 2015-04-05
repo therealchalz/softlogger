@@ -140,8 +140,10 @@ public class ModbusTcpChannel extends ModbusChannel {
 		} catch (Exception e) {
 			//log.error("Couldn't connect to the host: ",e);
 			connection = null;
+			connected = false;
 			return false;
 		}
+		log.trace("Connected");
 		connected = true;
 		return true;
 	}

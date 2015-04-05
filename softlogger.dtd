@@ -50,9 +50,10 @@
 <!ELEMENT echo (#PCDATA)>
 <!ELEMENT requestDelay (#PCDATA)>
 
-<!ELEMENT device (unitId,description?,defaultScanRate?,outputModule*,(configRegister|dataRegister)*)>
+<!ELEMENT device (unitId,description?,defaultScanRate?,retryInterval?,maxRetryInterval?,outputModule*,(configRegister|dataRegister)*)>
 <!ELEMENT unitId (#PCDATA)>
 <!ELEMENT description (#PCDATA)>
+<!ELEMENT maxRetryInterval (#PCDATA)>
 
 <!ELEMENT configRegister (fieldName,scanRate?,registerAddress,size?,value)>
 <!ELEMENT fieldName (#PCDATA)>

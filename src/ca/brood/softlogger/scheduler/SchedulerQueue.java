@@ -20,13 +20,13 @@
  ******************************************************************************/
 package ca.brood.softlogger.scheduler;
 
-import java.util.AbstractQueue;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.PriorityQueue;
-import java.util.Queue;
 
-public class SchedulerQueue extends AbstractQueue<Schedulable> implements Queue<Schedulable> {
+import org.apache.log4j.Logger;
+
+public class SchedulerQueue {
 
 	PriorityQueue<Schedulable> internalQueue;
 	
@@ -35,38 +35,48 @@ public class SchedulerQueue extends AbstractQueue<Schedulable> implements Queue<
 		internalQueue = new PriorityQueue<Schedulable>(5, new ScheduleeComparator());
 	}
 	
-	@Override
-	public boolean offer(Schedulable arg0) {
-		if (arg0 instanceof Schedulable)
-			return internalQueue.offer((Schedulable) arg0);
-		return false;
-	}
-
-	@Override
 	public Schedulable peek() {
 		return internalQueue.peek();
 	}
 
-	@Override
 	public Schedulable poll() {
 		return internalQueue.poll();
 	}
 
-	@Override
 	public Iterator<Schedulable> iterator() {
 		return internalQueue.iterator();
 	}
 
-	@Override
 	public int size() {
 		return internalQueue.size();
 	}
-
+	
+	public boolean add(Schedulable e) {
+		if (e instanceof Schedulable)
+			return internalQueue.offer((Schedulable)e);
+		return false;
+	}
+	
+	public void showNextRuntimes(Logger l) {
+		l.info("Next runtimes:");
+		Iterator<Schedulable> iterator = internalQueue.iterator();
+		while (iterator.hasNext()) {
+			l.info("Runtime: "+iterator.next().getNextRun());
+		}
+	}
+	
 	private class ScheduleeComparator implements Comparator<Schedulable> {
 		@Override
 		public int compare(Schedulable arg0, Schedulable arg1) {
-			return (int) (arg0.getNextRun() - arg1.getNextRun());
+			long diff = (arg0.getNextRun() - arg1.getNextRun());
+			if (diff > Integer.MAX_VALUE || diff < Integer.MIN_VALUE) {
+				if (diff > 0) {
+					return 1;
+				} else if (diff < 1) {
+					return -1;
+				}
+			}
+			return (int) (diff);
 		}
 	}
-
 }

@@ -181,6 +181,7 @@ public class SoftloggerChannel implements Runnable, XMLConfigurable {
 				if (stopped) {
 					deviceScheduler.start();
 				}
+				stopped = false;
 				break;
 			}
 			
@@ -204,6 +205,7 @@ public class SoftloggerChannel implements Runnable, XMLConfigurable {
 		deviceScheduler = new Scheduler();
 		deviceScheduler.setThreadName("Scheduler - Channel "+this.id);
 		
+		mySchedulable.setNextRun(System.nanoTime());
 		deviceScheduler.addSchedulee(mySchedulable);
 		
 		for (Device d : devices) {

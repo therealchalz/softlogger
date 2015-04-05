@@ -63,7 +63,10 @@ public class Device implements Schedulable, XMLConfigurable, OutputableDevice {
 	private ArrayList<OutputModule> outputModules;
 	private final AtomicBoolean isOnline;
 	private long offlineTime = 0;
-	private int retryTimeSeconds = 5;
+	
+	private int currentRetryInterval = 0;
+	private int retryIntervalPeriod = 5000;
+	private int maxRetryInterval = 0;
 	
 	private int scanRate = 0;
 	private static volatile int nextId = 1;
@@ -122,6 +125,18 @@ public class Device implements Schedulable, XMLConfigurable, OutputableDevice {
 				} else
 					log.warn("Error configuring a data register: "+configNode);
 					
+			} else if ("retryInterval".compareToIgnoreCase(configNode.getNodeName())==0){
+				try {
+					this.retryIntervalPeriod = Integer.parseInt(configNode.getFirstChild().getNodeValue());
+				} catch (NumberFormatException e) {
+					log.error("Invalid retryInterval: "+configNode.getFirstChild().getNodeValue());
+				}
+			} else if ("maxRetryInterval".compareToIgnoreCase(configNode.getNodeName())==0){
+				try {
+					this.maxRetryInterval = Integer.parseInt(configNode.getFirstChild().getNodeValue());
+				} catch (NumberFormatException e) {
+					log.error("Invalid maxRetryInterval: "+configNode.getFirstChild().getNodeValue());
+				}
 			} else if (("defaultScanRate".compareToIgnoreCase(configNode.getNodeName())==0)) {
 				try {
 					this.scanRate = Integer.parseInt(configNode.getFirstChild().getNodeValue());
@@ -196,7 +211,11 @@ public class Device implements Schedulable, XMLConfigurable, OutputableDevice {
 	}
 	@Override
 	public long getNextRun() {
-		return scanGroups.peek().getNextRun();
+		if (scanGroups.size() > 0) {
+			return scanGroups.peek().getNextRun();
+		} else {
+			throw new IndexOutOfBoundsException();
+		}
 	}
 	public int getScanRate() {
 		return scanRate;
@@ -256,10 +275,6 @@ public class Device implements Schedulable, XMLConfigurable, OutputableDevice {
 				scanGroup.setNextRun(System.nanoTime()+(1000l*1000000l)); //We'll start in 1 second
 				scanGroups.add(scanGroup);
 			} 
-		}
-		if (scanGroup != null) {
-			log.trace(scanGroup.getRegisters());
-			scanGroups.add(scanGroup);
 		}
 	}
 	private void checkConfigRegisters() {
@@ -427,7 +442,7 @@ public class Device implements Schedulable, XMLConfigurable, OutputableDevice {
 		//If we're not online, retry every retryTimeSeconds
 		if (!isOnline()) {
 			synchronized (isOnline) {
-				if ((System.nanoTime() - offlineTime)/(1000l*1000000l) > retryTimeSeconds) {
+				if ((System.nanoTime() - offlineTime)/(1000000l) >= currentRetryInterval) {
 					//Fall through and continue executing to see if we're online now
 				} else {
 					return;	//Give up, we're probably still offline
@@ -438,7 +453,7 @@ public class Device implements Schedulable, XMLConfigurable, OutputableDevice {
 		SortedSet<RealRegister> registersToProcess = new TreeSet<RealRegister>();
 		List<ScanGroup> scanGroupsToAdd = new ArrayList<ScanGroup>();
 		long nextRunCutoff = System.nanoTime() + (10l*1000000l);	//Add a 10ms fudge factor
-		while (getNextRun() - nextRunCutoff < 0) {
+		while (scanGroups.size() > 0 && getNextRun() - nextRunCutoff < 0) {
 			ScanGroup nextGroup = (ScanGroup) scanGroups.poll();
 			nextGroup.execute();
 			scanGroupsToAdd.add(nextGroup);
@@ -470,11 +485,22 @@ public class Device implements Schedulable, XMLConfigurable, OutputableDevice {
 			
 			if (responses.size() == 0) {
 				setOnline(false);
-				log.error("ERROR: Device appears to be offline.  Retrying in "+retryTimeSeconds+" seconds");
+				
+				if (maxRetryInterval > 0) {
+					currentRetryInterval += retryIntervalPeriod;
+					if (currentRetryInterval > maxRetryInterval) {
+						currentRetryInterval = maxRetryInterval;
+					}
+				} else {
+					currentRetryInterval = retryIntervalPeriod;
+				}
+				
+				log.error("ERROR: Device appears to be offline.  Retrying in "+(currentRetryInterval/1000)+" seconds");
 				return;
 			}
 			
 			setOnline(true);
+			currentRetryInterval = 0;
 			
 			ArrayList<RealRegister> registerList = new ArrayList<RealRegister>();
 			registerList.addAll(dataRegs);
