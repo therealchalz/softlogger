@@ -264,13 +264,13 @@ public class CSVOutputModule extends AbstractOutputModule implements Runnable {
 				values.add("NULL");
 			else {
 				switch (r.getSizeType()) {
-				case FLOAT:
-					values.add(""+r.getFloat());
-					break;
-				default:
 				case SIGNED:
 				case UNSIGNED:
 					values.add(""+r.getInteger());
+					break;
+				default:
+				case FLOAT:
+					values.add(""+r.getFloat());
 					break;
 				}
 				atLeastOneGoodValue = true;
