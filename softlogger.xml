@@ -51,6 +51,8 @@
 			<unitId>15</unitId>
 			<description>WattsOn</description>
 			<defaultScanRate>800</defaultScanRate>
+			<retryInterval>5000</retryInterval>
+			<maxRetryInterval>30000</maxRetryInterval>
 			<outputModule class="ca.brood.softlogger.dataoutput.DebugOutputModule">
 				<configValue name="logIntervalSeconds">5</configValue>
 			</outputModule>

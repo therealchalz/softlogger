@@ -253,10 +253,9 @@ public class CSVOutputModule extends AbstractOutputModule implements Runnable {
 		ArrayList<String> values = new ArrayList<String>();
 		Calendar cal = Calendar.getInstance();
 		long currentWallTime = System.currentTimeMillis();
-		long millisSinceStart = (System.nanoTime() - nanoTimeOffset)/1000000l;
 		cal.setTimeInMillis(currentWallTime);
 		values.add(String.format("%1$tY%1$tm%1$td-%1$tT", cal));
-		values.add(""+millisSinceStart);
+		values.add(""+currentWallTime);
 		
 		boolean atLeastOneGoodValue = false;
 		

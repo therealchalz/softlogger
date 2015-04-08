@@ -92,6 +92,7 @@ public class Softlogger implements Daemon, XMLConfigurable {
 		log.info("SOFTLOGGER IS STARTING");
 		log.info("******************************");
 		log.info("Softlogger using config file: "+configFile);
+		log.info("Java version: "+System.getProperty("java.runtime.version"));
 		
 		configFilePath = configFile;
 		
