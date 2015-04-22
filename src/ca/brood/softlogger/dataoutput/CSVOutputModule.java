@@ -253,7 +253,7 @@ public class CSVOutputModule extends AbstractOutputModule implements Runnable {
 		ArrayList<String> values = new ArrayList<String>();
 		Calendar cal = Calendar.getInstance();
 		long currentWallTime = System.currentTimeMillis();
-		cal.setTimeInMillis(currentWallTime);
+		cal.setTimeInMillis(currentWallTime+500L);	//Add 500ms to time to round to nearest second
 		values.add(String.format("%1$tY%1$tm%1$td-%1$tT", cal));
 		values.add(""+currentWallTime);
 		
@@ -263,16 +263,7 @@ public class CSVOutputModule extends AbstractOutputModule implements Runnable {
 			if (r.isNull())
 				values.add("NULL");
 			else {
-				switch (r.getSizeType()) {
-				case SIGNED:
-				case UNSIGNED:
-					values.add(""+r.getInteger());
-					break;
-				default:
-				case FLOAT:
-					values.add(""+r.getFloat());
-					break;
-				}
+				values.add(""+r.getFloat());
 				atLeastOneGoodValue = true;
 			}
 		}
