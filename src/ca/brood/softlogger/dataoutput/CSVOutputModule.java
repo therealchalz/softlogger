@@ -103,6 +103,8 @@ public class CSVOutputModule extends AbstractOutputModule implements Runnable {
 		String theFileName;
 		String oldFileName;
 		Calendar cal = Calendar.getInstance();
+		long currentWallTime = System.currentTimeMillis();
+		cal.setTimeInMillis(currentWallTime+500L);	//Add 500ms to time to round to nearest second
 		theFileName = csvSubdirectory+"/"+String.format("%1$tY%1$tm%1$td-%1$tH.%1$tM.%1$tS", cal)+"-"+m_OutputDevice.getDescription()+".csv";
 		
 		try {
