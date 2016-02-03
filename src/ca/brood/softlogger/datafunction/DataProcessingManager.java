@@ -23,7 +23,8 @@ package ca.brood.softlogger.datafunction;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class DataProcessingManager {
 	private static Logger log;
@@ -32,7 +33,7 @@ public class DataProcessingManager {
 	
 	static {
 		functions = new HashMap<Class<? extends DataFunction>, DataFunction>();
-		log = Logger.getLogger(DataProcessingManager.class);
+		log = LogManager.getLogger(DataProcessingManager.class);
 		nullFunction = new NullDataFunction();
 	}
 	

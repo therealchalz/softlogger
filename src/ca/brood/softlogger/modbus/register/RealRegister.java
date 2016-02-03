@@ -28,7 +28,7 @@ import net.wimpi.modbus.msg.ReadInputDiscretesRequest;
 import net.wimpi.modbus.msg.ReadInputRegistersRequest;
 import net.wimpi.modbus.msg.ReadMultipleRegistersRequest;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import java.util.*;
@@ -49,7 +49,7 @@ public class RealRegister extends Register implements Comparable<RealRegister>{
 	protected RealRegister(int device) {
 		super();
 		this.device = device;
-		log = Logger.getLogger(RealRegister.class + " device: "+device);
+		log = LogManager.getLogger(RealRegister.class + " device: "+device);
 		sampling = Sampling.MEAN;
 		sizeType = RegisterSizeType.UNSIGNED;
 		functionClass = null;

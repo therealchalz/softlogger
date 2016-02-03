@@ -46,7 +46,8 @@ import net.wimpi.modbus.msg.ReadInputRegistersResponse;
 import net.wimpi.modbus.msg.ReadMultipleRegistersResponse;
 import net.wimpi.modbus.msg.WriteMultipleRegistersRequest;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
@@ -77,7 +78,7 @@ public class Device implements Schedulable, XMLConfigurable, OutputableDevice {
 	
 	public Device(int channelId) {
 		this.id = getNextDeviceId();
-		log = Logger.getLogger(Device.class+": "+id+" on Channel: "+channelId);
+		log = LogManager.getLogger(Device.class+": "+id+" on Channel: "+channelId);
 		configRegs = new ArrayList<ConfigRegister>();
 		dataRegs = new ArrayList<DataRegister>();
 		scanGroups = new SchedulerQueue();

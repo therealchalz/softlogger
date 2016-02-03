@@ -20,7 +20,8 @@
  ******************************************************************************/
 package ca.brood.softlogger.datafunction;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import ca.brood.softlogger.lookuptable.LookupTable;
 import ca.brood.softlogger.lookuptable.LookupTableManager;
@@ -30,7 +31,7 @@ public class LookupTableDataFunction implements DataFunction {
 	private Logger log;
 	
 	public LookupTableDataFunction() {
-		log = Logger.getLogger(LookupTableDataFunction.class);
+		log = LogManager.getLogger(LookupTableDataFunction.class);
 	}
 	
 	@Override

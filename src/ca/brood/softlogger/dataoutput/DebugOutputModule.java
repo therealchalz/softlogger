@@ -25,7 +25,8 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import ca.brood.softlogger.modbus.register.RealRegister;
 import ca.brood.softlogger.scheduler.PeriodicSchedulable;
@@ -38,7 +39,7 @@ public class DebugOutputModule extends AbstractOutputModule  implements Runnable
 	
 	public DebugOutputModule() {
 		super();
-		log = Logger.getLogger(DebugOutputModule.class);
+		log = LogManager.getLogger(DebugOutputModule.class);
 		description = "DebugOutputModule";
 		schedulable = new PeriodicSchedulable();
 		schedulable.setAction(this);
@@ -46,7 +47,7 @@ public class DebugOutputModule extends AbstractOutputModule  implements Runnable
 	
 	public DebugOutputModule(DebugOutputModule o) {
 		super(o);
-		log = Logger.getLogger(DebugOutputModule.class);
+		log = LogManager.getLogger(DebugOutputModule.class);
 		description = o.description;
 		schedulable = new PeriodicSchedulable(o.schedulable);
 		schedulable.setAction(this);

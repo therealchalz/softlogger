@@ -18,18 +18,9 @@
   Contributors:
       Charles Hache - initial API and implementation
 -->
-<!ELEMENT softlogger (name,defaultScanRate,server,outputModule*,channel*)>
+<!ELEMENT softlogger (name,defaultScanRate,outputModule*,channel*)>
 <!ELEMENT name (#PCDATA)>
 <!ELEMENT defaultScanRate (#PCDATA)>
-
-<!ELEMENT server (user,host,port?,(password|keyfile),configPoll,homeFolder)>
-<!ELEMENT user (#PCDATA)>
-<!ELEMENT host (#PCDATA)>
-<!ELEMENT port (#PCDATA)>
-<!ELEMENT password (#PCDATA)>
-<!ELEMENT keyfile (#PCDATA)>
-<!ELEMENT configPoll (#PCDATA)>
-<!ELEMENT homeFolder (#PCDATA)>
 
 <!ELEMENT runnableModule (configValue|configElement)*>
 <!ATTLIST runnableModule class CDATA #REQUIRED>
@@ -43,6 +34,8 @@
 <!ELEMENT channel (defaultScanRate?,retryInterval?,(tcp|serial),outputModule*,device*)>
 <!ELEMENT retryInterval (#PCDATA)>
 <!ELEMENT tcp (host,port?)>
+<!ELEMENT host (#PCDATA)>
+<!ELEMENT port (#PCDATA)>
 
 <!ELEMENT serial (comport,baud,echo?,requestDelay?)>
 <!ELEMENT comport (#PCDATA)>

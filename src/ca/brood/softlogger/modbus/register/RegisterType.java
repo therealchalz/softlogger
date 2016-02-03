@@ -25,7 +25,8 @@ import net.wimpi.modbus.msg.ReadCoilsResponse;
 import net.wimpi.modbus.msg.ReadInputDiscretesResponse;
 import net.wimpi.modbus.msg.ReadInputRegistersResponse;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public enum RegisterType {
 	OUTPUT_COIL (0),		//Leading 0 in addresses, aka Coils, rw
@@ -43,7 +44,7 @@ public enum RegisterType {
 		int pos = addr.indexOf('0');
 		int revPos = addr.length() - pos;
 		if (revPos != 5 && revPos != 6 && pos != -1) {
-			log = Logger.getLogger(RegisterType.class);
+			log = LogManager.getLogger(RegisterType.class);
 			log.warn("Trying to parse modbus address with funny range: "+address);
 		}
 		int offset = Integer.parseInt(addr.substring(pos+1));
@@ -58,7 +59,7 @@ public enum RegisterType {
 		int pos = addr.indexOf('0');
 		int revPos = addr.length() - pos;
 		if (revPos != 5 && revPos != 6 && pos != -1) {
-			log = Logger.getLogger(RegisterType.class);
+			log = LogManager.getLogger(RegisterType.class);
 			log.warn("Trying to parse modbus address with funny range: "+address);
 		}
 		if (pos == 0 || pos == -1) //leading 0, coil
@@ -71,7 +72,7 @@ public enum RegisterType {
 		if (range == RegisterType.OUTPUT_REGISTER.leadingDigit)
 			return RegisterType.OUTPUT_REGISTER;
 		if (log == null) {
-			log = Logger.getLogger(RegisterType.class);
+			log = LogManager.getLogger(RegisterType.class);
 		}
 		log.error("Error parsing modbus address - unknown range (falling back to OUTPUT_REGISTER). Leading digit: "+range+", address: "+address);
 		return RegisterType.OUTPUT_REGISTER;

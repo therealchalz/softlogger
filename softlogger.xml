@@ -22,17 +22,6 @@
 <softlogger>
 	<name>Test Logger</name>
 	<defaultScanRate>500</defaultScanRate> <!-- default scan rate in milliseconds -->
-	<server>
-		<user>logger1</user>
-		<host>127.0.0.1</host>
-		<port>2222</port>
-		<password>fakePass01</password> <!-- or <keyfile> element -->
-		<!--
-		<keyfile>ssh/id_rsa</keyfile>
-		-->
-		<configPoll>3600</configPoll>
-		<homeFolder>/home/logger1/data</homeFolder>
-	</server>
 	<channel>
 		<defaultScanRate>333</defaultScanRate> <!-- default scan rate for this channel, overrides Softlogger scan rate -->
 		<tcp>

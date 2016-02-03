@@ -24,7 +24,7 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.PriorityQueue;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 public class SchedulerQueue {
 

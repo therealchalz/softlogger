@@ -26,7 +26,8 @@ import java.util.Calendar;
 import java.util.Iterator;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import ca.brood.brootils.csv.CSVFileWriter;
 import ca.brood.softlogger.modbus.register.DataRegister;
@@ -48,7 +49,7 @@ public class CSVOutputModule extends AbstractOutputModule implements Runnable {
 	
 	public CSVOutputModule() {
 		super();
-		log = Logger.getLogger(CSVOutputModule.class);
+		log = LogManager.getLogger(CSVOutputModule.class);
 		writer = null;
 		logSchedulable = new PrettyPeriodicSchedulable();
 		fileCreateSchedulable = new PrettyPeriodicSchedulable();
@@ -62,7 +63,7 @@ public class CSVOutputModule extends AbstractOutputModule implements Runnable {
 	
 	public CSVOutputModule(CSVOutputModule o) {
 		super(o);
-		log = Logger.getLogger(CSVOutputModule.class);
+		log = LogManager.getLogger(CSVOutputModule.class);
 		if (o.writer == null)
 			writer = null;
 		else

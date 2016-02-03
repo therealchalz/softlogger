@@ -25,8 +25,8 @@ import java.util.ArrayList;
 import org.apache.commons.daemon.Daemon;
 import org.apache.commons.daemon.DaemonContext;
 import org.apache.commons.daemon.DaemonInitException;
-import org.apache.log4j.Logger;
-import org.apache.log4j.PropertyConfigurator;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import org.w3c.dom.NodeList;
 import org.w3c.dom.Node;
@@ -35,14 +35,10 @@ import ca.brood.brootils.thread.ThreadPerformanceMonitor;
 import ca.brood.brootils.xml.XMLConfigurable;
 import ca.brood.brootils.xml.XMLFileLoader;
 import ca.brood.softlogger.dataoutput.DataOutputManager;
-import ca.brood.softlogger.dataoutput.DataServer;
 import ca.brood.softlogger.dataoutput.OutputModule;
-import ca.brood.softlogger.lookuptable.LookupTableGenerator;
 import ca.brood.softlogger.lookuptable.LookupTableManager;
-import ca.brood.softlogger.lookuptable.TestGenerator;
 import ca.brood.softlogger.modbus.Device;
 
-import java.io.File;
 
 
 public class Softlogger implements Daemon, XMLConfigurable {
@@ -53,8 +49,7 @@ public class Softlogger implements Daemon, XMLConfigurable {
 	private String loggerName = "Unnamed Logger";
 	private int defaultScanRate = 0;
 	private String configFilePath = "";
-	
-	private DataServer server;
+
 	private ArrayList<SoftloggerChannel> softloggerChannels;
 	private DataOutputManager dataOutputManager;
 	
@@ -77,11 +72,10 @@ public class Softlogger implements Daemon, XMLConfigurable {
 	
 	static {
 		softlogger = new Softlogger();
-		PropertyConfigurator.configure("log4j.config");
 	}
 	
 	public Softlogger() {
-		log = Logger.getLogger(Softlogger.class);
+		log = LogManager.getLogger(Softlogger.class);
 		softloggerChannels = new ArrayList<SoftloggerChannel>();
 		dataOutputManager = new DataOutputManager();
 	}
@@ -112,7 +106,7 @@ public class Softlogger implements Daemon, XMLConfigurable {
 		if (softlogger.configure(Softlogger.DEFAULT_CONFIG_FILE)) {
 			softlogger.softloggerStart();
 			try {
-				Thread.sleep(600000);
+				Thread.sleep(60000);
 			} catch (InterruptedException e) {
 			}
 			softlogger.softloggerStop();
@@ -150,15 +144,6 @@ public class Softlogger implements Daemon, XMLConfigurable {
 	}
 	
 	public void softloggerStart() {
-		
-		try {
-			File f = new File("lut/LUT1.dat");
-			if (!f.exists())
-				LookupTableGenerator.generate("lut/LUT1.dat", new TestGenerator(), 4, "Test lookup table... ", 65536);
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 		
 		//Start all the softloggerChannels, which will in turn start all the devices
 		for (int i=0; i<softloggerChannels.size(); i++) {
@@ -235,7 +220,6 @@ public class Softlogger implements Daemon, XMLConfigurable {
 		if (defaultScanRate > 0)
 			log.info("Default scan rate: "+this.defaultScanRate);
 		
-		this.server.printAll();
 		for (SoftloggerChannel c : this.softloggerChannels) {
 			c.printAll();
 		}
@@ -274,26 +258,11 @@ public class Softlogger implements Daemon, XMLConfigurable {
 			log.warn("Softlogger default scan rate is invalid.  Using default of 5000.");
 			defaultScanRate = 5000;
 		}
-		
-		//Load the data server
-		loggerConfigNodes = rootNode.getOwnerDocument().getElementsByTagName("server");
-		if (loggerConfigNodes.getLength() == 0) {
-			log.fatal("Could not find a server defined in the config file.");
-			return false;
-		}
-		if (loggerConfigNodes.getLength() > 1) {
-			log.fatal("Too many servers are defined in the config file");
-			return false;
-		}
-		Node currentConfigNode = loggerConfigNodes.item(0);
-		server = new DataServer();
-		if (!server.configure(currentConfigNode)) {
-			return false;
-		}
-		
+		Node currentConfigNode;
 		//Load the softloggerChannels
 		loggerConfigNodes = rootNode.getOwnerDocument().getElementsByTagName("channel");
 		boolean workingChannel = false;
+		
 		for (int i=0; i<loggerConfigNodes.getLength(); i++) {
 			currentConfigNode = loggerConfigNodes.item(i);
 			SoftloggerChannel mc = new SoftloggerChannel();

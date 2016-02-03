@@ -30,7 +30,8 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import ca.brood.softlogger.modbus.register.RealRegister;
 import ca.brood.softlogger.scheduler.PrettyPeriodicSchedulable;
@@ -51,7 +52,7 @@ public class DBOutputModule extends AbstractOutputModule  implements Runnable {
 	
 	public DBOutputModule() {
 		super();
-		log = Logger.getLogger(DBOutputModule.class);
+		log = LogManager.getLogger(DBOutputModule.class);
 		logSchedulable = new PrettyPeriodicSchedulable();
 		logSchedulable.setAction(this);
 		logSchedulable.setEpochUpdateRate(24*3600);
@@ -59,7 +60,7 @@ public class DBOutputModule extends AbstractOutputModule  implements Runnable {
 	
 	public DBOutputModule(DBOutputModule o) {
 		super(o);
-		log = Logger.getLogger(DBOutputModule.class);
+		log = LogManager.getLogger(DBOutputModule.class);
 		logSchedulable = new PrettyPeriodicSchedulable(o.logSchedulable);
 		logSchedulable.setAction(this);
 		logSchedulable.setEpochUpdateRate(24*3600);

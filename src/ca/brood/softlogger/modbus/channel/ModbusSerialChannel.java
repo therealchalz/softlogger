@@ -25,7 +25,8 @@ import net.wimpi.modbus.io.ModbusSerialTransaction;
 import net.wimpi.modbus.msg.*;
 import net.wimpi.modbus.util.*;
 import net.wimpi.modbus.net.*;
-import org.apache.log4j.Logger;
+
+import org.apache.logging.log4j.LogManager;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
@@ -44,7 +45,7 @@ public class ModbusSerialChannel extends ModbusChannel {
 	
 	public ModbusSerialChannel(int chanId) {
 		super(chanId);
-		log = Logger.getLogger(ModbusSerialChannel.class.toString()+" SoftloggerChannel: "+chanId+" ID: "+id);
+		log = LogManager.getLogger(ModbusSerialChannel.class.toString()+" SoftloggerChannel: "+chanId+" ID: "+id);
 	}
 
 	@Override

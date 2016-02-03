@@ -22,14 +22,15 @@ package ca.brood.softlogger.modbus.register;
 
 import net.wimpi.modbus.msg.ModbusResponse;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import ca.brood.brootils.xml.XMLConfigurable;
 
 public abstract class Register implements XMLConfigurable {
-	protected Logger log = Logger.getLogger(Register.class);;
+	protected Logger log = LogManager.getLogger(Register.class);;
 	protected String fieldName;
 	protected RegisterData registerData;
 	

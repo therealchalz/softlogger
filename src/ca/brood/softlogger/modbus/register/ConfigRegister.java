@@ -22,7 +22,7 @@ package ca.brood.softlogger.modbus.register;
 
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import net.wimpi.modbus.msg.*;
 import ca.brood.softlogger.util.*;
 
@@ -30,7 +30,7 @@ public class ConfigRegister extends RealRegister {
 	private RegisterData value = null;
 	public ConfigRegister(int device) {
 		super(device);
-		log = Logger.getLogger(ConfigRegister.class+": D: "+device);
+		log = LogManager.getLogger(ConfigRegister.class+": D: "+device);
 	}
 	public ConfigRegister(ConfigRegister c) {
 		super(c);
@@ -41,7 +41,7 @@ public class ConfigRegister extends RealRegister {
 		return new ConfigRegister(this);
 	}
 	private void setupLog(int device, int address) {
-		log = Logger.getLogger(ConfigRegister.class+": D: "+device+" A: "+address);
+		log = LogManager.getLogger(ConfigRegister.class+": D: "+device+" A: "+address);
 	}
 	
 	public RegisterData getValue() {

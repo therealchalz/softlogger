@@ -24,7 +24,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import ca.brood.softlogger.modbus.Device;
 import ca.brood.softlogger.scheduler.Scheduler;
@@ -36,7 +37,7 @@ public class DataOutputManager {
 	public DataOutputManager() {
 		schedulers = new HashMap<Class<? extends OutputModule>, Scheduler>();
 		
-		log = Logger.getLogger(DataOutputManager.class);
+		log = LogManager.getLogger(DataOutputManager.class);
 	}
 	
 	public void initializeSchedulers(ArrayList<Device> allDevices) {

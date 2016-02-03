@@ -25,7 +25,8 @@ import net.wimpi.modbus.ModbusIOException;
 import net.wimpi.modbus.io.ModbusTCPTransaction;
 import net.wimpi.modbus.msg.*;
 import net.wimpi.modbus.net.*;
-import org.apache.log4j.Logger;
+
+import org.apache.logging.log4j.LogManager;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import java.net.InetAddress;
@@ -40,7 +41,7 @@ public class ModbusTcpChannel extends ModbusChannel {
 	
 	public ModbusTcpChannel(int chanId) {
 		super(chanId);
-		log = Logger.getLogger(ModbusTcpChannel.class+": "+id+" on Channel: "+chanId);
+		log = LogManager.getLogger(ModbusTcpChannel.class+": "+id+" on Channel: "+chanId);
 	}
 	@Override
 	public synchronized boolean close() {

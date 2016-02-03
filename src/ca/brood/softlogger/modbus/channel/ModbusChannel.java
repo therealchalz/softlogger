@@ -20,7 +20,8 @@
  ******************************************************************************/
 package ca.brood.softlogger.modbus.channel;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
@@ -38,7 +39,7 @@ public abstract class ModbusChannel implements XMLConfigurable {
 	protected ModbusChannel(int chanId) {
 		id = getNextId();
 		channelId = chanId;
-		log = Logger.getLogger(ModbusChannel.class.toString()+" SoftloggerChannel: "+chanId+" ID: "+id);
+		log = LogManager.getLogger(ModbusChannel.class.toString()+" SoftloggerChannel: "+chanId+" ID: "+id);
 	}
 	public static synchronized int getNextId() {
 		return nextId++;

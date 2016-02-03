@@ -20,7 +20,7 @@
  ******************************************************************************/
 package ca.brood.softlogger.modbus.register;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
@@ -31,7 +31,7 @@ public class DataRegister extends RealRegister {
 	
 	public DataRegister(int device) {
 		super(device);
-		log = Logger.getLogger(DataRegister.class);
+		log = LogManager.getLogger(DataRegister.class);
 	}
 	public DataRegister(DataRegister d) {
 		super(d);
@@ -47,7 +47,7 @@ public class DataRegister extends RealRegister {
 	}
 	
 	private void setupLog() {
-		log = Logger.getLogger(DataRegister.class+" GUID: "+this.guid);
+		log = LogManager.getLogger(DataRegister.class+" GUID: "+this.guid);
 	}
 	public boolean configure(Node registerNode) {
 		if (!super.configure(registerNode)) {

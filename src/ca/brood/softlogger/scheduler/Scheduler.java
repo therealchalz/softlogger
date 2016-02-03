@@ -23,7 +23,8 @@ package ca.brood.softlogger.scheduler;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import ca.brood.brootils.thread.ThreadPerformanceMonitor;
 
@@ -60,7 +61,7 @@ public class Scheduler {
 		public SchedulerRunner() {
 			schedulerQueue = new SchedulerQueue();
 			shouldRun = new AtomicBoolean(false);
-			log = Logger.getLogger(SchedulerRunner.class);
+			log = LogManager.getLogger(SchedulerRunner.class);
 			name = "Unnamed Thread Scheduler";
 		}
 		public void addSchedulee(Schedulable sch) {

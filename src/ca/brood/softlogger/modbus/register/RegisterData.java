@@ -22,7 +22,8 @@ package ca.brood.softlogger.modbus.register;
 
 import java.text.DateFormat;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import net.wimpi.modbus.msg.*;
 import net.wimpi.modbus.procimg.SimpleRegister;
@@ -32,7 +33,7 @@ public class RegisterData implements net.wimpi.modbus.procimg.Register{
 	private Float dataFloat = null;
 	private Boolean dataBool = null;
 	private Long timestamp = null;
-	private Logger log = Logger.getLogger(RegisterData.class);
+	private Logger log = LogManager.getLogger(RegisterData.class);
 	public RegisterData() {
 		
 	}

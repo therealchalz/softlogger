@@ -17,14 +17,14 @@ The home of this project is currently on github at github.com/therealchalz/softl
 DEPENDENCIES
 
 This program depends on the following libraries:
-commons-daemon-1.0.13.jar
-log4j-1.2.16.jar
-mysql-connector-java-5.1.23-bin.jar
+commons-daemon-1.0.15.jar
+log4j-api-2.5.jar
+log4j-core-2.5.jar
+mysql-connector-java-5.1.38-bin.jar
 commons-io-2.4.jar
-jssc-2.6.0-streams.jar (github.com/therealchalz/java-simple-serial-connector, streams branch)
-jamod-1.2-jssc.jar (github.com/therealchalz/jamod-mod)
-brootils-1.0.jar (github.com/therealchalz/brootils)
-jep-2.4.1.jar (github.com/therealchalz/jep)
+jssc-2.9-therealchalz.jar (github.com/therealchalz/java-simple-serial-connector)
+jamod-1.5-therealchalz.jar (github.com/therealchalz/jamod)
+brootils-1.1.jar (github.com/therealchalz/brootils)
 jsvc binary from the commons-daemon project (for linux)
 procrun binary from the commons-daemon project (for windows)
 
@@ -38,7 +38,7 @@ Linux
 
 Put all the *.jar files in /usr/share/java.
 Install the jsvc binary to /usr/bin/jsvc.
-Put put the config files (softlogger.dtd, softlogger.xml, log4j.config) in /etc/softlogger.  Logs 
+Put put the config files (softlogger.dtd, softlogger.xml) in /etc/softlogger.  Logs 
 will be saved here as well.
 Put the softlogger.init.d.sh script in /etc/init.d/ (rename it for your convenience)
 Ensure that the softlogger init.d script is executable.

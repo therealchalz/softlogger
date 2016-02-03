@@ -23,7 +23,8 @@ package ca.brood.softlogger;
 import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
@@ -50,7 +51,7 @@ public class SoftloggerChannel implements Runnable, XMLConfigurable {
 	
 	public SoftloggerChannel() {
 		this.id = getNextId();
-		log = Logger.getLogger(SoftloggerChannel.class+" ID: "+id);
+		log = LogManager.getLogger(SoftloggerChannel.class+" ID: "+id);
 		devices = new ArrayList<Device>();
 		shouldRun = new AtomicBoolean(false);
 	}
