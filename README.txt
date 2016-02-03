@@ -25,8 +25,8 @@ commons-io-2.4.jar
 jssc-2.9-therealchalz.jar (github.com/therealchalz/java-simple-serial-connector)
 jamod-1.5-therealchalz.jar (github.com/therealchalz/jamod)
 brootils-1.1.jar (github.com/therealchalz/brootils)
-jsvc binary from the commons-daemon project (for linux)
-procrun binary from the commons-daemon project (for windows)
+jsvc binary from the commons-daemon project (for linux, version 1.0.15)
+procrun binary from the commons-daemon project (for windows, version 1.0.15)
 
 CONFIGURATION
 
