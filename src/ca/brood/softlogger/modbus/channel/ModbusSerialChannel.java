@@ -39,7 +39,7 @@ public class ModbusSerialChannel extends ModbusChannel {
 	private SerialParameters params = null;
 	private int baud = 0;
 	private SerialConnection connection = null;
-	private int interRequestDelay = 150;	//ms
+	private int interRequestDelay = 50;	//ms
 	private long lastRequest = 0;
 	private boolean rs485Echo = false;;
 	
@@ -114,6 +114,7 @@ public class ModbusSerialChannel extends ModbusChannel {
 		params.setEcho(rs485Echo);
 		params.setFlowControlIn(SerialPort.FLOWCONTROL_NONE);
 		params.setFlowControlOut(SerialPort.FLOWCONTROL_NONE);
+		params.setReceiveTimeout(500);
 		
 		return true;
 	}
@@ -129,7 +130,9 @@ public class ModbusSerialChannel extends ModbusChannel {
 		}
 		long currentTime = System.nanoTime();
 		if (currentTime - (this.lastRequest + this.interRequestDelay * 1000000l) < 0) {
-			Thread.sleep((lastRequest + (interRequestDelay * 1000000l) - currentTime)/1000000l);
+			long sleeptime = (lastRequest + (interRequestDelay * 1000000l) - currentTime)/1000000l;
+			log.trace("Sleeping for "+sleeptime+" milliseconds.");
+			Thread.sleep(sleeptime);
 			currentTime = System.nanoTime();
 		}
 		lastRequest = currentTime;
@@ -159,6 +162,7 @@ public class ModbusSerialChannel extends ModbusChannel {
 		connection = new SerialConnection(params);
 		try {
 			connection.open();
+			connection.setReceiveTimeout(500);
 		} catch (Exception e) {
 			log.error("Serial channel could not open connection", e);
 			return false;

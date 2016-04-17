@@ -256,10 +256,21 @@ public class Device implements Schedulable, XMLConfigurable, OutputableDevice {
 		
 		//Combine all the registers with the same scan rate into scan groups
 		ScanGroup scanGroup = null;
+		int maxScanGroupSize = 4;
+		int currentScanGroupSize = 0;
 		for (RealRegister reg : regs) {
 			if (scanGroup != null) {
 				if (reg.getScanRate() == scanGroup.getScanRate()) {
-					scanGroup.addRegister(reg);
+					if (currentScanGroupSize + 1 > maxScanGroupSize) {
+						scanGroup = new ScanGroup(reg.getScanRate());
+						scanGroup.addRegister(reg);
+						scanGroup.setNextRun(System.nanoTime()+(1000l*1000000l)); //We'll start in 1 second
+						scanGroups.add(scanGroup);
+						currentScanGroupSize = 1;
+					} else {
+						scanGroup.addRegister(reg);
+						currentScanGroupSize ++;
+					}
 				} else {
 					log.trace(scanGroup.getRegisters());
 					scanGroup = null;
@@ -275,6 +286,7 @@ public class Device implements Schedulable, XMLConfigurable, OutputableDevice {
 				scanGroup.addRegister(reg);
 				scanGroup.setNextRun(System.nanoTime()+(1000l*1000000l)); //We'll start in 1 second
 				scanGroups.add(scanGroup);
+				currentScanGroupSize = 1;
 			} 
 		}
 	}
@@ -309,6 +321,7 @@ public class Device implements Schedulable, XMLConfigurable, OutputableDevice {
 			try {
 				log.debug("Executing request: "+request);
 				ModbusResponse resp = channel.executeRequest(request);
+				log.trace("Got response: "+resp);
 				responses.add(resp);
 			} catch (ModbusException e) {
 				log.error("Got modbus exception while executing request: "+request,e);
@@ -475,8 +488,9 @@ public class Device implements Schedulable, XMLConfigurable, OutputableDevice {
 			return;
 		}
 		
+		log.trace("Waiting for register lock...");
 		synchronized (registerLock) {
-			
+			log.trace("Got register lock");
 			ArrayList<ModbusRequest> requests = getRequests(registersToProcess);
 			
 			long then = System.nanoTime();
