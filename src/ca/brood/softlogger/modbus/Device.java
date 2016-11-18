@@ -256,17 +256,13 @@ public class Device implements Schedulable, XMLConfigurable, OutputableDevice {
 		
 		//Combine all the registers with the same scan rate into scan groups
 		ScanGroup scanGroup = null;
-		int maxScanGroupSize = 4;
+		int maxScanGroupSize = 3;
 		int currentScanGroupSize = 0;
 		for (RealRegister reg : regs) {
 			if (scanGroup != null) {
 				if (reg.getScanRate() == scanGroup.getScanRate()) {
 					if (currentScanGroupSize + 1 > maxScanGroupSize) {
-						scanGroup = new ScanGroup(reg.getScanRate());
-						scanGroup.addRegister(reg);
-						scanGroup.setNextRun(System.nanoTime()+(1000l*1000000l)); //We'll start in 1 second
-						scanGroups.add(scanGroup);
-						currentScanGroupSize = 1;
+						scanGroup = null;
 					} else {
 						scanGroup.addRegister(reg);
 						currentScanGroupSize ++;
@@ -412,7 +408,8 @@ public class Device implements Schedulable, XMLConfigurable, OutputableDevice {
 				firstOfRequest = r;
 				lastOfRequest = firstOfRequest;
 			} else {
-				int nextAddress = lastOfRequest.getAddress() + lastOfRequest.getSize();
+				//int nextAddress = lastOfRequest.getAddress() + lastOfRequest.getSize();
+				int nextAddress = -1;
 				if (firstOfRequest.getRegisterType().equals(r.getRegisterType()) && r.getAddress()==nextAddress) {
 					lastOfRequest = r;
 				} else {
