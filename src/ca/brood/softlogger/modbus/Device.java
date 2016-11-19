@@ -1,5 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2013 Charles Hache <chache@brood.ca>. All rights reserved. 
+ * Copyright (c) 2013-2016 Charles Hache <chache@cygnustech.ca>.  
+ * All rights reserved. 
  * 
  * This file is part of the softlogger project.
  * softlogger is free software: you can redistribute it and/or modify
@@ -13,11 +14,12 @@
  * GNU General Public License for more details.
  * 
  * You should have received a copy of the GNU General Public License
- * along with softlogger.  If not, see <http://www.gnu.org/licenses/>.
+ * along with softlogger.  If not, see <https://www.gnu.org/licenses/gpl-3.0.en.html>.
  * 
  * Contributors:
- *     Charles Hache <chache@brood.ca> - initial API and implementation
+ *     Charles Hache <chache@cygnustech.ca> - initial API and implementation
  ******************************************************************************/
+
 package ca.brood.softlogger.modbus;
 import ca.brood.brootils.xml.XMLConfigurable;
 import ca.brood.softlogger.datafunction.DataFunction;
@@ -256,17 +258,10 @@ public class Device implements Schedulable, XMLConfigurable, OutputableDevice {
 		
 		//Combine all the registers with the same scan rate into scan groups
 		ScanGroup scanGroup = null;
-		int maxScanGroupSize = 3;
-		int currentScanGroupSize = 0;
 		for (RealRegister reg : regs) {
 			if (scanGroup != null) {
 				if (reg.getScanRate() == scanGroup.getScanRate()) {
-					if (currentScanGroupSize + 1 > maxScanGroupSize) {
-						scanGroup = null;
-					} else {
-						scanGroup.addRegister(reg);
-						currentScanGroupSize ++;
-					}
+					scanGroup.addRegister(reg);
 				} else {
 					log.trace(scanGroup.getRegisters());
 					scanGroup = null;
@@ -282,7 +277,6 @@ public class Device implements Schedulable, XMLConfigurable, OutputableDevice {
 				scanGroup.addRegister(reg);
 				scanGroup.setNextRun(System.nanoTime()+(1000l*1000000l)); //We'll start in 1 second
 				scanGroups.add(scanGroup);
-				currentScanGroupSize = 1;
 			} 
 		}
 	}
@@ -403,23 +397,30 @@ public class Device implements Schedulable, XMLConfigurable, OutputableDevice {
 		
 		RealRegister firstOfRequest = null;
 		RealRegister lastOfRequest = null;
+		int maxRegistersPerRequest = 10;
+		int currentRequestRegisters = 0;
 		for (RealRegister r : regs) {
 			if (firstOfRequest == null) {
 				firstOfRequest = r;
 				lastOfRequest = firstOfRequest;
+				currentRequestRegisters = 1;
 			} else {
-				//int nextAddress = lastOfRequest.getAddress() + lastOfRequest.getSize();
-				int nextAddress = -1;
-				if (firstOfRequest.getRegisterType().equals(r.getRegisterType()) && r.getAddress()==nextAddress) {
+				int nextAddress = lastOfRequest.getAddress() + lastOfRequest.getSize();
+				if (firstOfRequest.getRegisterType().equals(r.getRegisterType()) 
+						&& r.getAddress()==nextAddress
+						&& currentRequestRegisters < maxRegistersPerRequest) {
 					lastOfRequest = r;
+					currentRequestRegisters++;
 				} else {
 					ModbusRequest request = getModbusRequest(firstOfRequest, lastOfRequest);
 					requests.add(request);
 					firstOfRequest = r;
 					lastOfRequest = firstOfRequest;
+					currentRequestRegisters = 1;
 				}
 			}
 		}
+		// Finish building last request
 		if (firstOfRequest != null & lastOfRequest != null) {
 			ModbusRequest request = getModbusRequest(firstOfRequest, lastOfRequest);
 			requests.add(request);

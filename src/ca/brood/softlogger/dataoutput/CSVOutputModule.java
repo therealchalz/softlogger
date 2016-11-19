@@ -1,5 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2013 Charles Hache <chache@brood.ca>. All rights reserved. 
+ * Copyright (c) 2013-2016 Charles Hache <chache@cygnustech.ca>.  
+ * All rights reserved. 
  * 
  * This file is part of the softlogger project.
  * softlogger is free software: you can redistribute it and/or modify
@@ -13,16 +14,19 @@
  * GNU General Public License for more details.
  * 
  * You should have received a copy of the GNU General Public License
- * along with softlogger.  If not, see <http://www.gnu.org/licenses/>.
+ * along with softlogger.  If not, see <https://www.gnu.org/licenses/gpl-3.0.en.html>.
  * 
  * Contributors:
- *     Charles Hache <chache@brood.ca> - initial API and implementation
+ *     Charles Hache <chache@cygnustech.ca> - initial API and implementation
  ******************************************************************************/
+
 package ca.brood.softlogger.dataoutput;
 
 import java.io.File;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.Iterator;
 
 import org.apache.commons.io.FileUtils;
@@ -46,6 +50,8 @@ public class CSVOutputModule extends AbstractOutputModule implements Runnable {
 	private String completedFileDirectory;
 	private String csvSubdirectory;
 	private long nanoTimeOffset;
+	private SimpleDateFormat folderDateFormat;
+	private SimpleDateFormat filenameDateFormat;
 	
 	public CSVOutputModule() {
 		super();
@@ -59,6 +65,8 @@ public class CSVOutputModule extends AbstractOutputModule implements Runnable {
 		completedFileDirectory = "";
 		csvSubdirectory = ".";
 		nanoTimeOffset = System.nanoTime();
+		folderDateFormat = new SimpleDateFormat("yyyy-MM");
+		filenameDateFormat = new SimpleDateFormat("yyyyMMdd-HH.mm.ss");
 	}
 	
 	public CSVOutputModule(CSVOutputModule o) {
@@ -76,6 +84,8 @@ public class CSVOutputModule extends AbstractOutputModule implements Runnable {
 		completedFileDirectory = o.completedFileDirectory;
 		csvSubdirectory = o.csvSubdirectory;
 		nanoTimeOffset = o.nanoTimeOffset;
+		folderDateFormat = (SimpleDateFormat) o.folderDateFormat.clone();
+		filenameDateFormat = (SimpleDateFormat) o.filenameDateFormat.clone();
 	}
 
 
@@ -105,36 +115,37 @@ public class CSVOutputModule extends AbstractOutputModule implements Runnable {
 		String oldFileName;
 		Calendar cal = Calendar.getInstance();
 		long currentWallTime = System.currentTimeMillis();
-		cal.setTimeInMillis(currentWallTime+500L);	//Add 500ms to time to round to nearest second
-		theFileName = csvSubdirectory+"/"+String.format("%1$tY%1$tm%1$td-%1$tH.%1$tM.%1$tS", cal)+"-"+m_OutputDevice.getDescription()+".csv";
+		cal.setTimeInMillis(currentWallTime+500L);	//Add 500ms to time to round to nearest second when truncated
+		theFileName = csvSubdirectory+File.separator+filenameDateFormat.format( cal.getTime())+"-"+m_OutputDevice.getDescription()+".csv";
 		
-		try {
-			if (!csvSubdirectory.equals(".")) {
-				File csvDir = new File(csvSubdirectory);
-				if (!csvDir.isDirectory()) {
-					csvDir.mkdirs();
+		if (!csvSubdirectory.equals(".")) {
+			File csvDir = new File(csvSubdirectory);
+			if (!csvDir.isDirectory()) {
+				if (!csvDir.mkdirs()) {
+					log.error("Error - couldn't create the CSV destination directory: "+csvSubdirectory);
+					throw new Exception("Error - couldn't create the CSV destination directory: "+csvSubdirectory);
 				}
 			}
-		} catch (Exception e) {
-			log.error("Error - couldn't create the CSV destination directory: "+csvSubdirectory, e);
-			throw e;
 		}
 		
 		if (writer == null) {
 			writer = new CSVFileWriter(theFileName);
 			
-			//Move all CSV files from csvSubdirectory to completedFileDirectory
+			//Move all CSV files from csvSubdirectory to the completedFileDirectory
 			if (completedFileDirectory.length() > 0) {
 				String[] extensions = new String[1];
 				extensions[0] = "csv";
 				File csvDir = new File(csvSubdirectory);
-				File completedDir = new File(completedFileDirectory);
 				
 				try {
 					Iterator<File> fileIter = FileUtils.iterateFiles(csvDir, extensions, false);
 					
 					while (fileIter.hasNext()) {
-						FileUtils.moveFileToDirectory(fileIter.next(), completedDir, true);
+						File f = fileIter.next();
+						Date fileDate = filenameDateFormat.parse(f.getName());
+						File completedDir = new File(completedFileDirectory+File.separator+folderDateFormat.format(fileDate));
+						FileUtils.moveFileToDirectory(f, completedDir, true);
+						log.debug("Moved "+f.getPath()+" into "+completedDir.getCanonicalPath());
 					}
 				} catch (Exception e) {
 					log.error("Couldn't move existing CSV files on startup.", e);
@@ -149,18 +160,12 @@ public class CSVOutputModule extends AbstractOutputModule implements Runnable {
 				//File name has changed, move the old file if required
 				try {
 					if (completedFileDirectory.length() > 0) {
-						File completedDir = new File(completedFileDirectory);
-						if (!completedDir.isDirectory()) {
-							completedDir.mkdirs();
-						}
 						File oldFile = new File(oldFileName);
+						Date fileDate = filenameDateFormat.parse(oldFile.getName());
+						File completedDir = new File(completedFileDirectory+"/"+folderDateFormat.format(fileDate));
+						
 						if (oldFile.exists()) {
-							String movedFileName = completedFileDirectory+"/"+oldFile.getName();
-							File movedFile = new File(movedFileName);
-							
-							log.debug("Moving "+oldFileName+" to "+movedFileName);
-							
-							FileUtils.moveFile(oldFile, movedFile);
+							FileUtils.moveFileToDirectory(oldFile, completedDir, true);
 						}
 					}
 				} catch (Exception e) {
@@ -186,12 +191,12 @@ public class CSVOutputModule extends AbstractOutputModule implements Runnable {
 				logSchedulable.updateEpoch();
 				fileCreateSchedulable.updateEpoch();
 			}
-			firstFileCreated = true;
 			log.trace("Creating new CSV file");
 			try {
 				updateFilename();
+				firstFileCreated = true;
 			} catch (Exception e) {
-				log.error("Couldn't prepare new CSV file.");
+				log.error("Couldn't prepare new CSV file: ", e);
 				return;
 			}
 		}
