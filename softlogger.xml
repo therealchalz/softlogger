@@ -61,15 +61,6 @@
 			<configRegister>
 				<fieldName>Number of Sensors</fieldName>
 				<registerAddress>400003</registerAddress>
-<<<<<<< f4cb7bf2c48c40f219eed376ba03dcfd48273736
-				<value>0</value>
-			</configRegister>
-			<configRegister>
-				<fieldName>Number of Digital Inputs</fieldName>
-				<registerAddress>400004</registerAddress>
-				<value>0</value>
-			</configRegister>
-=======
 				<value>2</value>
 			</configRegister>
 			<configRegister>
@@ -77,7 +68,6 @@
 				<registerAddress>400004</registerAddress>
 				<value>2</value>
 			</configRegister>
->>>>>>> Playing around limiting the scan group size
 		<!--  Misc Registers -->
 			<dataRegister>
 				<fieldName>Runtime</fieldName>
