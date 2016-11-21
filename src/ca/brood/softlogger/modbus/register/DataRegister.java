@@ -1,5 +1,6 @@
 /*******************************************************************************
- * Copyright (c) 2013 Charles Hache <chache@brood.ca>. All rights reserved. 
+ * Copyright (c) 2013-2016 Charles Hache <chache@cygnustech.ca>.  
+ * All rights reserved. 
  * 
  * This file is part of the softlogger project.
  * softlogger is free software: you can redistribute it and/or modify
@@ -13,11 +14,12 @@
  * GNU General Public License for more details.
  * 
  * You should have received a copy of the GNU General Public License
- * along with softlogger.  If not, see <http://www.gnu.org/licenses/>.
+ * along with softlogger.  If not, see <https://www.gnu.org/licenses/gpl-3.0.en.html>.
  * 
  * Contributors:
- *     Charles Hache <chache@brood.ca> - initial API and implementation
+ *     Charles Hache <chache@cygnustech.ca> - initial API and implementation
  ******************************************************************************/
+
 package ca.brood.softlogger.modbus.register;
 
 import org.apache.logging.log4j.LogManager;

@@ -4,12 +4,12 @@
 	<classpathentry kind="src" path="resources"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="lib" path="lib/commons-io-2.4.jar"/>
-	<classpathentry kind="lib" path="lib/brootils-1.1.jar"/>
 	<classpathentry kind="lib" path="lib/commons-daemon-1.0.15.jar"/>
-	<classpathentry kind="lib" path="lib/jamod-1.5-therealchalz.jar"/>
-	<classpathentry kind="lib" path="lib/jssc-2.9-therealchalz.jar"/>
 	<classpathentry kind="lib" path="lib/log4j-api-2.5.jar"/>
 	<classpathentry kind="lib" path="lib/log4j-core-2.5.jar"/>
 	<classpathentry kind="lib" path="lib/mysql-connector-java-5.1.38-bin.jar"/>
+	<classpathentry kind="lib" path="/brootils/releases/brootils-1.2.1.jar"/>
+	<classpathentry kind="lib" path="/jamod/dist/jamod-1.5.1-therealchalz.jar"/>
+	<classpathentry kind="lib" path="/java-simple-serial-connector/releases/jssc-2.9.5-experimental.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
