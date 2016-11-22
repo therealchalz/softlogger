@@ -24,7 +24,7 @@
 	<defaultScanRate>1000</defaultScanRate>
 	<channel>
 		<serial>
-			<comport>COM19</comport>
+			<comport>/dev/ttyUSB0</comport>
 			<baud>9600</baud>
 		</serial>
 		<device>
@@ -72,278 +72,276 @@
 			<dataRegister>
 				<fieldName>Runtime</fieldName>
 				<registerAddress>400005</registerAddress>
-				<guid>GUID</guid>
+				<guid>Runtime</guid>
 			</dataRegister>
 			<dataRegister>
 				<fieldName>Board Temperature</fieldName>
 				<registerAddress>400006</registerAddress>
-				<guid>GUID</guid>
+				<guid>Board_Temp</guid>
 			</dataRegister>
 			<dataRegister>
 				<fieldName>Reset Reason</fieldName>
 				<registerAddress>400055</registerAddress>
-				<guid>GUID</guid>
+				<guid>Reset_Reason</guid>
 			</dataRegister>
 			<dataRegister>
 				<fieldName>Firmware Version Major</fieldName>
 				<registerAddress>400058</registerAddress>
-				<guid>GUID</guid>
+				<guid>FW_Major</guid>
 			</dataRegister>
 			<dataRegister>
 				<fieldName>Firmware Version Minor</fieldName>
 				<registerAddress>400059</registerAddress>
-				<guid>GUID</guid>
+				<guid>FW_Minor</guid>
 			</dataRegister>
 			<dataRegister>
 				<fieldName>Firmware Version Revision</fieldName>
 				<registerAddress>400060</registerAddress>
-				<guid>GUID</guid>
+				<guid>FW_Rev</guid>
 			</dataRegister>
 		 <!-- Resistance Registers -->
 			<dataRegister>
 				<fieldName>Resistance 1</fieldName>
 				<registerAddress>400007</registerAddress>
-				<guid>GUID</guid>
+				<guid>R1</guid>
 			</dataRegister>
 			<dataRegister>
 				<fieldName>Resistance 2</fieldName>
 				<registerAddress>400008</registerAddress>
-				<guid>GUID</guid>
+				<guid>R2</guid>
 			</dataRegister>
 			<dataRegister>
 				<fieldName>Resistance 3</fieldName>
 				<registerAddress>400009</registerAddress>
-				<guid>GUID</guid>
+				<guid>R3</guid>
 			</dataRegister>
 			<dataRegister>
 				<fieldName>Resistance 4</fieldName>
 				<registerAddress>400010</registerAddress>
-				<guid>GUID</guid>
+				<guid>R4</guid>
 			</dataRegister>
 			<dataRegister>
 				<fieldName>Resistance 5</fieldName>
 				<registerAddress>400011</registerAddress>
-				<guid>GUID</guid>
+				<guid>R5</guid>
 			</dataRegister>
 			<dataRegister>
 				<fieldName>Resistance 6</fieldName>
 				<registerAddress>400012</registerAddress>
-				<guid>GUID</guid>
+				<guid>R6</guid>
 			</dataRegister>
 			<dataRegister>
 				<fieldName>Resistance 7</fieldName>
 				<registerAddress>400013</registerAddress>
-				<guid>GUID</guid>
+				<guid>R7</guid>
 			</dataRegister>
 			<dataRegister>
 				<fieldName>Resistance 8</fieldName>
 				<registerAddress>400014</registerAddress>
-				<guid>GUID</guid>
+				<guid>R8</guid>
 			</dataRegister>
 			<dataRegister>
 				<fieldName>Resistance 9</fieldName>
 				<registerAddress>400015</registerAddress>
-				<guid>GUID</guid>
+				<guid>R9</guid>
 			</dataRegister>
 			<dataRegister>
 				<fieldName>Resistance 10</fieldName>
 				<registerAddress>400016</registerAddress>
-				<guid>GUID</guid>
+				<guid>R10</guid>
 			</dataRegister>
 			<dataRegister>
 				<fieldName>Resistance 11</fieldName>
 				<registerAddress>400017</registerAddress>
-				<guid>GUID</guid>
+				<guid>R11</guid>
 			</dataRegister>
 			<dataRegister>
 				<fieldName>Resistance 12</fieldName>
 				<registerAddress>400018</registerAddress>
-				<guid>GUID</guid>
+				<guid>R12</guid>
 			</dataRegister>
 			<dataRegister>
 				<fieldName>Resistance 13</fieldName>
 				<registerAddress>400019</registerAddress>
-				<guid>GUID</guid>
+				<guid>R13</guid>
 			</dataRegister>
 			<dataRegister>
 				<fieldName>Resistance 14</fieldName>
 				<registerAddress>400020</registerAddress>
-				<guid>GUID</guid>
+				<guid>R14</guid>
 			</dataRegister>
 			<dataRegister>
 				<fieldName>Resistance 15</fieldName>
 				<registerAddress>400021</registerAddress>
-				<guid>GUID</guid>
+				<guid>R15</guid>
 			</dataRegister>
 			<dataRegister>
 				<fieldName>Resistance 16</fieldName>
 				<registerAddress>400022</registerAddress>
-				<guid>GUID</guid>
+				<guid>R16</guid>
 			</dataRegister>
 		<!-- Sensor Registers -->
 			<dataRegister>
 				<fieldName>Sensor 1</fieldName>
 				<registerAddress>400023</registerAddress>
-				<guid>GUID</guid>
+				<guid>S1</guid>
 			</dataRegister>
 			<dataRegister>
 				<fieldName>Sensor 2</fieldName>
 				<registerAddress>400024</registerAddress>
-				<guid>GUID</guid>
+				<guid>S2</guid>
 			</dataRegister>
 			<dataRegister>
 				<fieldName>Sensor 3</fieldName>
 				<registerAddress>400025</registerAddress>
-				<guid>GUID</guid>
+				<guid>S3</guid>
 			</dataRegister>
 			<dataRegister>
 				<fieldName>Sensor 4</fieldName>
 				<registerAddress>400026</registerAddress>
-				<guid>GUID</guid>
+				<guid>S4</guid>
 			</dataRegister>
 			<dataRegister>
 				<fieldName>Sensor 5</fieldName>
 				<registerAddress>400027</registerAddress>
-				<guid>GUID</guid>
+				<guid>S5</guid>
 			</dataRegister>
 			<dataRegister>
 				<fieldName>Sensor 6</fieldName>
 				<registerAddress>400028</registerAddress>
-				<guid>GUID</guid>
+				<guid>S6</guid>
 			</dataRegister>
 			<dataRegister>
 				<fieldName>Sensor 7</fieldName>
 				<registerAddress>400029</registerAddress>
-				<guid>GUID</guid>
+				<guid>S7</guid>
 			</dataRegister>
 			<dataRegister>
 				<fieldName>Sensor 8</fieldName>
 				<registerAddress>400030</registerAddress>
-				<guid>GUID</guid>
+				<guid>S8</guid>
 			</dataRegister>
-<!--
 			<dataRegister>
 				<fieldName>Sensor 9</fieldName>
 				<registerAddress>400031</registerAddress>
-				<guid>GUID</guid>
+				<guid>S9</guid>
 			</dataRegister>
--->
 			<dataRegister>
 				<fieldName>Sensor 10</fieldName>
 				<registerAddress>400032</registerAddress>
-				<guid>GUID</guid>
+				<guid>S10</guid>
 			</dataRegister>
 			<dataRegister>
 				<fieldName>Sensor 11</fieldName>
 				<registerAddress>400033</registerAddress>
-				<guid>GUID</guid>
+				<guid>S11</guid>
 			</dataRegister>
 			<dataRegister>
 				<fieldName>Sensor 12</fieldName>
 				<registerAddress>400034</registerAddress>
-				<guid>GUID</guid>
+				<guid>S12</guid>
 			</dataRegister>
 			<dataRegister>
 				<fieldName>Sensor 13</fieldName>
 				<registerAddress>400035</registerAddress>
-				<guid>GUID</guid>
+				<guid>S13</guid>
 			</dataRegister>
 			<dataRegister>
 				<fieldName>Sensor 14</fieldName>
 				<registerAddress>400036</registerAddress>
-				<guid>GUID</guid>
+				<guid>S14</guid>
 			</dataRegister>
 			<dataRegister>
 				<fieldName>Sensor 15</fieldName>
 				<registerAddress>400037</registerAddress>
-				<guid>GUID</guid>
+				<guid>S15</guid>
 			</dataRegister>
 			<dataRegister>
 				<fieldName>Sensor 16</fieldName>
 				<registerAddress>400038</registerAddress>
-				<guid>GUID</guid>
+				<guid>S16</guid>
 			</dataRegister>
 		<!-- Counter registers -->
 			<dataRegister>
 				<fieldName>Counter 1</fieldName>
 				<registerAddress>400039</registerAddress>
-				<guid>GUID</guid>
+				<guid>C1</guid>
 			</dataRegister>
 			<dataRegister>
 				<fieldName>Counter 2</fieldName>
 				<registerAddress>400040</registerAddress>
-				<guid>GUID</guid>
+				<guid>C2</guid>
 			</dataRegister>
 			<dataRegister>
 				<fieldName>Counter 3</fieldName>
 				<registerAddress>400041</registerAddress>
-				<guid>GUID</guid>
+				<guid>C3</guid>
 			</dataRegister>
 			<dataRegister>
 				<fieldName>Counter 4</fieldName>
 				<registerAddress>400042</registerAddress>
-				<guid>GUID</guid>
+				<guid>C4</guid>
 			</dataRegister>
 			<dataRegister>
 				<fieldName>Counter 5</fieldName>
 				<registerAddress>400043</registerAddress>
-				<guid>GUID</guid>
+				<guid>C5</guid>
 			</dataRegister>
 			<dataRegister>
 				<fieldName>Counter 6</fieldName>
 				<registerAddress>400044</registerAddress>
-				<guid>GUID</guid>
+				<guid>C6</guid>
 			</dataRegister>
 			<dataRegister>
 				<fieldName>Counter 7</fieldName>
 				<registerAddress>400045</registerAddress>
-				<guid>GUID</guid>
+				<guid>C7</guid>
 			</dataRegister>
 			<dataRegister>
 				<fieldName>Counter 8</fieldName>
 				<registerAddress>400046</registerAddress>
-				<guid>GUID</guid>
+				<guid>C8</guid>
 			</dataRegister>
 		<!-- Digital registers -->
 			<dataRegister>
 				<fieldName>Digital 1</fieldName>
 				<registerAddress>400047</registerAddress>
-				<guid>GUID</guid>
+				<guid>D1</guid>
 			</dataRegister>
 			<dataRegister>
 				<fieldName>Digital 2</fieldName>
 				<registerAddress>400048</registerAddress>
-				<guid>GUID</guid>
+				<guid>D2</guid>
 			</dataRegister>
 			<dataRegister>
 				<fieldName>Digital 3</fieldName>
 				<registerAddress>400049</registerAddress>
-				<guid>GUID</guid>
+				<guid>D3</guid>
 			</dataRegister>
 			<dataRegister>
 				<fieldName>Digital 4</fieldName>
 				<registerAddress>400050</registerAddress>
-				<guid>GUID</guid>
+				<guid>D4</guid>
 			</dataRegister>
 			<dataRegister>
 				<fieldName>Digital 5</fieldName>
 				<registerAddress>400051</registerAddress>
-				<guid>GUID</guid>
+				<guid>D5</guid>
 			</dataRegister>
 			<dataRegister>
 				<fieldName>Digital 6</fieldName>
 				<registerAddress>400052</registerAddress>
-				<guid>GUID</guid>
+				<guid>D6</guid>
 			</dataRegister>
 			<dataRegister>
 				<fieldName>Digital 7</fieldName>
 				<registerAddress>400053</registerAddress>
-				<guid>GUID</guid>
+				<guid>D7</guid>
 			</dataRegister>
 			<dataRegister>
 				<fieldName>Digital 8</fieldName>
 				<registerAddress>400054</registerAddress>
-				<guid>GUID</guid>
+				<guid>D8</guid>
 			</dataRegister>
 		</device>
 	</channel>

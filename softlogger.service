@@ -1,0 +1,13 @@
+#########
+# /etc/systemd/system/softlogger.service 
+#########
+[Unit]
+Description=Softlogger
+
+[Service]
+Type=forking
+ExecStart=/etc/softlogger/softlogger.init start
+ExecStop=/etc/softlogger/softlogger.init stop
+
+[Install]
+WantedBy=multi-user.target
