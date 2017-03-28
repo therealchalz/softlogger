@@ -524,14 +524,14 @@ public class Device implements Schedulable, XMLConfigurable, OutputableDevice {
 			for (OutputModule outputModule : outputModules) {
 				log.trace("Processing output module: "+outputModule.getDescription());
 				RegisterCollection collect = outputModule.getRegisterCollection();
-				updateRegisters(collect.beginUpdating(), responses, measurementTimeMillis, outputModule.useRegisterSampling());
-				collect.finishUpdating();
+				ArrayList<RealRegister> registers = collect.beginUpdating();
+				updateRegisters(registers, responses, measurementTimeMillis, outputModule.useRegisterSampling());
+				collect.finishUpdating(registers);
 			}
 		}
 
 		//If a config register's value is invalid, write the correct one
 		checkConfigRegisters();
-		
 	}
 
 	private void setRegisterData(RealRegister reg, ModbusResponse response, Long timestamp, boolean useSampling) {
