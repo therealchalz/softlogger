@@ -63,10 +63,14 @@ public class ConfigRegister extends RealRegister {
 			req = new WriteCoilRequest(this.address, this.value.getBool());
 		}
 		if (this.getRegisterType() == RegisterType.OUTPUT_REGISTER) {
-			if (this.size == 2) {
-				req = new WriteMultipleRegistersRequest(this.address, this.value.getBothRegisters());
+			if (this.sizeType != RegisterSizeType.FLOAT) {
+				if (this.size == 2) {
+					req = new WriteMultipleRegistersRequest(this.address, this.value.getBothRegisters());
+				} else {
+					req = new WriteSingleRegisterRequest(this.address, this.value);
+				}
 			} else {
-				req = new WriteSingleRegisterRequest(this.address, this.value);
+				req = new WriteMultipleRegistersRequest(this.address, this.value.getBothRegistersFloat());
 			}
 		}
 		return req;

@@ -53,10 +53,24 @@ public class RegisterData implements net.wimpi.modbus.procimg.Register{
 		 net.wimpi.modbus.procimg.Register ret = new SimpleRegister(dataInt&0xFFFF);
 		 return ret;
 	}
+	public net.wimpi.modbus.procimg.Register getHighRegisterFloat() {
+		 net.wimpi.modbus.procimg.Register ret = new SimpleRegister(Float.floatToIntBits(dataFloat)>>16);
+		 return ret;
+	}
+	public net.wimpi.modbus.procimg.Register getLowRegisterFloat() {
+		 net.wimpi.modbus.procimg.Register ret = new SimpleRegister(Float.floatToIntBits(dataFloat)&0xFFFF);
+		 return ret;
+	}
 	public net.wimpi.modbus.procimg.Register[] getBothRegisters() {
 		net.wimpi.modbus.procimg.Register[] ret = new net.wimpi.modbus.procimg.Register[2];
 		ret[0] = getHighRegisterInt();
 		ret[1] = getLowRegisterInt();
+		return ret;
+	}
+	public net.wimpi.modbus.procimg.Register[] getBothRegistersFloat() {
+		net.wimpi.modbus.procimg.Register[] ret = new net.wimpi.modbus.procimg.Register[2];
+		ret[0] = getHighRegisterFloat();
+		ret[1] = getLowRegisterFloat();
 		return ret;
 	}
 	public RegisterData(ModbusResponse resp) {
