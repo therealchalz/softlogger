@@ -45,6 +45,7 @@ public class RealRegister extends Register implements Comparable<RealRegister>{
 	protected double samplingValue = 0;
 	protected int samplingCount = 0;
 	protected RegisterSizeType sizeType;
+	protected boolean reverseBytes;
 	protected Class<? extends DataFunction> functionClass;
 	protected String dataFunctionArgument;
 	
@@ -54,6 +55,7 @@ public class RealRegister extends Register implements Comparable<RealRegister>{
 		log = LogManager.getLogger(RealRegister.class + " device: "+device);
 		sampling = Sampling.MEAN;
 		sizeType = RegisterSizeType.UNSIGNED;
+		reverseBytes = false;
 		functionClass = null;
 		dataFunctionArgument = "";
 	}
@@ -68,6 +70,7 @@ public class RealRegister extends Register implements Comparable<RealRegister>{
 		samplingValue = r.samplingValue;
 		samplingCount = r.samplingCount;
 		sizeType = r.sizeType;
+		reverseBytes = r.reverseBytes;
 		functionClass = r.functionClass;
 		dataFunctionArgument = r.dataFunctionArgument;
 	}
@@ -88,6 +91,9 @@ public class RealRegister extends Register implements Comparable<RealRegister>{
 	}
 	public RegisterSizeType getSizeType() {
 		return this.sizeType;
+	}
+	public boolean getReverseBytes() {
+		return this.reverseBytes;
 	}
 	public void setNull() {
 		this.registerData.setNull();
@@ -204,7 +210,16 @@ public class RealRegister extends Register implements Comparable<RealRegister>{
 			} else if (("size".compareToIgnoreCase(configNode.getNodeName())==0))	{
 				try {
 					this.size = Util.parseInt(configNode.getFirstChild().getNodeValue());
-					this.sizeType = RegisterSizeType.fromString(configNode.getAttributes().item(0).getTextContent());
+					this.sizeType = RegisterSizeType.fromString(configNode.getAttributes().getNamedItem("type").getTextContent());
+					String rv = configNode.getAttributes().getNamedItem("reverse").getTextContent();
+					if (rv.equals("t") || rv.equals("true")) {
+						this.reverseBytes = true;
+					} else if (rv.equals("f") || rv.equals("false")) {
+						this.reverseBytes = false;
+					} else {
+						log.error("Invalid attribute for size.  Reverse must be in [t,f,true,false]");
+						return false;
+					}
 					registerNode.removeChild(configNode);
 				} catch (NumberFormatException e) {
 					log.error("Couldn't parse size to integer from: "+configNode.getFirstChild().getNodeValue());

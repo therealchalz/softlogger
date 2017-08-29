@@ -20,12 +20,13 @@ CP=$CPHOME/brootils-1.2.1.jar:\
 $CPHOME/commons-daemon-1.0.15.jar:\
 $CPHOME/commons-io-2.4.jar:\
 $CPHOME/jamod-1.5.1-therealchalz.jar:\
+$CPHOME/jep-2.4.1.jar:\
 $CPHOME/jsch-0.1.53.jar:\
 $CPHOME/jssc-2.9.5-experimental.jar:\
 $CPHOME/log4j-api-2.5.jar:\
 $CPHOME/log4j-core-2.5.jar:\
 $CPHOME/mysql-connector-java-5.1.38-bin.jar:\
-$CPHOME/softlogger-1.4.0.jar:
+$CPHOME/softlogger-1.4.2.jar:
 
 case "$1" in
         start)

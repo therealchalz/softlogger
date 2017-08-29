@@ -595,16 +595,29 @@ public class Device implements Schedulable, XMLConfigurable, OutputableDevice {
 			} else if (getDataLength(response) >= offset+reg.getSize() && reg.getSize() == 2) {
 				//32-bit register reading
 				RegisterSizeType sizeType = reg.getSizeType();
+				boolean bytesReversed = reg.getReverseBytes();
 				float val = 0;
 				switch (sizeType) {
 				case SIGNED:
-					val = (int)(((ReadInputRegistersResponse)response).getRegister(offset).getValue() << 16) + ((ReadInputRegistersResponse)response).getRegister(offset+1).getValue();
+					if (bytesReversed) {
+						val = (int)(((ReadInputRegistersResponse)response).getRegister(offset).getValue() + (((ReadInputRegistersResponse)response).getRegister(offset+1).getValue() << 16));
+					} else {
+						val = (int)(((ReadInputRegistersResponse)response).getRegister(offset).getValue() << 16) + ((ReadInputRegistersResponse)response).getRegister(offset+1).getValue();
+					}
 					break;
 				case UNSIGNED:
-					val = (long)(((ReadInputRegistersResponse)response).getRegister(offset).getValue() << 16) + ((ReadInputRegistersResponse)response).getRegister(offset+1).getValue();
+					if (bytesReversed) {
+						val = (long)(((ReadInputRegistersResponse)response).getRegister(offset).getValue() + (((ReadInputRegistersResponse)response).getRegister(offset+1).getValue() << 16));
+					} else {
+						val = (long)(((ReadInputRegistersResponse)response).getRegister(offset).getValue() << 16) + ((ReadInputRegistersResponse)response).getRegister(offset+1).getValue();
+					}
 					break;
 				case FLOAT:
-					val = Float.intBitsToFloat((((ReadInputRegistersResponse)response).getRegister(offset).getValue() << 16) + ((ReadInputRegistersResponse)response).getRegister(offset+1).getValue());
+					if (bytesReversed) {
+						val = Float.intBitsToFloat(((ReadInputRegistersResponse)response).getRegister(offset).getValue() + (((ReadInputRegistersResponse)response).getRegister(offset+1).getValue() << 16));
+					} else {
+						val = Float.intBitsToFloat((((ReadInputRegistersResponse)response).getRegister(offset).getValue() << 16) + ((ReadInputRegistersResponse)response).getRegister(offset+1).getValue());
+					}
 					break;
 				}
 				//log.info("Registers 1: "+((ReadInputRegistersResponse)response).getRegister(offset).getValue()+" Register 2: "+((ReadInputRegistersResponse)response).getRegister(offset+1).getValue()+" new Value: "+val);
@@ -649,16 +662,29 @@ public class Device implements Schedulable, XMLConfigurable, OutputableDevice {
 			} else if (getDataLength(response) >= offset+reg.getSize() && reg.getSize() == 2) {
 				//32-bit register reading
 				RegisterSizeType sizeType = reg.getSizeType();
+				boolean bytesReversed = reg.getReverseBytes();
 				float val = 0;
 				switch (sizeType) {
 				case SIGNED:
-					val = (int)(((ReadMultipleRegistersResponse)response).getRegister(offset).getValue() << 16) + ((ReadMultipleRegistersResponse)response).getRegister(offset+1).getValue();
+					if (bytesReversed) {
+						val = (int)(((ReadMultipleRegistersResponse)response).getRegister(offset).getValue() + (((ReadMultipleRegistersResponse)response).getRegister(offset+1).getValue() << 16));
+					} else {
+						val = (int)(((ReadMultipleRegistersResponse)response).getRegister(offset).getValue() << 16) + ((ReadMultipleRegistersResponse)response).getRegister(offset+1).getValue();
+					}
 					break;
 				case UNSIGNED:
-					val = (long)(((ReadMultipleRegistersResponse)response).getRegister(offset).getValue() << 16) + ((ReadMultipleRegistersResponse)response).getRegister(offset+1).getValue();
+					if (bytesReversed) {
+						val = (long)(((ReadMultipleRegistersResponse)response).getRegister(offset).getValue() + (((ReadMultipleRegistersResponse)response).getRegister(offset+1).getValue() << 16));
+					} else {
+						val = (long)(((ReadMultipleRegistersResponse)response).getRegister(offset).getValue() << 16) + ((ReadMultipleRegistersResponse)response).getRegister(offset+1).getValue();
+					}
 					break;
 				case FLOAT:
-					val = Float.intBitsToFloat((((ReadMultipleRegistersResponse)response).getRegister(offset).getValue() << 16) + ((ReadMultipleRegistersResponse)response).getRegister(offset+1).getValue());
+					if (bytesReversed) {
+						val = Float.intBitsToFloat(((ReadMultipleRegistersResponse)response).getRegister(offset).getValue() + (((ReadMultipleRegistersResponse)response).getRegister(offset+1).getValue() << 16));
+					} else {
+						val = Float.intBitsToFloat((((ReadMultipleRegistersResponse)response).getRegister(offset).getValue() << 16) + ((ReadMultipleRegistersResponse)response).getRegister(offset+1).getValue());
+					}
 					break;
 				}
 				//log.info("Registers 1: "+((ReadMultipleRegistersResponse)response).getRegister(offset).getValue()+" Register 2: "+((ReadMultipleRegistersResponse)response).getRegister(offset+1).getValue()+" new Value: "+val);

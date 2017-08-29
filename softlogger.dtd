@@ -55,6 +55,7 @@
 <!ELEMENT registerAddress (#PCDATA)>
 <!ELEMENT size (#PCDATA)>
 <!ATTLIST size type (s|u|f|int|uint|float|signed|unsigned) "unsigned">
+<!ATTLIST size reverse (t|true|f|false) "false">
 <!ELEMENT value (#PCDATA)>
 
 <!ELEMENT dataRegister (fieldName,scanRate?,registerAddress,size?,dataFunction?,guid)>

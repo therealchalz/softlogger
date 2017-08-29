@@ -9,7 +9,7 @@ JAROUTDIR=/usr/share/java/
 
 
 JARINDIR=lib/
-JARS="brootils-1.2.1.jar commons-daemon-1.0.15.jar commons-io-2.4.jar jamod-1.5.1-therealchalz.jar jsch-0.1.53.jar jssc-2.9.5-experimental.jar log4j-api-2.5.jar log4j-core-2.5.jar mysql-connector-java-5.1.38-bin.jar softlogger-1.4.0.jar"
+JARS="brootils-1.2.1.jar commons-daemon-1.0.15.jar commons-io-2.4.jar jamod-1.5.1-therealchalz.jar jep-2.4.1.jar jsch-0.1.53.jar jssc-2.9.5-experimental.jar log4j-api-2.5.jar log4j-core-2.5.jar mysql-connector-java-5.1.38-bin.jar softlogger-1.4.2.jar"
 
 COREFILES="LICENSE.txt README.txt softlogger.dtd softlogger.init softlogger.xml softlogger-log4j2.xml"
 

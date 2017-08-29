@@ -1,5 +1,6 @@
 *.class
 *.csv
 *.log
+.settings/com.wdev91.eclipse.copyright.xml
 *~
 /bin/

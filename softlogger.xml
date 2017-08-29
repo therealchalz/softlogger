@@ -20,329 +20,277 @@
 -->
 <!DOCTYPE softlogger SYSTEM "softlogger.dtd">
 <softlogger>
-	<name>Test Loggerr</name>
+	<name>Sample</name>
 	<defaultScanRate>1000</defaultScanRate>
 	<channel>
 		<serial>
 			<comport>/dev/ttyUSB0</comport>
-			<baud>9600</baud>
+			<baud>19200</baud>
 		</serial>
 		<device>
 			<unitId>1</unitId>
-			<description>DSI</description>
+			<description>Enviroboard</description>
 			<retryInterval>5000</retryInterval>
 			<maxRetryInterval>5000</maxRetryInterval>
-<!--
+
 			<outputModule class="ca.brood.softlogger.dataoutput.DebugOutputModule">
 				<configValue name="logIntervalSeconds">5</configValue>
 			</outputModule>
--->
 			<outputModule class="ca.brood.softlogger.dataoutput.CSVOutputModule">
 				<configValue name="logIntervalSeconds">5</configValue>
 				<configValue name="newFilePeriodMinutes">1</configValue>
 				<configValue name="csvSubdirectory">csv</configValue>
-				<configValue name="completedFileDirectory">csv/completed</configValue>
+				<configValue name="completedFileDirectory">/persistent/softlogger/csv/</configValue>
 			</outputModule>
-<!--
-			<outputModule class="ca.brood.softlogger.dataoutput.DBOutputModule">
-				<configValue name="logIntervalSeconds">1</configValue>
-				<configValue name="dbUser">softie</configValue>
-				<configValue name="dbPassword">password</configValue>
-				<configValue name="dbSchema">softlogger</configValue>
-				<configValue name="dbHost">127.0.0.1</configValue>
-				<configValue name="dbPort">3306</configValue> 
-			</outputModule>
--->
-			<configRegister>
-				<fieldName>Number of Counters</fieldName>
-				<registerAddress>400002</registerAddress>
-				<value>0</value>
-			</configRegister>
-			<configRegister>
-				<fieldName>Number of Sensors</fieldName>
-				<registerAddress>400003</registerAddress>
-				<value>2</value>
-			</configRegister>
-			<configRegister>
-				<fieldName>Number of Digital Inputs</fieldName>
-				<registerAddress>400004</registerAddress>
-				<value>2</value>
-			</configRegister>
-		<!--  Misc Registers -->
+			
 			<dataRegister>
-				<fieldName>Runtime</fieldName>
-				<registerAddress>400005</registerAddress>
-				<guid>Runtime</guid>
+				<fieldName>Runtime - Minutes</fieldName>
+				<registerAddress>300001</registerAddress>
+				<guid>Unknown</guid>
 			</dataRegister>
 			<dataRegister>
-				<fieldName>Board Temperature</fieldName>
-				<registerAddress>400006</registerAddress>
-				<guid>Board_Temp</guid>
+				<fieldName>Runtime - Days</fieldName>
+				<registerAddress>300002</registerAddress>
+				<guid>Unknown</guid>
 			</dataRegister>
 			<dataRegister>
 				<fieldName>Reset Reason</fieldName>
-				<registerAddress>400055</registerAddress>
-				<guid>Reset_Reason</guid>
+				<registerAddress>300003</registerAddress>
+				<guid>Unknown</guid>
 			</dataRegister>
 			<dataRegister>
-				<fieldName>Firmware Version Major</fieldName>
-				<registerAddress>400058</registerAddress>
-				<guid>FW_Major</guid>
+				<fieldName>Firmware Major</fieldName>
+				<registerAddress>300004</registerAddress>
+				<guid>Unknown</guid>
 			</dataRegister>
 			<dataRegister>
-				<fieldName>Firmware Version Minor</fieldName>
-				<registerAddress>400059</registerAddress>
-				<guid>FW_Minor</guid>
+				<fieldName>Firmware Minor</fieldName>
+				<registerAddress>300005</registerAddress>
+				<guid>Unknown</guid>
 			</dataRegister>
 			<dataRegister>
-				<fieldName>Firmware Version Revision</fieldName>
-				<registerAddress>400060</registerAddress>
-				<guid>FW_Rev</guid>
-			</dataRegister>
-		 <!-- Resistance Registers -->
-			<dataRegister>
-				<fieldName>Resistance 1</fieldName>
-				<registerAddress>400007</registerAddress>
-				<guid>R1</guid>
+				<fieldName>Firmware Revision</fieldName>
+				<registerAddress>300006</registerAddress>
+				<guid>Unknown</guid>
 			</dataRegister>
 			<dataRegister>
-				<fieldName>Resistance 2</fieldName>
-				<registerAddress>400008</registerAddress>
-				<guid>R2</guid>
+				<fieldName>Reset Count</fieldName>
+				<registerAddress>400001</registerAddress>
+				<guid>Unknown</guid>
+			</dataRegister>
+
+			<dataRegister>
+				<fieldName>Pipe Inlet (C)</fieldName>
+				<registerAddress>300101</registerAddress>
+				<dataFunction class="ca.brood.softlogger.datafunction.LookupTableDataFunction">lut/192502LETA01-Ideal.lut</dataFunction>
+				<guid>D25STC00303</guid>
 			</dataRegister>
 			<dataRegister>
-				<fieldName>Resistance 3</fieldName>
-				<registerAddress>400009</registerAddress>
-				<guid>R3</guid>
+				<fieldName>Spare Indoor Temp T1 (C)</fieldName>
+				<registerAddress>300102</registerAddress>
+				<dataFunction class="ca.brood.softlogger.datafunction.LookupTableDataFunction">lut/192502LETA01-Ideal.lut</dataFunction>
+				<guid>D25STC00308</guid>
 			</dataRegister>
 			<dataRegister>
-				<fieldName>Resistance 4</fieldName>
-				<registerAddress>400010</registerAddress>
-				<guid>R4</guid>
+				<fieldName>Pipe A Outlet (C)</fieldName>
+				<registerAddress>300103</registerAddress>
+				<dataFunction class="ca.brood.softlogger.datafunction.LookupTableDataFunction">lut/192502LETA01-Ideal.lut</dataFunction>
+				<guid>D25STC00304</guid>
 			</dataRegister>
 			<dataRegister>
-				<fieldName>Resistance 5</fieldName>
-				<registerAddress>400011</registerAddress>
-				<guid>R5</guid>
+				<fieldName>Pipe B Outlet (C)</fieldName>
+				<registerAddress>300104</registerAddress>
+				<dataFunction class="ca.brood.softlogger.datafunction.LookupTableDataFunction">lut/192502LETA01-Ideal.lut</dataFunction>
+				<guid>D25STC00305</guid>
 			</dataRegister>
 			<dataRegister>
-				<fieldName>Resistance 6</fieldName>
-				<registerAddress>400012</registerAddress>
-				<guid>R6</guid>
+				<fieldName>Underground Bed A (C)</fieldName>
+				<registerAddress>300105</registerAddress>
+				<dataFunction class="ca.brood.softlogger.datafunction.LookupTableDataFunction">lut/192502LETA01-Ideal.lut</dataFunction>
+				<guid>D25STC00306</guid>
 			</dataRegister>
 			<dataRegister>
-				<fieldName>Resistance 7</fieldName>
-				<registerAddress>400013</registerAddress>
-				<guid>R7</guid>
+				<fieldName>Underground Bed B (C)</fieldName>
+				<registerAddress>300106</registerAddress>
+				<dataFunction class="ca.brood.softlogger.datafunction.LookupTableDataFunction">lut/192502LETA01-Ideal.lut</dataFunction>
+				<guid>D25STC00307</guid>
 			</dataRegister>
 			<dataRegister>
-				<fieldName>Resistance 8</fieldName>
-				<registerAddress>400014</registerAddress>
-				<guid>R8</guid>
+				<fieldName>Bed A Surface (C)</fieldName>
+				<registerAddress>300107</registerAddress>
+				<dataFunction class="ca.brood.softlogger.datafunction.LookupTableDataFunction">lut/192502LETA01-Ideal.lut</dataFunction>
+				<guid>D25STC00310</guid>
 			</dataRegister>
 			<dataRegister>
-				<fieldName>Resistance 9</fieldName>
-				<registerAddress>400015</registerAddress>
-				<guid>R9</guid>
+				<fieldName>Bed B Surface (C)</fieldName>
+				<registerAddress>300108</registerAddress>
+				<dataFunction class="ca.brood.softlogger.datafunction.LookupTableDataFunction">lut/192502LETA01-Ideal.lut</dataFunction>
+				<guid>D25STC00309</guid>
 			</dataRegister>
 			<dataRegister>
-				<fieldName>Resistance 10</fieldName>
-				<registerAddress>400016</registerAddress>
-				<guid>R10</guid>
+				<fieldName>Indoor Air (C)</fieldName>
+				<registerAddress>300109</registerAddress>
+				<dataFunction class="ca.brood.softlogger.datafunction.LookupTableDataFunction">lut/192502LETA01-Ideal.lut</dataFunction>
+				<guid>D25STC00311</guid>
 			</dataRegister>
 			<dataRegister>
-				<fieldName>Resistance 11</fieldName>
-				<registerAddress>400017</registerAddress>
-				<guid>R11</guid>
+				<fieldName>Outdoor Air (C)</fieldName>
+				<registerAddress>300110</registerAddress>
+				<dataFunction class="ca.brood.softlogger.datafunction.LookupTableDataFunction">lut/192502LETA01-Ideal.lut</dataFunction>
+				<guid>D25STC00312</guid>
+			</dataRegister>
+
+			<dataRegister>
+				<fieldName>Indoor Air (%RH)</fieldName>
+				<registerAddress>300201</registerAddress>
+				<dataFunction class="ca.brood.softlogger.datafunction.LookupTableDataFunction">lut/HIH5031.lut</dataFunction>
+				<guid>D25SRH00136</guid>
 			</dataRegister>
 			<dataRegister>
-				<fieldName>Resistance 12</fieldName>
-				<registerAddress>400018</registerAddress>
-				<guid>R12</guid>
+				<fieldName>Outdoor Air (%RH)</fieldName>
+				<registerAddress>300202</registerAddress>
+				<dataFunction class="ca.brood.softlogger.datafunction.LookupTableDataFunction">lut/HIH5031.lut</dataFunction>
+				<guid>D25SRH00137</guid>
 			</dataRegister>
 			<dataRegister>
-				<fieldName>Resistance 13</fieldName>
-				<registerAddress>400019</registerAddress>
-				<guid>R13</guid>
-			</dataRegister>
-			<dataRegister>
-				<fieldName>Resistance 14</fieldName>
-				<registerAddress>400020</registerAddress>
-				<guid>R14</guid>
-			</dataRegister>
-			<dataRegister>
-				<fieldName>Resistance 15</fieldName>
-				<registerAddress>400021</registerAddress>
-				<guid>R15</guid>
-			</dataRegister>
-			<dataRegister>
-				<fieldName>Resistance 16</fieldName>
-				<registerAddress>400022</registerAddress>
-				<guid>R16</guid>
-			</dataRegister>
-		<!-- Sensor Registers -->
-			<dataRegister>
-				<fieldName>Sensor 1</fieldName>
-				<registerAddress>400023</registerAddress>
-				<guid>S1</guid>
-			</dataRegister>
-			<dataRegister>
-				<fieldName>Sensor 2</fieldName>
-				<registerAddress>400024</registerAddress>
-				<guid>S2</guid>
-			</dataRegister>
-			<dataRegister>
-				<fieldName>Sensor 3</fieldName>
-				<registerAddress>400025</registerAddress>
-				<guid>S3</guid>
-			</dataRegister>
-			<dataRegister>
-				<fieldName>Sensor 4</fieldName>
-				<registerAddress>400026</registerAddress>
-				<guid>S4</guid>
-			</dataRegister>
-			<dataRegister>
-				<fieldName>Sensor 5</fieldName>
-				<registerAddress>400027</registerAddress>
-				<guid>S5</guid>
-			</dataRegister>
-			<dataRegister>
-				<fieldName>Sensor 6</fieldName>
-				<registerAddress>400028</registerAddress>
-				<guid>S6</guid>
-			</dataRegister>
-			<dataRegister>
-				<fieldName>Sensor 7</fieldName>
-				<registerAddress>400029</registerAddress>
-				<guid>S7</guid>
-			</dataRegister>
-			<dataRegister>
-				<fieldName>Sensor 8</fieldName>
-				<registerAddress>400030</registerAddress>
-				<guid>S8</guid>
-			</dataRegister>
-			<dataRegister>
-				<fieldName>Sensor 9</fieldName>
-				<registerAddress>400031</registerAddress>
-				<guid>S9</guid>
-			</dataRegister>
-			<dataRegister>
-				<fieldName>Sensor 10</fieldName>
-				<registerAddress>400032</registerAddress>
-				<guid>S10</guid>
-			</dataRegister>
-			<dataRegister>
-				<fieldName>Sensor 11</fieldName>
-				<registerAddress>400033</registerAddress>
-				<guid>S11</guid>
-			</dataRegister>
-			<dataRegister>
-				<fieldName>Sensor 12</fieldName>
-				<registerAddress>400034</registerAddress>
-				<guid>S12</guid>
-			</dataRegister>
-			<dataRegister>
-				<fieldName>Sensor 13</fieldName>
-				<registerAddress>400035</registerAddress>
-				<guid>S13</guid>
-			</dataRegister>
-			<dataRegister>
-				<fieldName>Sensor 14</fieldName>
-				<registerAddress>400036</registerAddress>
-				<guid>S14</guid>
-			</dataRegister>
-			<dataRegister>
-				<fieldName>Sensor 15</fieldName>
-				<registerAddress>400037</registerAddress>
-				<guid>S15</guid>
-			</dataRegister>
-			<dataRegister>
-				<fieldName>Sensor 16</fieldName>
-				<registerAddress>400038</registerAddress>
-				<guid>S16</guid>
-			</dataRegister>
-		<!-- Counter registers -->
-			<dataRegister>
-				<fieldName>Counter 1</fieldName>
-				<registerAddress>400039</registerAddress>
-				<guid>C1</guid>
-			</dataRegister>
-			<dataRegister>
-				<fieldName>Counter 2</fieldName>
-				<registerAddress>400040</registerAddress>
-				<guid>C2</guid>
-			</dataRegister>
-			<dataRegister>
-				<fieldName>Counter 3</fieldName>
-				<registerAddress>400041</registerAddress>
-				<guid>C3</guid>
-			</dataRegister>
-			<dataRegister>
-				<fieldName>Counter 4</fieldName>
-				<registerAddress>400042</registerAddress>
-				<guid>C4</guid>
-			</dataRegister>
-			<dataRegister>
-				<fieldName>Counter 5</fieldName>
-				<registerAddress>400043</registerAddress>
-				<guid>C5</guid>
-			</dataRegister>
-			<dataRegister>
-				<fieldName>Counter 6</fieldName>
-				<registerAddress>400044</registerAddress>
-				<guid>C6</guid>
-			</dataRegister>
-			<dataRegister>
-				<fieldName>Counter 7</fieldName>
-				<registerAddress>400045</registerAddress>
-				<guid>C7</guid>
-			</dataRegister>
-			<dataRegister>
-				<fieldName>Counter 8</fieldName>
-				<registerAddress>400046</registerAddress>
-				<guid>C8</guid>
-			</dataRegister>
-		<!-- Digital registers -->
-			<dataRegister>
-				<fieldName>Digital 1</fieldName>
-				<registerAddress>400047</registerAddress>
-				<guid>D1</guid>
-			</dataRegister>
-			<dataRegister>
-				<fieldName>Digital 2</fieldName>
-				<registerAddress>400048</registerAddress>
-				<guid>D2</guid>
-			</dataRegister>
-			<dataRegister>
-				<fieldName>Digital 3</fieldName>
-				<registerAddress>400049</registerAddress>
-				<guid>D3</guid>
-			</dataRegister>
-			<dataRegister>
-				<fieldName>Digital 4</fieldName>
-				<registerAddress>400050</registerAddress>
-				<guid>D4</guid>
-			</dataRegister>
-			<dataRegister>
-				<fieldName>Digital 5</fieldName>
-				<registerAddress>400051</registerAddress>
-				<guid>D5</guid>
-			</dataRegister>
-			<dataRegister>
-				<fieldName>Digital 6</fieldName>
-				<registerAddress>400052</registerAddress>
-				<guid>D6</guid>
-			</dataRegister>
-			<dataRegister>
-				<fieldName>Digital 7</fieldName>
-				<registerAddress>400053</registerAddress>
-				<guid>D7</guid>
-			</dataRegister>
-			<dataRegister>
-				<fieldName>Digital 8</fieldName>
-				<registerAddress>400054</registerAddress>
-				<guid>D8</guid>
+				<fieldName>Insolation (W/m^2)</fieldName>
+				<registerAddress>300203</registerAddress>
+				<dataFunction class="ca.brood.softlogger.datafunction.LookupTableDataFunction">lut/SP-215.lut</dataFunction>
+				<guid>D25SSR00008</guid>
 			</dataRegister>
 		</device>
+		<!--
+		<device>
+			<unitId>2</unitId>
+			<description>MAFK</description>
+			<retryInterval>5000</retryInterval>
+			<maxRetryInterval>5000</maxRetryInterval>
+
+			<outputModule class="ca.brood.softlogger.dataoutput.DebugOutputModule">
+				<configValue name="logIntervalSeconds">5</configValue>
+			</outputModule>
+			<outputModule class="ca.brood.softlogger.dataoutput.CSVOutputModule">
+				<configValue name="logIntervalSeconds">5</configValue>
+				<configValue name="newFilePeriodMinutes">1</configValue>
+				<configValue name="csvSubdirectory">csv</configValue>
+				<configValue name="completedFileDirectory">/persistent/softlogger/csv/</configValue>
+			</outputModule>
+			
+			<dataRegister>
+				<fieldName>Runtime - Minutes</fieldName>
+				<registerAddress>300001</registerAddress>
+				<guid>Unknown</guid>
+			</dataRegister>
+			<dataRegister>
+				<fieldName>Runtime - Days</fieldName>
+				<registerAddress>300002</registerAddress>
+				<guid>Unknown</guid>
+			</dataRegister>
+			<dataRegister>
+				<fieldName>Reset Reason</fieldName>
+				<registerAddress>300003</registerAddress>
+				<guid>Unknown</guid>
+			</dataRegister>
+			<dataRegister>
+				<fieldName>Firmware Major</fieldName>
+				<registerAddress>300004</registerAddress>
+				<guid>Unknown</guid>
+			</dataRegister>
+			<dataRegister>
+				<fieldName>Firmware Minor</fieldName>
+				<registerAddress>300005</registerAddress>
+				<guid>Unknown</guid>
+			</dataRegister>
+			<dataRegister>
+				<fieldName>Firmware Revision</fieldName>
+				<registerAddress>300006</registerAddress>
+				<guid>Unknown</guid>
+			</dataRegister>
+			<dataRegister>
+				<fieldName>Reset Count</fieldName>
+				<registerAddress>400001</registerAddress>
+				<guid>Unknown</guid>
+			</dataRegister>
+
+			<dataRegister>
+				<fieldName>AD7705 Raw Measurement 1</fieldName>
+				<registerAddress>300101</registerAddress>
+				<guid>Unknown</guid>
+			</dataRegister>
+			<dataRegister>
+				<fieldName>AD7705 Raw Measurement 2</fieldName>
+				<registerAddress>300102</registerAddress>
+				<guid>Unknown</guid>
+			</dataRegister>
+
+			<dataRegister>
+				<fieldName>MS5607 Pressure</fieldName>
+				<registerAddress>300301</registerAddress>
+				<size type="float">2</size>
+				<guid>Unknown</guid>
+			</dataRegister>
+			<dataRegister>
+				<fieldName>MS5607 Temperature</fieldName>
+				<registerAddress>300303</registerAddress>
+				<size type="float">2</size>
+				<guid>Unknown</guid>
+			</dataRegister>
+
+			<dataRegister>
+				<fieldName>SDP610 Differential Pressure</fieldName>
+				<registerAddress>300401</registerAddress>
+				<size type="float">2</size>
+				<guid>Unknown</guid>
+			</dataRegister>
+
+			<dataRegister>
+				<fieldName>Volumetric Flowrate (m^3/s)</fieldName>
+				<registerAddress>300501</registerAddress>
+				<size type="float">2</size>
+				<guid>D25SFLS00021</guid>
+			</dataRegister>
+			<dataRegister>
+				<fieldName>Mass Flowrate (Kg/s)</fieldName>
+				<registerAddress>300503</registerAddress>
+				<size type="float">2</size>
+				<guid>D25SFKGS00008</guid>
+			</dataRegister>
+			<dataRegister>
+				<fieldName>Air Density (Kg/m^3)</fieldName>
+				<registerAddress>300505</registerAddress>
+				<size type="float">2</size>
+				<guid>Unknown</guid>
+			</dataRegister>
+
+			<configRegister>
+				<fieldName>SDP610 Differential Pressure Divider</fieldName>
+				<registerAddress>400401</registerAddress>
+				<value>1200</value>
+			</configRegister>
+
+			<configRegister>
+				<fieldName>System Mode</fieldName>
+				<registerAddress>400501</registerAddress>
+				<value>1</value>
+			</configRegister>
+			<configRegister>
+				<fieldName>Pipe Diameter (mm)</fieldName>
+				<registerAddress>400502</registerAddress>
+				<value>101</value>
+			</configRegister>
+			<configRegister>
+				<fieldName>Orifice Diameter (mm)</fieldName>
+				<registerAddress>400503</registerAddress>
+				<value>84</value>
+			</configRegister>
+
+			<configRegister>
+				<fieldName>Coefficient of Discharge</fieldName>
+				<registerAddress>400551</registerAddress>
+				<size type="float">2</size>
+				<value>0.65</value>
+			</configRegister>
+		</device>
+		-->
 	</channel>
 </softlogger>

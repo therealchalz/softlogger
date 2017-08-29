@@ -10,7 +10,7 @@
 			</PatternLayout>
 			<Policies>
 				<TimeBasedTriggeringPolicy />
-				<SizeBasedTriggeringPolicy size="4M"/>
+				<SizeBasedTriggeringPolicy size="64K"/>
 			</Policies>
 		</RollingRandomAccessFile>
 	</Appenders>
